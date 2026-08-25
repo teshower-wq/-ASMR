@@ -267,7 +267,7 @@
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
   </div>
 
-  <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" step="0.1">
+  <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100" step="0.1">
   <div class="time-box">
     <span id="time-current">00:00</span>
     <span id="time-duration">00:00</span>
@@ -321,6 +321,8 @@
   const canvas = document.getElementById("pip-canvas");
   const ctx = canvas.getContext("2d");
   const pipVideo = document.getElementById("pip-video");
+  const seekSlider = document.getElementById("seek-slider");
+  const volumeSlider = document.getElementById("volume-slider");
 
   const request = indexedDB.open("ASMR_Categorized_DB_V4", 1);
   request.onupgradeneeded = (e) => {
@@ -574,6 +576,43 @@
     };
   }
 
+  async function deleteTrack(trackId) {
+    if (!confirm("確定要刪除這個篇章嗎？")) return;
+    const tx = db.transaction(["tracks"], "readwrite");
+    tx.objectStore("tracks").delete(trackId);
+    tx.oncomplete = () => {
+      if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
+        audio.pause();
+        audio.src = "";
+        currentIndex = -1;
+        minimizePlayer();
+      }
+      loadData();
+    };
+  }
+
+  async function deleteAlbum(albumId) {
+    if (!confirm("確定要刪除此分區及其底下所有篇章嗎？")) return;
+    const tx = db.transaction(["albums", "tracks"], "readwrite");
+    tx.objectStore("albums").delete(albumId);
+    
+    const trackStore = tx.objectStore("tracks");
+    trackStore.getAll().onsuccess = (e) => {
+      const allTracks = e.target.result;
+      allTracks.forEach(t => {
+        if (t.albumId === albumId) trackStore.delete(t.id);
+      });
+    };
+
+    tx.oncomplete = () => {
+      audio.pause();
+      audio.src = "";
+      currentIndex = -1;
+      minimizePlayer();
+      loadData();
+    };
+  }
+
   function playTrack(albumId, trackId) {
     currentPlayingAlbumId = albumId;
     const album = albums.find(a => a.id === albumId);
@@ -608,7 +647,6 @@
       coverImg.style.display = "block";
       coverVideo.style.display = "none";
 
-      // 預先載入 Image 物件供 Canvas 繪製 PiP 懸浮窗使用
       const imgObj = new Image();
       imgObj.onload = () => { cachedCoverImage = imgObj; };
       imgObj.src = url;
@@ -719,7 +757,7 @@
     document.getElementById("time-current").innerText = formatTime(audio.currentTime);
     document.getElementById("time-duration").innerText = formatTime(audio.duration || 0);
     if (audio.duration) {
-      document.getElementById("seek-slider").value = (audio.currentTime / audio.duration) * 100;
+      seekSlider.value = (audio.currentTime / audio.duration) * 100;
     }
 
     const lrcBox = document.getElementById("lrc-box");
@@ -742,15 +780,46 @@
     lrcBox.innerText = currentText;
     miniLrc.innerText = currentText;
 
-    // 即時更新 Canvas 畫面給 PiP 懸浮窗讀取
     drawPiPCanvas(currentText);
   };
+
+  audio.onended = () => {
+    nextTrack();
+  };
+
+  seekSlider.oninput = () => {
+    if (audio.duration) {
+      audio.currentTime = (seekSlider.value / 100) * audio.duration;
+    }
+  };
+
+  volumeSlider.oninput = () => {
+    audio.volume = volumeSlider.value;
+    if (audio.volume > 0) lastVolume = audio.volume;
+    updateMuteButtonIcon();
+  };
+
+  function toggleMute() {
+    if (audio.volume > 0) {
+      lastVolume = audio.volume;
+      audio.volume = 0;
+      volumeSlider.value = 0;
+    } else {
+      audio.volume = lastVolume || 1;
+      volumeSlider.value = audio.volume;
+    }
+    updateMuteButtonIcon();
+  }
+
+  function updateMuteButtonIcon() {
+    const btnMute = document.getElementById("btn-mute");
+    btnMute.innerText = (audio.volume === 0) ? "🔇" : "🔈";
+  }
 
   function drawPiPCanvas(lyricText) {
     ctx.fillStyle = "#0b0b0e";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 繪製封面縮圖
     if (cachedCoverImage) {
       ctx.drawImage(cachedCoverImage, 15, 15, 170, 170);
     } else {
@@ -761,18 +830,15 @@
       ctx.fillText("ASMR", 70, 105);
     }
 
-    // 繪製軌跡名稱
     const track = (currentIndex !== -1 && currentTrackList[currentIndex]) ? currentTrackList[currentIndex] : { title: "未選擇篇章" };
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 24px -apple-system, sans-serif";
     ctx.fillText(track.title, 205, 50, 760);
 
-    // 繪製即時動態歌詞
     ctx.fillStyle = "#ff79c6";
     ctx.font = "bold 32px -apple-system, sans-serif";
     ctx.fillText(lyricText, 205, 110, 760);
 
-    // 繪製進度條
     ctx.fillStyle = "rgba(255,255,255,0.2)";
     ctx.fillRect(205, 155, 765, 6);
     if (audio.duration) {
@@ -782,7 +848,6 @@
     }
   }
 
-  // 啟用 iOS 畫面子母畫面 (PiP) 懸浮字幕
   async function enablePiP() {
     if (currentIndex === -1) return alert("請先選擇並播放一個篇章！");
     try {
@@ -822,64 +887,32 @@
     }
   }
 
-  function seekRelative(sec) { audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec)); }
-  function prevTrack() { if (currentIndex > 0) playTrack(currentTrackList[currentIndex - 1].albumId, currentTrackList[currentIndex - 1].id); }
-  function nextTrack() { if (currentIndex < currentTrackList.length - 1) playTrack(currentTrackList[currentIndex + 1].albumId, currentTrackList[currentIndex + 1].id); }
-
-  function deleteAlbum(id) {
-    if (!confirm("確定刪除此分區及底下所有篇章？")) return;
-    const tx = db.transaction(["albums", "tracks"], "readwrite");
-    tx.objectStore("albums").delete(id);
-    tracks.filter(t => t.albumId === id).forEach(t => tx.objectStore("tracks").delete(t.id));
-    tx.oncomplete = () => loadData();
+  function seekRelative(sec) { 
+    audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec)); 
   }
 
-  function deleteTrack(id) {
-    if (!confirm("確定刪除此篇章？")) return;
-    const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").delete(id);
-    tx.oncomplete = () => loadData();
-  }
-
-  document.getElementById("seek-slider").oninput = (e) => { if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration; };
-
-  const volumeSlider = document.getElementById("volume-slider");
-  volumeSlider.oninput = (e) => {
-    audio.volume = e.target.value;
-    audio.muted = (audio.volume === 0);
-    updateMuteUI();
-  };
-
-  function toggleMute() {
-    audio.muted = !audio.muted;
-    if (audio.muted) {
-      lastVolume = audio.volume || 1;
-      volumeSlider.value = 0;
-      audio.volume = 0;
-    } else {
-      audio.volume = lastVolume;
-      volumeSlider.value = lastVolume;
-    }
-    updateMuteUI();
-  }
-
-  function updateMuteUI() {
-    const btnMute = document.getElementById("btn-mute");
-    if (audio.muted || audio.volume === 0) {
-      btnMute.innerText = "🔇";
-    } else {
-      btnMute.innerText = "🔈";
+  function prevTrack() { 
+    if (currentIndex > 0) {
+      playTrack(currentTrackList[currentIndex - 1].albumId, currentTrackList[currentIndex - 1].id); 
     }
   }
 
-  function minimizePlayer() {
-    playerCard.classList.add("minimized");
-    if (audio.src) miniPlayer.classList.remove("hidden");
+  function nextTrack() { 
+    if (currentIndex !== -1 && currentIndex < currentTrackList.length - 1) {
+      playTrack(currentTrackList[currentIndex + 1].albumId, currentTrackList[currentIndex + 1].id); 
+    }
   }
 
   function expandPlayer() {
     playerCard.classList.remove("minimized");
     miniPlayer.classList.add("hidden");
+  }
+
+  function minimizePlayer() {
+    playerCard.classList.add("minimized");
+    if (audio.src) {
+      miniPlayer.classList.remove("hidden");
+    }
   }
 </script>
 </body>
