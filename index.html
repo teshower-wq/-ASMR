@@ -282,11 +282,11 @@
     </div>
     <div class="form-group">
       <label>音訊檔案</label>
-      <input type="file" id="track-audio" accept="audio/*">
+      <input type="file" id="track-audio">
     </div>
     <div class="form-group">
       <label>字幕檔案 (.lrc / .srt / .vtt)</label>
-      <input type="file" id="track-lrc" accept=".lrc,.srt,.vtt,.txt">
+      <input type="file" id="track-lrc">
     </div>
     <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
   </div>
@@ -325,7 +325,7 @@
   <div class="sub-quick-tools">
     <label class="btn-sub-quick">
       📂 匯入 LRC 檔
-      <input type="file" id="quick-lrc-input" accept=".lrc,.srt,.vtt,.txt" style="display:none;" onchange="uploadCurrentTrackLrc(event)">
+      <input type="file" id="quick-lrc-input" style="display:none;" onchange="uploadCurrentTrackLrc(event)">
     </label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
   </div>
@@ -485,7 +485,6 @@
         }
       };
       tx.oncomplete = () => {
-        // 更新記憶體資料
         const t = tracks.find(item => item.id === trackId);
         if (t) t.lrcText = lrcText;
         if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
