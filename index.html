@@ -838,33 +838,6 @@
     ctx.fillStyle = "#ff79c6";
     ctx.font = "bold 32px -apple-system, sans-serif";
     ctx.fillText(lyricText, 205, 110, 760);
-
-    ctx.fillStyle = "rgba(255,255,255,0.2)";
-    ctx.fillRect(205, 155, 765, 6);
-    if (audio.duration) {
-      const progressWidth = (audio.currentTime / audio.duration) * 765;
-      ctx.fillStyle = "#ff79c6";
-      ctx.fillRect(205, 155, progressWidth, 6);
-    }
-  }
-
-  async function enablePiP() {
-    if (currentIndex === -1) return alert("請先選擇並播放一個篇章！");
-    try {
-      if (!pipVideo.srcObject) {
-        const stream = canvas.captureStream(30);
-        pipVideo.srcObject = stream;
-        await pipVideo.play();
-      }
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await pipVideo.requestPictureInPicture();
-      }
-    } catch (err) {
-      console.error(err);
-      alert("您的裝置或瀏覽器不支援子母畫面 (PiP) 功能，或請先點擊網頁任意處互動後再試一次。");
-    }
   }
 
   function formatTime(seconds) {
@@ -875,31 +848,34 @@
   }
 
   function togglePlay() {
-    if (!audio.src) return;
-    if (audio.paused) { 
-      audio.play(); 
-      document.getElementById("btn-play").innerText = "⏸"; 
-      document.getElementById("mini-btn-play").innerText = "⏸"; 
-    } else { 
-      audio.pause(); 
-      document.getElementById("btn-play").innerText = "▶"; 
-      document.getElementById("mini-btn-play").innerText = "▶"; 
+    if (currentIndex === -1) return;
+    if (audio.paused) {
+      audio.play();
+      document.getElementById("btn-play").innerText = "⏸";
+      document.getElementById("mini-btn-play").innerText = "⏸";
+    } else {
+      audio.pause();
+      document.getElementById("btn-play").innerText = "▶";
+      document.getElementById("mini-btn-play").innerText = "▶";
     }
   }
 
-  function seekRelative(sec) { 
-    audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec)); 
+  function seekRelative(sec) {
+    if (currentIndex === -1) return;
+    audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec));
   }
 
-  function prevTrack() { 
+  function prevTrack() {
     if (currentIndex > 0) {
-      playTrack(currentTrackList[currentIndex - 1].albumId, currentTrackList[currentIndex - 1].id); 
+      currentIndex--;
+      playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
     }
   }
 
-  function nextTrack() { 
-    if (currentIndex !== -1 && currentIndex < currentTrackList.length - 1) {
-      playTrack(currentTrackList[currentIndex + 1].albumId, currentTrackList[currentIndex + 1].id); 
+  function nextTrack() {
+    if (currentIndex < currentTrackList.length - 1) {
+      currentIndex++;
+      playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
     }
   }
 
@@ -910,10 +886,40 @@
 
   function minimizePlayer() {
     playerCard.classList.add("minimized");
-    if (audio.src) {
-      miniPlayer.classList.remove("hidden");
+    miniPlayer.classList.remove("hidden");
+  }
+
+  async function enablePiP() {
+    try {
+      if (!document.pictureInPictureEnabled) {
+        return alert("您的瀏覽器不支援桌面懸浮 (Picture-in-Picture) 功能！");
+      }
+      const stream = canvas.captureStream(30);
+      pipVideo.srcObject = stream;
+      await pipVideo.play();
+      await pipVideo.requestPictureInPicture();
+    } catch (err) {
+      console.error(err);
+      alert("啟動桌面懸浮失敗，請確認是否已允許權限或正在播放音訊。");
     }
   }
+
+  // 支援面板拖曳縮合
+  let startY = 0;
+  let currentY = 0;
+  const handleArea = document.getElementById("drag-handle-area");
+
+  handleArea.addEventListener("touchstart", (e) => {
+    startY = e.touches[0].clientY;
+  });
+
+  handleArea.addEventListener("touchmove", (e) => {
+    currentY = e.touches[0].clientY;
+    let diff = currentY - startY;
+    if (diff > 50) {
+      minimizePlayer();
+    }
+  });
 </script>
 </body>
 </html>
