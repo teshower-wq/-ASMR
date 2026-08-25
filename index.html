@@ -47,7 +47,6 @@
 
     .container { width: 100%; max-width: 480px; z-index: 1; }
 
-    /* 專為 iPhone 畫面優化的 Modal 卡片 */
     .player-card {
       position: fixed;
       bottom: 0; left: 0; right: 0;
@@ -93,7 +92,6 @@
     .album-tag { font-size: 0.78rem; color: var(--text-sub); text-align: center; margin-bottom: 2px; }
     .track-title { font-size: 0.95rem; font-weight: 700; text-align: center; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* 動態字幕區 */
     .lrc-box {
       min-height: 52px;
       display: flex; align-items: center; justify-content: center;
@@ -261,10 +259,8 @@
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
   <div id="track-title" class="track-title">未選擇篇章</div>
   
-  <!-- 字幕顯示區 -->
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
-  <!-- 字幕工具按鈕 -->
   <div class="sub-quick-tools">
     <label class="btn-sub-quick">
       📂 匯入字幕檔
@@ -302,7 +298,7 @@
 
 <canvas id="pip-canvas" width="1200" height="240" style="display:none;"></canvas>
 <video id="pip-video" muted playsinline webkit-playsinline style="display:none;"></video>
-<audio id="main-audio" preload="auto"></audio>
+<audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
   let db;
@@ -313,6 +309,10 @@
   let currentLrc = [];
   let currentPlayingAlbumId = null;
   let lastVolume = 1;
+
+  let audioCtx = null;
+  let audioSource = null;
+  let audioDest = null;
 
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
@@ -338,6 +338,22 @@
     loadData(); 
     startCanvasLoop(); 
   };
+
+  function initAudioContext() {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+        audioSource = audioCtx.createMediaElementSource(audio);
+        audioDest = audioCtx.createMediaStreamDestination();
+        audioSource.connect(audioDest);
+        audioSource.connect(audioCtx.destination);
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks"], "readonly");
@@ -373,7 +389,6 @@
     };
   }
 
-  /* 智慧多重編碼解碼（自動相容 UTF-8, Shift-JIS, UTF-16LE） */
   function readFileTextSmart(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -463,7 +478,6 @@
     }
   }
 
-  /* 檢視並修改當前字幕 */
   async function inspectCurrentTrackLrc() {
     if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
     const track = currentTrackList[currentIndex];
@@ -583,6 +597,7 @@
   }
 
   function playTrack(albumId, trackId) {
+    initAudioContext();
     currentPlayingAlbumId = albumId;
     const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
@@ -634,7 +649,6 @@
     expandPlayer();
   }
 
-  /* 超強通用字幕解析引擎 (支援 LRC / 三段式 / SRT / VTT / 無括號時間 / 純劇本) */
   function parseSubtitles(text, duration) {
     if (!text || !text.trim()) return [];
     const lines = text.split(/\r?\n/);
@@ -665,7 +679,6 @@
         return;
       }
 
-      // 三段式 [hh:mm:ss]
       lrcThreeReg.lastIndex = 0;
       if (lrcThreeReg.test(line)) {
         lrcThreeReg.lastIndex = 0;
@@ -679,7 +692,6 @@
         return;
       }
 
-      // 標準 [mm:ss.ms]
       lrcReg.lastIndex = 0;
       if (lrcReg.test(line)) {
         lrcReg.lastIndex = 0;
@@ -693,7 +705,6 @@
         return;
       }
 
-      // 無括號時間軸 (01:23 台詞)
       const plainMatch = line.match(plainTimeReg);
       if (plainMatch) {
         const min = parseInt(plainMatch[1]), sec = parseInt(plainMatch[2]);
@@ -704,7 +715,6 @@
       }
     });
 
-    // 備援方案：若完全沒有時間標記（純台詞檔），自動按音樂總長度平均分配字幕時間
     if (result.length === 0) {
       const validLines = lines.filter(l => l.trim() && !l.startsWith('[ti:') && !l.startsWith('[ar:') && !l.startsWith('[al:'));
       if (validLines.length > 0) {
@@ -758,6 +768,7 @@
   };
 
   function togglePlay() {
+    initAudioContext();
     if (!audio.src) return;
     if (audio.paused) { 
       audio.play(); 
@@ -851,31 +862,34 @@
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
+  /* 橫幅 (1200x240) 字幕畫布渲染 */
   function renderCanvasFrame() {
-    ctx.fillStyle = "#0b0b0e";
+    ctx.fillStyle = "#050508";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const currentText = document.getElementById("lrc-box").innerText;
-    let fontSize = 60;
-    const fontStack = '-apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif';
+    const currentText = document.getElementById("lrc-box").innerText || "♪";
+
+    let fontSize = 56;
+    const fontStack = '-apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif';
     ctx.font = `bold ${fontSize}px ${fontStack}`;
     
     let textWidth = ctx.measureText(currentText).width;
-    const maxTextWidth = canvas.width - 80;
+    const maxTextWidth = canvas.width - 60;
     if (textWidth > maxTextWidth) {
-      fontSize = Math.max(30, Math.floor(fontSize * (maxTextWidth / textWidth)));
+      fontSize = Math.max(28, Math.floor(fontSize * (maxTextWidth / textWidth)));
       ctx.font = `bold ${fontSize}px ${fontStack}`;
     }
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+
+    ctx.shadowColor = "rgba(255, 121, 198, 0.9)";
+    ctx.shadowBlur = 20;
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 10;
+    ctx.lineWidth = 8;
     ctx.strokeText(currentText, canvas.width / 2, canvas.height / 2);
 
     ctx.fillStyle = "#ff79c6";
-    ctx.shadowColor = "rgba(255, 121, 198, 1.0)";
-    ctx.shadowBlur = 24;
     ctx.fillText(currentText, canvas.width / 2, canvas.height / 2);
   }
 
@@ -889,17 +903,27 @@
 
   async function enablePiP() {
     try {
-      if (!pipVideo.srcObject) {
-        const stream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
-        pipVideo.srcObject = stream;
-      }
-      await pipVideo.play();
+      initAudioContext();
 
-      if (audio.src && audio.paused) {
-        audio.play();
+      if (audio.paused) {
+        await audio.play();
         document.getElementById("btn-play").innerText = "⏸";
         document.getElementById("mini-btn-play").innerText = "⏸";
       }
+
+      const canvasStream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
+      const videoTrack = canvasStream.getVideoTracks()[0];
+      
+      const combinedStream = new MediaStream();
+      if (videoTrack) combinedStream.addTrack(videoTrack);
+
+      if (audioDest && audioDest.stream) {
+        const audioTrack = audioDest.stream.getAudioTracks()[0];
+        if (audioTrack) combinedStream.addTrack(audioTrack);
+      }
+
+      pipVideo.srcObject = combinedStream;
+      await pipVideo.play();
 
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
@@ -908,11 +932,11 @@
       } else if (pipVideo.webkitSetPresentationMode) {
         pipVideo.webkitSetPresentationMode("picture-in-picture");
       } else {
-        alert("您的裝置不支援畫中畫懸浮，請點擊下方播放條看動態字幕！");
+        alert("您的裝置不支援懸浮視窗 (PiP)");
       }
     } catch (e) {
       console.error(e);
-      alert("開啟懸浮字幕失敗，請確保音樂正在播放中再試一次！");
+      alert("開啟懸浮字幕失敗！請確保音樂正在播放中再試一次。");
     }
   }
 </script>
