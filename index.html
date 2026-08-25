@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫</title>
+  <title>ASMR 私人隨身庫 (支援 iOS 懸浮字幕)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -65,7 +65,6 @@
       z-index: 1000;
       transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
       will-change: transform;
-      touch-action: none;
     }
     
     .player-card.minimized { transform: translateY(105%); }
@@ -185,7 +184,6 @@
 <div id="bg-overlay"></div>
 
 <div class="container">
-
   <!-- 1. 作品集總覽 -->
   <div class="glass-card">
     <div class="card-title">📚 作品集分區與選集列表</div>
@@ -231,7 +229,6 @@
     </div>
     <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
   </div>
-
 </div>
 
 <!-- 底部 Mini 播放條 -->
@@ -296,8 +293,9 @@
   </div>
 </div>
 
-<canvas id="pip-canvas" width="1200" height="240" style="display:none;"></canvas>
-<video id="pip-video" muted playsinline webkit-playsinline style="display:none;"></video>
+<!-- iOS 懸浮字幕用的隱藏媒介 -->
+<canvas id="pip-canvas" width="1000" height="200" style="display:none;"></canvas>
+<video id="pip-video" autoplay muted playsinline webkit-playsinline style="display:none;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -309,6 +307,7 @@
   let currentLrc = [];
   let currentPlayingAlbumId = null;
   let lastVolume = 1;
+  let cachedCoverImage = null;
 
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
@@ -323,7 +322,7 @@
   const ctx = canvas.getContext("2d");
   const pipVideo = document.getElementById("pip-video");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V3", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V4", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -332,7 +331,6 @@
   request.onsuccess = (e) => { 
     db = e.target.result; 
     loadData(); 
-    startCanvasLoop(); 
   };
 
   function loadData() {
@@ -603,21 +601,24 @@
       bgVideo.style.display = "none"; bgImg.style.display = "none";
     }
 
-    if (album.coverBlob) {
+    if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
       const url = URL.createObjectURL(album.coverBlob);
-      if (album.coverBlob.type.startsWith('video/')) {
-        coverVideo.src = url; coverVideo.style.display = "block"; coverVideo.play();
-        coverImg.style.display = "none";
-      } else {
-        coverImg.src = url; coverImg.style.display = "block";
-        document.getElementById("mini-thumb").src = url;
-        coverVideo.style.display = "none"; coverVideo.pause();
-      }
+      coverImg.src = url;
+      document.getElementById("mini-thumb").src = url;
+      coverImg.style.display = "block";
+      coverVideo.style.display = "none";
+
+      // 預先載入 Image 物件供 Canvas 繪製 PiP 懸浮窗使用
+      const imgObj = new Image();
+      imgObj.onload = () => { cachedCoverImage = imgObj; };
+      imgObj.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg;
       document.getElementById("mini-thumb").src = defaultImg;
-      coverImg.style.display = "block"; coverVideo.style.display = "none";
+      coverImg.style.display = "block";
+      coverVideo.style.display = "none";
+      cachedCoverImage = null;
     }
 
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
@@ -723,17 +724,13 @@
 
     const lrcBox = document.getElementById("lrc-box");
     const miniLrc = document.getElementById("mini-lrc");
+    let currentText = "♪";
 
     if (!currentTrackList[currentIndex] || !currentTrackList[currentIndex].lrcText) {
-      const defaultTxt = "♪ 無動態字幕 ♪";
-      lrcBox.innerText = defaultTxt;
-      miniLrc.innerText = defaultTxt;
+      currentText = "♪ 無動態字幕 ♪";
     } else if (currentLrc.length === 0) {
-      const defaultTxt = "♪ 字幕解析中或格式為空 ♪";
-      lrcBox.innerText = defaultTxt;
-      miniLrc.innerText = defaultTxt;
+      currentText = "♪ 字幕解析中或格式為空 ♪";
     } else {
-      let currentText = "♪";
       for (let i = 0; i < currentLrc.length; i++) {
         if (audio.currentTime >= currentLrc[i].time) {
           currentText = currentLrc[i].text;
@@ -741,10 +738,69 @@
           break;
         }
       }
-      lrcBox.innerText = currentText;
-      miniLrc.innerText = currentText;
     }
+    lrcBox.innerText = currentText;
+    miniLrc.innerText = currentText;
+
+    // 即時更新 Canvas 畫面給 PiP 懸浮窗讀取
+    drawPiPCanvas(currentText);
   };
+
+  function drawPiPCanvas(lyricText) {
+    ctx.fillStyle = "#0b0b0e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 繪製封面縮圖
+    if (cachedCoverImage) {
+      ctx.drawImage(cachedCoverImage, 15, 15, 170, 170);
+    } else {
+      ctx.fillStyle = "#1a1a22";
+      ctx.fillRect(15, 15, 170, 170);
+      ctx.fillStyle = "#a0a0b2";
+      ctx.font = "bold 20px sans-serif";
+      ctx.fillText("ASMR", 70, 105);
+    }
+
+    // 繪製軌跡名稱
+    const track = (currentIndex !== -1 && currentTrackList[currentIndex]) ? currentTrackList[currentIndex] : { title: "未選擇篇章" };
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 24px -apple-system, sans-serif";
+    ctx.fillText(track.title, 205, 50, 760);
+
+    // 繪製即時動態歌詞
+    ctx.fillStyle = "#ff79c6";
+    ctx.font = "bold 32px -apple-system, sans-serif";
+    ctx.fillText(lyricText, 205, 110, 760);
+
+    // 繪製進度條
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.fillRect(205, 155, 765, 6);
+    if (audio.duration) {
+      const progressWidth = (audio.currentTime / audio.duration) * 765;
+      ctx.fillStyle = "#ff79c6";
+      ctx.fillRect(205, 155, progressWidth, 6);
+    }
+  }
+
+  // 啟用 iOS 畫面子母畫面 (PiP) 懸浮字幕
+  async function enablePiP() {
+    if (currentIndex === -1) return alert("請先選擇並播放一個篇章！");
+    try {
+      if (!pipVideo.srcObject) {
+        const stream = canvas.captureStream(30);
+        pipVideo.srcObject = stream;
+        await pipVideo.play();
+      }
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await pipVideo.requestPictureInPicture();
+      }
+    } catch (err) {
+      console.error(err);
+      alert("您的裝置或瀏覽器不支援子母畫面 (PiP) 功能，或請先點擊網頁任意處互動後再試一次。");
+    }
+  }
 
   function formatTime(seconds) {
     if (isNaN(seconds)) return "00:00";
@@ -824,53 +880,6 @@
   function expandPlayer() {
     playerCard.classList.remove("minimized");
     miniPlayer.classList.add("hidden");
-  }
-
-  let touchStartY = 0;
-  let touchCurrentY = 0;
-  const dragHandleArea = document.getElementById("drag-handle-area");
-
-  dragHandleArea.addEventListener("touchstart", (e) => {
-    touchStartY = e.touches[0].clientY;
-    playerCard.style.transition = "none";
-  }, { passive: true });
-
-  dragHandleArea.addEventListener("touchmove", (e) => {
-    touchCurrentY = e.touches[0].clientY;
-    let deltaY = touchCurrentY - touchStartY;
-    if (deltaY > 0) playerCard.style.transform = `translateY(${deltaY}px)`;
-  }, { passive: true });
-
-  dragHandleArea.addEventListener("touchend", () => {
-    playerCard.style.transition = "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)";
-    let deltaY = touchCurrentY - touchStartY;
-    if (deltaY > 80) minimizePlayer();
-    playerCard.style.transform = "";
-    touchStartY = 0; touchCurrentY = 0;
-  });
-
-  function startCanvasLoop() {
-    // 預留 PiP 畫布繪製迴圈
-  }
-
-  async function enablePiP() {
-    if (!document.pictureInPictureEnabled) {
-      return alert("您的瀏覽器不支援子母畫面 (PiP)。");
-    }
-    try {
-      if (pipVideo.paused) {
-        pipVideo.srcObject = canvas.captureStream(30);
-        await pipVideo.play();
-      }
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await pipVideo.requestPictureInPicture();
-      }
-    } catch (err) {
-      console.error(err);
-      alert("開啟懸浮視窗失敗。");
-    }
   }
 </script>
 </body>
