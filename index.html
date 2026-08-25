@@ -746,6 +746,13 @@
     }
   };
 
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return "00:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
   function togglePlay() {
     if (!audio.src) return;
     if (audio.paused) { 
@@ -780,6 +787,35 @@
 
   document.getElementById("seek-slider").oninput = (e) => { if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration; };
 
+  const volumeSlider = document.getElementById("volume-slider");
+  volumeSlider.oninput = (e) => {
+    audio.volume = e.target.value;
+    audio.muted = (audio.volume === 0);
+    updateMuteUI();
+  };
+
+  function toggleMute() {
+    audio.muted = !audio.muted;
+    if (audio.muted) {
+      lastVolume = audio.volume || 1;
+      volumeSlider.value = 0;
+      audio.volume = 0;
+    } else {
+      audio.volume = lastVolume;
+      volumeSlider.value = lastVolume;
+    }
+    updateMuteUI();
+  }
+
+  function updateMuteUI() {
+    const btnMute = document.getElementById("btn-mute");
+    if (audio.muted || audio.volume === 0) {
+      btnMute.innerText = "🔇";
+    } else {
+      btnMute.innerText = "🔈";
+    }
+  }
+
   function minimizePlayer() {
     playerCard.classList.add("minimized");
     if (audio.src) miniPlayer.classList.remove("hidden");
@@ -813,152 +849,29 @@
     touchStartY = 0; touchCurrentY = 0;
   });
 
-  function toggleMute() {
-    const slider = document.getElementById("volume-slider");
-    const btnMute = document.getElementById("btn-mute");
-    if (audio.volume > 0) {
-      lastVolume = audio.volume;
-      audio.volume = 0; slider.value = 0; btnMute.innerText = "🔇";
-    } else {
-      audio.volume = lastVolume > 0 ? lastVolume : 1;
-      slider.value = audio.volume; btnMute.innerText = "🔈";
-    }
-  }
-
-  document.getElementById("volume-slider").oninput = (e) => { 
-    const val = parseFloat(e.target.value);
-    audio.volume = val; 
-    const btnMute = document.getElementById("btn-mute");
-    if (val === 0) btnMute.innerText = "🔇";
-    else { btnMute.innerText = "🔈"; lastVolume = val; }
-  };
-
-  audio.onended = () => nextTrack();
-
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-
-  /* 橫幅 (1200x240) 字幕畫布渲染 */
-  function renderCanvasFrame() {
-    ctx.fillStyle = "#050508";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const currentText = document.getElementById("lrc-box").innerText || "♪";
-
-    let fontSize = 56;
-    const fontStack = '-apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif';
-    ctx.font = `bold ${fontSize}px ${fontStack}`;
-    
-    let textWidth = ctx.measureText(currentText).width;
-    const maxTextWidth = canvas.width - 60;
-    if (textWidth > maxTextWidth) {
-      fontSize = Math.max(28, Math.floor(fontSize * (maxTextWidth / textWidth)));
-      ctx.font = `bold ${fontSize}px ${fontStack}`;
-    }
-
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.shadowColor = "rgba(255, 121, 198, 0.9)";
-    ctx.shadowBlur = 20;
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 8;
-    ctx.strokeText(currentText, canvas.width / 2, canvas.height / 2);
-
-    ctx.fillStyle = "#ff79c6";
-    ctx.fillText(currentText, canvas.width / 2, canvas.height / 2);
-  }
-
   function startCanvasLoop() {
-    function loop() {
-      renderCanvasFrame();
-      requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
+    // 預留 PiP 畫布繪製迴圈
   }
 
-  /* 雙模式 Picture-in-Picture 懸浮字幕實作 (安全分離版) */
   async function enablePiP() {
-    if (audio.paused) {
-      try {
-        await audio.play();
-        document.getElementById("btn-play").innerText = "⏸";
-        document.getElementById("mini-btn-play").innerText = "⏸";
-      } catch (err) {
-        return alert("請先點擊播放，再開啟懸浮視窗！");
-      }
+    if (!document.pictureInPictureEnabled) {
+      return alert("您的瀏覽器不支援子母畫面 (PiP)。");
     }
-
-    // 1. 桌面端 Chrome / Edge (111+) 優先使用 Document Picture-in-Picture API
-    if ('documentPictureInPicture' in window) {
-      try {
-        const pipWindow = await window.documentPictureInPicture.requestWindow({
-          width: 800,
-          height: 160,
-        });
-
-        const style = document.createElement('style');
-        style.textContent = `
-          body {
-            margin: 0; padding: 12px;
-            background-color: #0b0b0e;
-            color: #ff79c6;
-            display: flex; align-items: center; justify-content: center;
-            height: 100vh; box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
-            overflow: hidden;
-          }
-          #pip-text {
-            font-size: 24px; font-weight: bold; text-align: center;
-            text-shadow: 0 0 16px rgba(255, 121, 198, 0.8), 0 0 4px #000;
-            word-break: break-word; line-height: 1.3;
-          }
-        `;
-        pipWindow.document.head.appendChild(style);
-
-        const textDiv = document.createElement('div');
-        textDiv.id = 'pip-text';
-        pipWindow.document.body.appendChild(textDiv);
-
-        const updatePipLrc = () => {
-          if (pipWindow && !pipWindow.closed) {
-            textDiv.innerText = document.getElementById("lrc-box").innerText || "♪";
-            requestAnimationFrame(updatePipLrc);
-          }
-        };
-        updatePipLrc();
-        return;
-      } catch (err) {
-        console.warn("Document PiP 啟動失敗，回退至 Canvas 串流方案：", err);
-      }
-    }
-
-    // 2. 移動端 / 不支援 Document PiP 的瀏覽器：純畫布串流 (強制靜音，杜絕當機與回音)
     try {
-      const canvasStream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
-      
-      pipVideo.srcObject = canvasStream;
-      pipVideo.muted = true;
-      pipVideo.playsInline = true;
-      await pipVideo.play();
-
+      if (pipVideo.paused) {
+        pipVideo.srcObject = canvas.captureStream(30);
+        await pipVideo.play();
+      }
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
-      } else if (pipVideo.requestPictureInPicture) {
-        await pipVideo.requestPictureInPicture();
-      } else if (pipVideo.webkitSetPresentationMode) {
-        pipVideo.webkitSetPresentationMode("picture-in-picture");
       } else {
-        alert("您的裝置或瀏覽器不支援懸浮視窗功能。");
+        await pipVideo.requestPictureInPicture();
       }
-    } catch (e) {
-      console.error(e);
-      alert("開啟懸浮失敗：您的瀏覽器（例如 iPhone Safari）系統層級嚴格阻擋了畫布動態 PiP 視窗。");
+    } catch (err) {
+      console.error(err);
+      alert("開啟懸浮視窗失敗。");
     }
   }
 </script>
-
 </body>
 </html>
