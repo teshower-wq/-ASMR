@@ -310,10 +310,6 @@
   let currentPlayingAlbumId = null;
   let lastVolume = 1;
 
-  let audioCtx = null;
-  let audioSource = null;
-  let audioDest = null;
-
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
@@ -327,7 +323,7 @@
   const ctx = canvas.getContext("2d");
   const pipVideo = document.getElementById("pip-video");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V2", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V3", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -338,22 +334,6 @@
     loadData(); 
     startCanvasLoop(); 
   };
-
-  function initAudioContext() {
-    if (!audioCtx) {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextClass) {
-        audioCtx = new AudioContextClass();
-        audioSource = audioCtx.createMediaElementSource(audio);
-        audioDest = audioCtx.createMediaStreamDestination();
-        audioSource.connect(audioDest);
-        audioSource.connect(audioCtx.destination);
-      }
-    }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  }
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks"], "readonly");
@@ -597,7 +577,6 @@
   }
 
   function playTrack(albumId, trackId) {
-    initAudioContext();
     currentPlayingAlbumId = albumId;
     const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
@@ -768,7 +747,6 @@
   };
 
   function togglePlay() {
-    initAudioContext();
     if (!audio.src) return;
     if (audio.paused) { 
       audio.play(); 
@@ -901,14 +879,16 @@
     requestAnimationFrame(loop);
   }
 
-  /* 雙模式 Picture-in-Picture 懸浮字幕實作 */
+  /* 雙模式 Picture-in-Picture 懸浮字幕實作 (安全分離版) */
   async function enablePiP() {
-    initAudioContext();
-
     if (audio.paused) {
-      await audio.play();
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
+      try {
+        await audio.play();
+        document.getElementById("btn-play").innerText = "⏸";
+        document.getElementById("mini-btn-play").innerText = "⏸";
+      } catch (err) {
+        return alert("請先點擊播放，再開啟懸浮視窗！");
+      }
     }
 
     // 1. 桌面端 Chrome / Edge (111+) 優先使用 Document Picture-in-Picture API
@@ -955,18 +935,13 @@
       }
     }
 
-    // 2. 移動端 (iOS Safari / Android) 與不支援 Document PiP 的瀏覽器：Canvas 串流方案
+    // 2. 移動端 / 不支援 Document PiP 的瀏覽器：純畫布串流 (強制靜音，杜絕當機與回音)
     try {
       const canvasStream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
-      const combinedStream = new MediaStream();
       
-      canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-
-      if (audioDest && audioDest.stream) {
-        audioDest.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-      }
-
-      pipVideo.srcObject = combinedStream;
+      pipVideo.srcObject = canvasStream;
+      pipVideo.muted = true;
+      pipVideo.playsInline = true;
       await pipVideo.play();
 
       if (document.pictureInPictureElement) {
@@ -976,11 +951,11 @@
       } else if (pipVideo.webkitSetPresentationMode) {
         pipVideo.webkitSetPresentationMode("picture-in-picture");
       } else {
-        alert("您的裝置或瀏覽器不支援懸浮視窗功能");
+        alert("您的裝置或瀏覽器不支援懸浮視窗功能。");
       }
     } catch (e) {
       console.error(e);
-      alert("開啟懸浮字幕失敗，請確認播放狀態後再試一次！");
+      alert("開啟懸浮失敗：您的瀏覽器（例如 iPhone Safari）系統層級嚴格阻擋了畫布動態 PiP 視窗。");
     }
   }
 </script>
