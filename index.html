@@ -28,7 +28,6 @@
       overflow-x: hidden;
     }
 
-    /* 背景素材：圖片與影片雙相容 */
     #bg-video, #bg-img {
       position: fixed;
       top: 0; left: 0;
@@ -48,16 +47,13 @@
 
     .container { width: 100%; max-width: 480px; z-index: 1; }
 
-    /* 全螢幕/抽屜式播放器 Modal (專為 iPhone 畫面優化) */
+    /* 專為 iPhone 畫面優化的 Modal 卡片 */
     .player-card {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       margin: auto;
-      max-width: 480px;
-      width: 100%;
-      max-height: 92vh;
+      max-width: 480px; width: 100%;
+      max-height: 94vh;
       overflow-y: auto;
       background: var(--card-glass);
       backdrop-filter: blur(20px);
@@ -73,148 +69,94 @@
       touch-action: none;
     }
     
-    .player-card.minimized {
-      transform: translateY(105%);
-    }
+    .player-card.minimized { transform: translateY(105%); }
 
-    /* 頂部滑動手勢條 */
     .drag-handle-area {
-      width: 100%;
-      padding: 4px 0 8px 0;
-      display: flex;
-      justify-content: center;
-      cursor: grab;
+      width: 100%; padding: 4px 0 8px 0;
+      display: flex; justify-content: center; cursor: grab;
     }
     .drag-handle {
-      width: 40px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 10px;
+      width: 40px; height: 4px;
+      background: rgba(255, 255, 255, 0.3); border-radius: 10px;
     }
 
-    /* 封面區塊：iPhone 縮減尺寸確保按鈕全部露出一頁不捲動 */
     .cover-box {
-      width: 100%;
-      max-height: 38vh;
-      aspect-ratio: 1 / 1;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #1a1a22;
-      margin: 0 auto 8px auto;
+      width: 100%; max-height: 36vh;
+      aspect-ratio: 1 / 1; border-radius: 16px;
+      overflow: hidden; background: #1a1a22;
+      margin: 0 auto 6px auto;
       box-shadow: 0 6px 20px rgba(0,0,0,0.6);
       position: relative;
     }
-    .cover-box img, .cover-box video {
-      width: 100%; height: 100%; object-fit: cover; display: none;
-    }
+    .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
 
     .album-tag { font-size: 0.78rem; color: var(--text-sub); text-align: center; margin-bottom: 2px; }
-    .track-title { font-size: 1rem; font-weight: 700; text-align: center; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .track-title { font-size: 0.95rem; font-weight: 700; text-align: center; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    /* 高亮動態字幕區 */
+    /* 動態字幕區 */
     .lrc-box {
-      min-height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 1.15rem;
-      font-weight: 800;
+      min-height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; font-size: 1.1rem; font-weight: 800;
       color: var(--primary-pink);
       text-shadow: 0 0 16px var(--pink-glow), 0 0 4px #000;
-      padding: 4px 6px;
-      line-height: 1.3;
-      margin-bottom: 6px;
+      padding: 4px 8px; line-height: 1.35; margin-bottom: 6px;
       word-break: break-word;
     }
 
-    /* 手機隨時加字幕按鈕組 */
-    .sub-quick-tools {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-bottom: 8px;
-    }
+    .sub-quick-tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
     .btn-sub-quick {
-      padding: 6px 12px;
+      padding: 6px 10px;
       background: rgba(255, 121, 198, 0.15);
       border: 1px solid var(--primary-pink);
       color: var(--primary-pink);
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: bold;
-      cursor: pointer;
+      border-radius: 8px; font-size: 0.75rem; font-weight: bold; cursor: pointer;
     }
 
     .seek-slider { width: 100%; height: 4px; accent-color: #ffffff; cursor: pointer; }
-    .time-box { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; margin-bottom: 8px; }
+    .time-box { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; margin-bottom: 6px; }
     
-    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
     .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 4px; }
     .btn-play-main { width: 48px; height: 48px; background: #fff; color: #000; border-radius: 50%; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; }
 
-    .volume-box { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px; }
+    .volume-box { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-sub); margin-bottom: 8px; }
     .volume-slider { flex: 1; height: 4px; accent-color: var(--text-sub); }
     .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1rem; cursor: pointer; padding: 2px; }
 
     .bottom-tools { display: flex; gap: 8px; }
     .btn-pip, .btn-minimize {
-      flex: 1;
-      background: rgba(255, 121, 198, 0.15);
+      flex: 1; background: rgba(255, 121, 198, 0.15);
       border: 1px solid var(--primary-pink);
       color: var(--primary-pink);
-      padding: 8px;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 0.78rem;
-      cursor: pointer;
+      padding: 8px; border-radius: 10px;
+      font-weight: bold; font-size: 0.78rem; cursor: pointer;
     }
 
-    /* 底部懸浮 Mini 播放條 */
     .mini-player {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      margin: auto;
-      max-width: 480px;
-      height: 60px;
+      position: fixed; bottom: 0; left: 0; right: 0;
+      margin: auto; max-width: 480px; height: 60px;
       background: rgba(18, 18, 24, 0.95);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-top: 1px solid rgba(255, 255, 255, 0.12);
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      z-index: 999;
-      cursor: pointer;
+      display: flex; align-items: center; padding: 0 12px;
+      z-index: 999; cursor: pointer;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
       transition: transform 0.3s ease;
     }
     .mini-player.hidden { transform: translateY(100%); }
 
-    .mini-thumb {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: #1a1a22;
-      object-fit: cover;
-      margin-right: 10px;
-      flex-shrink: 0;
-    }
+    .mini-thumb { width: 40px; height: 40px; border-radius: 8px; background: #1a1a22; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
     .mini-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .mini-title { font-size: 0.82rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mini-subtitle { font-size: 0.72rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mini-btn { background: none; border: none; color: #fff; font-size: 1.2rem; padding: 6px; cursor: pointer; }
 
-    /* 通用卡片與列表 */
     .glass-card {
       background: var(--card-glass);
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 16px;
+      border-radius: 16px; padding: 16px; margin-bottom: 16px;
     }
     .card-title { font-size: 0.95rem; font-weight: bold; margin-bottom: 12px; color: var(--primary-pink); }
     
@@ -286,7 +228,7 @@
       <input type="file" id="track-audio">
     </div>
     <div class="form-group">
-      <label>字幕檔案 (.lrc / .srt / .vtt)</label>
+      <label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label>
       <input type="file" id="track-lrc">
     </div>
     <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
@@ -294,7 +236,7 @@
 
 </div>
 
-<!-- 底部懸浮 Mini 播放條 (收起時顯示) -->
+<!-- 底部 Mini 播放條 -->
 <div id="mini-player" class="mini-player hidden" onclick="expandPlayer()">
   <img id="mini-thumb" class="mini-thumb" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>">
   <div class="mini-info">
@@ -305,7 +247,7 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
-<!-- 可滑動手勢收納 Full 播放器卡片 -->
+<!-- Full 播放器卡片 -->
 <div id="player-card" class="player-card minimized">
   <div class="drag-handle-area" id="drag-handle-area">
     <div class="drag-handle"></div>
@@ -322,13 +264,14 @@
   <!-- 字幕顯示區 -->
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
-  <!-- 手機即時補字幕快捷按鈕 -->
+  <!-- 字幕工具按鈕 -->
   <div class="sub-quick-tools">
     <label class="btn-sub-quick">
-      📂 匯入 LRC 檔
+      📂 匯入字幕檔
       <input type="file" id="quick-lrc-input" style="display:none;" onchange="uploadCurrentTrackLrc(event)">
     </label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
+    <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
   </div>
 
   <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" step="0.1">
@@ -430,6 +373,7 @@
     };
   }
 
+  /* 智慧多重編碼解碼（自動相容 UTF-8, Shift-JIS, UTF-16LE） */
   function readFileTextSmart(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -465,7 +409,7 @@
     const tx = db.transaction(["tracks"], "readwrite");
     tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
     tx.oncomplete = () => {
-      alert("儲存成功！");
+      alert("篇章新增成功！");
       document.getElementById("track-title-input").value = "";
       document.getElementById("track-audio").value = "";
       document.getElementById("track-lrc").value = "";
@@ -473,7 +417,6 @@
     };
   }
 
-  /* 手機專用：直接儲存/更新字幕至 IndexedDB */
   async function saveTrackSubtitle(trackId, lrcText) {
     return new Promise((resolve) => {
       const tx = db.transaction(["tracks"], "readwrite");
@@ -490,53 +433,55 @@
         if (t) t.lrcText = lrcText;
         if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
           currentTrackList[currentIndex].lrcText = lrcText;
-          currentLrc = parseSubtitles(lrcText);
+          currentLrc = parseSubtitles(lrcText, audio.duration);
         }
+        renderAlbumList();
         resolve(true);
       };
     });
   }
 
-  /* 手機播放卡片：檔案選擇載入字幕 */
   async function uploadCurrentTrackLrc(event) {
-    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
-      alert("請先選擇要播放的小篇章！");
-      return;
-    }
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
     const file = event.target.files[0];
     if (!file) return;
 
     const text = await readFileTextSmart(file);
     const trackId = currentTrackList[currentIndex].id;
     await saveTrackSubtitle(trackId, text);
-    alert("字幕匯入成功！已永久儲存在手機中。");
+    alert("字幕匯入成功！");
     event.target.value = "";
   }
 
-  /* 手機播放卡片：貼上文字載入字幕 */
   async function pasteCurrentTrackLrc() {
-    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
-      alert("請先選擇要播放的小篇章！");
-      return;
-    }
-    const text = prompt("請貼上 LRC / SRT 格式的字幕內容：");
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
+    const text = prompt("請貼上字幕內容（支援 LRC/SRT/VTT 或純劇本台詞）：");
     if (text && text.trim()) {
       const trackId = currentTrackList[currentIndex].id;
       await saveTrackSubtitle(trackId, text.trim());
-      alert("字幕已更新並永久儲存在手機中！");
+      alert("字幕更新成功！");
     }
   }
 
-  /* 從列表點選直接幫指定篇章補字幕 */
+  /* 檢視並修改當前字幕 */
+  async function inspectCurrentTrackLrc() {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
+    const track = currentTrackList[currentIndex];
+    const newText = prompt(`【${track.title}】的目前字幕原始內容：`, track.lrcText || "");
+    if (newText !== null) {
+      await saveTrackSubtitle(track.id, newText.trim());
+      alert("字幕修改已儲存！");
+    }
+  }
+
   async function editTrackLrc(trackId) {
     const track = tracks.find(t => t.id === trackId);
     if (!track) return;
 
-    const newText = prompt(`請貼上【${track.title}】的字幕內容：`, track.lrcText || "");
+    const newText = prompt(`請編輯【${track.title}】的字幕內容：`, track.lrcText || "");
     if (newText !== null) {
       await saveTrackSubtitle(trackId, newText.trim());
       alert("字幕已儲存！");
-      renderAlbumList();
     }
   }
 
@@ -559,7 +504,7 @@
         chaptersHtml = "<div style='color:var(--text-sub); font-size:0.8rem;'>此分區無小篇章。</div>";
       } else {
         albumTracks.forEach(track => {
-          const hasLrcTag = track.lrcText ? "💬" : "⚪";
+          const hasLrcTag = (track.lrcText && track.lrcText.trim()) ? "💬" : "⚪";
           chaptersHtml += `
             <div class="chapter-item">
               <span style="font-size:0.85rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${hasLrcTag} ${track.title}</span>
@@ -609,9 +554,7 @@
 
   function toggleEditAlbum(id) {
     const editBox = document.getElementById(`edit-box-${id}`);
-    if (editBox) {
-      editBox.style.display = (editBox.style.display === "block") ? "none" : "block";
-    }
+    if (editBox) editBox.style.display = (editBox.style.display === "block") ? "none" : "block";
   }
 
   async function saveAlbumEdit(id) {
@@ -627,21 +570,15 @@
     store.get(id).onsuccess = (e) => {
       const album = e.target.result;
       if (!album) return;
-
       album.title = newTitle;
       if (newCover) album.coverBlob = newCover;
       if (newBg) album.bgBlob = newBg;
-
       store.put(album);
     };
 
     tx.oncomplete = () => {
       alert("更換成功！");
       loadData();
-      if (currentPlayingAlbumId === id && currentIndex !== -1) {
-        const track = currentTrackList[currentIndex];
-        playTrack(id, track.id);
-      }
     };
   }
 
@@ -662,44 +599,34 @@
     if (targetBgBlob) {
       const url = URL.createObjectURL(targetBgBlob);
       if (targetBgBlob.type.startsWith('video/')) {
-        bgVideo.src = url;
-        bgVideo.style.display = "block";
-        bgVideo.play();
+        bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play();
         bgImg.style.display = "none";
       } else {
-        bgImg.src = url;
-        bgImg.style.display = "block";
-        bgVideo.style.display = "none";
-        bgVideo.pause();
+        bgImg.src = url; bgImg.style.display = "block";
+        bgVideo.style.display = "none"; bgVideo.pause();
       }
     } else {
-      bgVideo.style.display = "none";
-      bgImg.style.display = "none";
+      bgVideo.style.display = "none"; bgImg.style.display = "none";
     }
 
     if (album.coverBlob) {
       const url = URL.createObjectURL(album.coverBlob);
       if (album.coverBlob.type.startsWith('video/')) {
-        coverVideo.src = url;
-        coverVideo.style.display = "block";
-        coverVideo.play();
+        coverVideo.src = url; coverVideo.style.display = "block"; coverVideo.play();
         coverImg.style.display = "none";
       } else {
-        coverImg.src = url;
-        coverImg.style.display = "block";
+        coverImg.src = url; coverImg.style.display = "block";
         document.getElementById("mini-thumb").src = url;
-        coverVideo.style.display = "none";
-        coverVideo.pause();
+        coverVideo.style.display = "none"; coverVideo.pause();
       }
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg;
       document.getElementById("mini-thumb").src = defaultImg;
-      coverImg.style.display = "block";
-      coverVideo.style.display = "none";
+      coverImg.style.display = "block"; coverVideo.style.display = "none";
     }
 
-    currentLrc = parseSubtitles(track.lrcText);
+    currentLrc = parseSubtitles(track.lrcText, audio.duration);
     audio.play();
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
@@ -707,23 +634,27 @@
     expandPlayer();
   }
 
-  function parseSubtitles(text) {
-    if (!text) return [];
+  /* 超強通用字幕解析引擎 (支援 LRC / 三段式 / SRT / VTT / 無括號時間 / 純劇本) */
+  function parseSubtitles(text, duration) {
+    if (!text || !text.trim()) return [];
     const lines = text.split(/\r?\n/);
     const result = [];
 
     const lrcReg = /\[(\d{1,2}):(\d{2})(?:[\.:](\d{1,3}))?\]/g;
-    const srtReg = /(\d{2}):(\d{2}):(\d{2})[,.](\d{3})/;
+    const lrcThreeReg = /\[(\d{1,2}):(\d{2}):(\d{2})(?:[\.:](\d{1,3}))?\]/g;
+    const plainTimeReg = /^(\d{1,2}):(\d{2})(?:[\.:](\d{1,3}))?\s+(.*)/;
+    const srtVttReg = /(?:(\d{2}):)?(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*(?:(\d{2}):)?(\d{2}):(\d{2})[,.](\d{3})/;
 
     let pendingSrtTime = null;
 
     lines.forEach(line => {
       line = line.trim();
       if (!line) return;
+      if (line.startsWith('WEBVTT') || line.startsWith('NOTE')) return;
 
-      const srtMatch = line.match(srtReg);
+      const srtMatch = line.match(srtVttReg);
       if (srtMatch) {
-        const h = parseInt(srtMatch[1]), m = parseInt(srtMatch[2]), s = parseInt(srtMatch[3]), ms = parseInt(srtMatch[4]);
+        const h = parseInt(srtMatch[1] || 0), m = parseInt(srtMatch[2]), s = parseInt(srtMatch[3]), ms = parseInt(srtMatch[4]);
         pendingSrtTime = h * 3600 + m * 60 + s + ms / 1000;
         return;
       } else if (pendingSrtTime !== null && !isNaN(line)) {
@@ -734,21 +665,65 @@
         return;
       }
 
-      let match;
-      const cleanText = line.replace(/\[\d{1,2}:\d{2}(?:[\.:]\d{1,3})?\]/g, "").trim();
-      lrcReg.lastIndex = 0;
+      // 三段式 [hh:mm:ss]
+      lrcThreeReg.lastIndex = 0;
+      if (lrcThreeReg.test(line)) {
+        lrcThreeReg.lastIndex = 0;
+        let match;
+        const cleanText = line.replace(/\[\d{1,2}:\d{2}:\d{2}(?:[\.:]\d{1,3})?\]/g, "").trim();
+        while ((match = lrcThreeReg.exec(line)) !== null) {
+          const h = parseInt(match[1]), min = parseInt(match[2]), sec = parseInt(match[3]);
+          const ms = match[4] ? parseInt(match[4].padEnd(3, '0')) : 0;
+          result.push({ time: h * 3600 + min * 60 + sec + ms / 1000, text: cleanText || line });
+        }
+        return;
+      }
 
-      while ((match = lrcReg.exec(line)) !== null) {
-        const min = parseInt(match[1]);
-        const sec = parseInt(match[2]);
-        const ms = match[3] ? parseInt(match[3].padEnd(3, '0')) : 0;
-        const time = min * 60 + sec + ms / 1000;
-        if (cleanText) result.push({ time, text: cleanText });
+      // 標準 [mm:ss.ms]
+      lrcReg.lastIndex = 0;
+      if (lrcReg.test(line)) {
+        lrcReg.lastIndex = 0;
+        let match;
+        const cleanText = line.replace(/\[\d{1,2}:\d{2}(?:[\.:]\d{1,3})?\]/g, "").trim();
+        while ((match = lrcReg.exec(line)) !== null) {
+          const min = parseInt(match[1]), sec = parseInt(match[2]);
+          const ms = match[3] ? parseInt(match[3].padEnd(3, '0')) : 0;
+          result.push({ time: min * 60 + sec + ms / 1000, text: cleanText || line });
+        }
+        return;
+      }
+
+      // 無括號時間軸 (01:23 台詞)
+      const plainMatch = line.match(plainTimeReg);
+      if (plainMatch) {
+        const min = parseInt(plainMatch[1]), sec = parseInt(plainMatch[2]);
+        const ms = plainMatch[3] ? parseInt(plainMatch[3].padEnd(3, '0')) : 0;
+        const txt = plainMatch[4].trim();
+        if (txt) result.push({ time: min * 60 + sec + ms / 1000, text: txt });
+        return;
       }
     });
 
+    // 備援方案：若完全沒有時間標記（純台詞檔），自動按音樂總長度平均分配字幕時間
+    if (result.length === 0) {
+      const validLines = lines.filter(l => l.trim() && !l.startsWith('[ti:') && !l.startsWith('[ar:') && !l.startsWith('[al:'));
+      if (validLines.length > 0) {
+        const totalSec = (duration && duration > 0) ? duration : 180;
+        const step = totalSec / validLines.length;
+        validLines.forEach((l, i) => {
+          result.push({ time: i * step, text: l.trim() });
+        });
+      }
+    }
+
     return result.sort((a, b) => a.time - b.time);
   }
+
+  audio.onloadedmetadata = () => {
+    if (currentIndex !== -1 && currentTrackList[currentIndex]) {
+      currentLrc = parseSubtitles(currentTrackList[currentIndex].lrcText, audio.duration);
+    }
+  };
 
   audio.ontimeupdate = () => {
     document.getElementById("time-current").innerText = formatTime(audio.currentTime);
@@ -760,8 +735,12 @@
     const lrcBox = document.getElementById("lrc-box");
     const miniLrc = document.getElementById("mini-lrc");
 
-    if (currentLrc.length === 0) {
-      const defaultTxt = audio.src ? "♪ 無動態字幕 ♪" : "♪ 選擇小篇章開始收聽 ♪";
+    if (!currentTrackList[currentIndex] || !currentTrackList[currentIndex].lrcText) {
+      const defaultTxt = "♪ 無動態字幕 ♪";
+      lrcBox.innerText = defaultTxt;
+      miniLrc.innerText = defaultTxt;
+    } else if (currentLrc.length === 0) {
+      const defaultTxt = "♪ 字幕解析中或格式為空 ♪";
       lrcBox.innerText = defaultTxt;
       miniLrc.innerText = defaultTxt;
     } else {
@@ -812,7 +791,6 @@
 
   document.getElementById("seek-slider").oninput = (e) => { if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration; };
 
-  /* 播放器展開與收納手勢邏輯 */
   function minimizePlayer() {
     playerCard.classList.add("minimized");
     if (audio.src) miniPlayer.classList.remove("hidden");
@@ -823,7 +801,6 @@
     miniPlayer.classList.add("hidden");
   }
 
-  // 手指滑動（向下滑動收納播放器）
   let touchStartY = 0;
   let touchCurrentY = 0;
   const dragHandleArea = document.getElementById("drag-handle-area");
@@ -836,35 +813,26 @@
   dragHandleArea.addEventListener("touchmove", (e) => {
     touchCurrentY = e.touches[0].clientY;
     let deltaY = touchCurrentY - touchStartY;
-    if (deltaY > 0) {
-      playerCard.style.transform = `translateY(${deltaY}px)`;
-    }
+    if (deltaY > 0) playerCard.style.transform = `translateY(${deltaY}px)`;
   }, { passive: true });
 
   dragHandleArea.addEventListener("touchend", () => {
     playerCard.style.transition = "transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)";
     let deltaY = touchCurrentY - touchStartY;
-    if (deltaY > 80) {
-      minimizePlayer();
-    }
+    if (deltaY > 80) minimizePlayer();
     playerCard.style.transform = "";
-    touchStartY = 0;
-    touchCurrentY = 0;
+    touchStartY = 0; touchCurrentY = 0;
   });
 
-  // 一鍵靜音功能
   function toggleMute() {
     const slider = document.getElementById("volume-slider");
     const btnMute = document.getElementById("btn-mute");
     if (audio.volume > 0) {
       lastVolume = audio.volume;
-      audio.volume = 0;
-      slider.value = 0;
-      btnMute.innerText = "🔇";
+      audio.volume = 0; slider.value = 0; btnMute.innerText = "🔇";
     } else {
       audio.volume = lastVolume > 0 ? lastVolume : 1;
-      slider.value = audio.volume;
-      btnMute.innerText = "🔈";
+      slider.value = audio.volume; btnMute.innerText = "🔈";
     }
   }
 
@@ -872,12 +840,8 @@
     const val = parseFloat(e.target.value);
     audio.volume = val; 
     const btnMute = document.getElementById("btn-mute");
-    if (val === 0) {
-      btnMute.innerText = "🔇";
-    } else {
-      btnMute.innerText = "🔈";
-      lastVolume = val;
-    }
+    if (val === 0) btnMute.innerText = "🔇";
+    else { btnMute.innerText = "🔈"; lastVolume = val; }
   };
 
   audio.onended = () => nextTrack();
@@ -892,7 +856,6 @@
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const currentText = document.getElementById("lrc-box").innerText;
-    
     let fontSize = 60;
     const fontStack = '-apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif';
     ctx.font = `bold ${fontSize}px ${fontStack}`;
@@ -906,7 +869,6 @@
 
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 10;
     ctx.strokeText(currentText, canvas.width / 2, canvas.height / 2);
@@ -914,7 +876,6 @@
     ctx.fillStyle = "#ff79c6";
     ctx.shadowColor = "rgba(255, 121, 198, 1.0)";
     ctx.shadowBlur = 24;
-
     ctx.fillText(currentText, canvas.width / 2, canvas.height / 2);
   }
 
@@ -932,7 +893,6 @@
         const stream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
         pipVideo.srcObject = stream;
       }
-      
       await pipVideo.play();
 
       if (audio.src && audio.paused) {
@@ -948,7 +908,7 @@
       } else if (pipVideo.webkitSetPresentationMode) {
         pipVideo.webkitSetPresentationMode("picture-in-picture");
       } else {
-        alert("您的瀏覽器或裝置不支援子母畫面 (PiP) 功能！");
+        alert("您的裝置不支援畫中畫懸浮，請點擊下方播放條看動態字幕！");
       }
     } catch (e) {
       console.error(e);
