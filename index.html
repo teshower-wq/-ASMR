@@ -48,7 +48,7 @@
 
     .container { width: 100%; max-width: 480px; z-index: 1; }
 
-    /* 全螢幕/抽屜式播放器 Modal (圖1風格) */
+    /* 全螢幕/抽屜式播放器 Modal */
     .player-card {
       position: fixed;
       bottom: 0;
@@ -123,8 +123,26 @@
       text-shadow: 0 0 16px var(--pink-glow), 0 0 4px #000;
       padding: 6px 8px;
       line-height: 1.35;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       word-break: break-word;
+    }
+
+    /* 手機隨時加字幕按鈕組 */
+    .sub-quick-tools {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .btn-sub-quick {
+      padding: 6px 12px;
+      background: rgba(255, 121, 198, 0.15);
+      border: 1px solid var(--primary-pink);
+      color: var(--primary-pink);
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     .seek-slider { width: 100%; height: 4px; accent-color: #ffffff; cursor: pointer; }
@@ -151,7 +169,7 @@
       cursor: pointer;
     }
 
-    /* 底部懸浮 Mini 播放條 (圖2風格) */
+    /* 底部懸浮 Mini 播放條 */
     .mini-player {
       position: fixed;
       bottom: 0;
@@ -227,7 +245,7 @@
 
 <div class="container">
 
-  <!-- 1. 作品集總覽 (放頂部，方便收起播放器時查看選集) -->
+  <!-- 1. 作品集總覽 -->
   <div class="glass-card">
     <div class="card-title">📚 作品集分區與選集列表</div>
     <div id="album-list">載入中...</div>
@@ -264,11 +282,11 @@
     </div>
     <div class="form-group">
       <label>音訊檔案</label>
-      <input type="file" id="track-audio">
+      <input type="file" id="track-audio" accept="audio/*">
     </div>
     <div class="form-group">
       <label>字幕檔案 (.lrc / .srt / .vtt)</label>
-      <input type="file" id="track-lrc">
+      <input type="file" id="track-lrc" accept=".lrc,.srt,.vtt,.txt">
     </div>
     <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
   </div>
@@ -300,7 +318,17 @@
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
   <div id="track-title" class="track-title">未選擇篇章</div>
   
+  <!-- 字幕顯示區 -->
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
+
+  <!-- 手機即時補字幕快捷按鈕 -->
+  <div class="sub-quick-tools">
+    <label class="btn-sub-quick">
+      📂 匯入 LRC 檔
+      <input type="file" id="quick-lrc-input" accept=".lrc,.srt,.vtt,.txt" style="display:none;" onchange="uploadCurrentTrackLrc(event)">
+    </label>
+    <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
+  </div>
 
   <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" step="0.1">
   <div class="time-box">
@@ -444,6 +472,74 @@
     };
   }
 
+  /* 手機專用：直接儲存/更新字幕至 IndexedDB */
+  async function saveTrackSubtitle(trackId, lrcText) {
+    return new Promise((resolve) => {
+      const tx = db.transaction(["tracks"], "readwrite");
+      const store = tx.objectStore("tracks");
+      store.get(trackId).onsuccess = (e) => {
+        const track = e.target.result;
+        if (track) {
+          track.lrcText = lrcText;
+          store.put(track);
+        }
+      };
+      tx.oncomplete = () => {
+        // 更新記憶體資料
+        const t = tracks.find(item => item.id === trackId);
+        if (t) t.lrcText = lrcText;
+        if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
+          currentTrackList[currentIndex].lrcText = lrcText;
+          currentLrc = parseSubtitles(lrcText);
+        }
+        resolve(true);
+      };
+    });
+  }
+
+  /* 手機播放卡片：檔案選擇載入字幕 */
+  async function uploadCurrentTrackLrc(event) {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
+      alert("請先選擇要播放的小篇章！");
+      return;
+    }
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const text = await readFileTextSmart(file);
+    const trackId = currentTrackList[currentIndex].id;
+    await saveTrackSubtitle(trackId, text);
+    alert("字幕匯入成功！已永久儲存在手機中。");
+    event.target.value = "";
+  }
+
+  /* 手機播放卡片：貼上文字載入字幕 */
+  async function pasteCurrentTrackLrc() {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
+      alert("請先選擇要播放的小篇章！");
+      return;
+    }
+    const text = prompt("請貼上 LRC / SRT 格式的字幕內容：");
+    if (text && text.trim()) {
+      const trackId = currentTrackList[currentIndex].id;
+      await saveTrackSubtitle(trackId, text.trim());
+      alert("字幕已更新並永久儲存在手機中！");
+    }
+  }
+
+  /* 從列表點選直接幫指定篇章補字幕 */
+  async function editTrackLrc(trackId) {
+    const track = tracks.find(t => t.id === trackId);
+    if (!track) return;
+
+    const newText = prompt(`請貼上【${track.title}】的字幕內容：`, track.lrcText || "");
+    if (newText !== null) {
+      await saveTrackSubtitle(trackId, newText.trim());
+      alert("字幕已儲存！");
+      renderAlbumList();
+    }
+  }
+
   function renderAlbumList() {
     const listEl = document.getElementById("album-list");
     listEl.innerHTML = "";
@@ -463,11 +559,13 @@
         chaptersHtml = "<div style='color:var(--text-sub); font-size:0.8rem;'>此分區無小篇章。</div>";
       } else {
         albumTracks.forEach(track => {
+          const hasLrcTag = track.lrcText ? "💬" : "⚪";
           chaptersHtml += `
             <div class="chapter-item">
-              <span style="font-size:0.85rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${track.title}</span>
+              <span style="font-size:0.85rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${hasLrcTag} ${track.title}</span>
               <div>
                 <button class="btn-sm btn-sm-play" onclick="playTrack(${album.id}, ${track.id})">播放</button>
+                <button class="btn-sm btn-sm-edit" onclick="editTrackLrc(${track.id})">字幕</button>
                 <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id})">刪除</button>
               </div>
             </div>
@@ -831,7 +929,7 @@
   async function enablePiP() {
     try {
       if (!pipVideo.srcObject) {
-        const stream = canvas.captureStream(30);
+        const stream = canvas.captureStream ? canvas.captureStream(30) : canvas.mozCaptureStream(30);
         pipVideo.srcObject = stream;
       }
       
@@ -840,6 +938,7 @@
       if (audio.src && audio.paused) {
         audio.play();
         document.getElementById("btn-play").innerText = "⏸";
+        document.getElementById("mini-btn-play").innerText = "⏸";
       }
 
       if (document.pictureInPictureElement) {
@@ -853,7 +952,7 @@
       }
     } catch (e) {
       console.error(e);
-      alert("開啟懸浮字幕失敗，請再試一次！");
+      alert("開啟懸浮字幕失敗，請確保音樂正在播放中再試一次！");
     }
   }
 </script>
