@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極速 PiP 最終版)</title>
+  <title>ASMR 私人隨身庫 (PiP & SRT/VTT 修正版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -250,7 +250,6 @@
   </div>
 </div>
 
-<!-- iOS 專用即時串流影片元素 -->
 <video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
@@ -290,7 +289,25 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 初始化 Media Session 系統層級與 PiP 小視窗控制
+  // 雙向同步懸浮視窗（PiP）播放與暫停事件
+  pipVideo.addEventListener('pause', () => {
+    if (!audio.paused) {
+      audio.pause();
+      document.getElementById("btn-play").innerText = "▶";
+      document.getElementById("mini-btn-play").innerText = "▶";
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+    }
+  });
+
+  pipVideo.addEventListener('play', () => {
+    if (audio.paused) {
+      audio.play();
+      document.getElementById("btn-play").innerText = "⏸";
+      document.getElementById("mini-btn-play").innerText = "⏸";
+      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+    }
+  });
+
   function initMediaSession() {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => togglePlay());
@@ -341,7 +358,7 @@
     }
   }
 
-  // 初始化全域 Canvas 串流引擎
+  // Canvas 渲染引擎
   function initPiPEngine() {
     if (isPiPInitialized) return;
     try {
@@ -367,26 +384,20 @@
         }
 
         const currentTime = audio.currentTime;
-        let currentText = "♪ 享受音樂中 ♪";
-        if (currentLrc.length > 0) {
-          for (let i = 0; i < currentLrc.length; i++) {
-            if (currentTime >= currentLrc[i].time) currentText = currentLrc[i].text;
-            else break;
-          }
-        }
+        let currentText = getActiveSubtitleText(currentTime);
 
-        pipCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
-        pipCtx.fillRect(20, 430, 472, 65);
+        pipCtx.fillStyle = "rgba(0, 0, 0, 0.85)";
+        pipCtx.fillRect(20, 420, 472, 75);
 
         pipCtx.fillStyle = "#ff79c6";
         pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
         pipCtx.textAlign = "center";
         
         if (pipCtx.measureText(currentText).width > 440) {
-          pipCtx.fillText(currentText.substring(0, 20), 256, 455);
-          pipCtx.fillText(currentText.substring(20, 40), 256, 480);
+          pipCtx.fillText(currentText.substring(0, 20), 256, 450);
+          pipCtx.fillText(currentText.substring(20, 40), 256, 478);
         } else {
-          pipCtx.fillText(currentText, 256, 470);
+          pipCtx.fillText(currentText, 256, 465);
         }
       }, 1000 / 15);
 
@@ -692,22 +703,49 @@
       coverImg.style.display = "block"; coverVideo.style.display = "none"; cachedCoverImage = null;
     }
 
-    // 同步系統控制中心與小視窗資訊
     updateMediaSessionMetadata(track.title, album.title, coverUrl);
 
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
     audio.play();
+    pipVideo.play();
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
     expandPlayer();
   }
 
-  // 解析動態字幕 (LRC / 逐行 fallback)
+  // 全能型動態字幕解析器 (精準支援 SRT / VTT / LRC)
   function parseSubtitles(text, duration) {
     if (!text || !text.trim()) return [];
-    const lines = text.split('\n');
-    const lrc = [];
+    const rawText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // 1. SRT / VTT 格式解析 (徹底過濾時間軸與序號)
+    if (rawText.includes('-->')) {
+      const blocks = rawText.split(/\n\s*\n/);
+      const result = [];
+      for (let block of blocks) {
+        const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let timeLineIdx = lines.findIndex(l => l.includes('-->'));
+        if (timeLineIdx !== -1) {
+          const timeStr = lines[timeLineIdx];
+          const times = timeStr.split('-->');
+          if (times.length === 2) {
+            const start = parseTimeString(times[0].trim());
+            const end = parseTimeString(times[1].trim());
+            const contentLines = lines.slice(timeLineIdx + 1);
+            const content = contentLines.join(' ').replace(/<[^>]*>/g, '').trim();
+            if (content) {
+              result.push({ start, end, text: content });
+            }
+          }
+        }
+      }
+      if (result.length > 0) return result;
+    }
+
+    // 2. LRC 格式解析 [00:00.00]
+    const lines = rawText.split('\n');
+    const lrcResult = [];
     const lrcRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\](.*)/;
 
     for (let line of lines) {
@@ -719,31 +757,60 @@
         const ms = match[3] ? parseFloat("0." + match[3]) : 0;
         const time = min * 60 + sec + ms;
         const content = match[4].trim();
-        if (content) lrc.push({ time, text: content });
+        if (content) lrcResult.push({ start: time, end: 999999, text: content });
       }
     }
 
-    if (lrc.length > 0) {
-      lrc.sort((a, b) => a.time - b.time);
-      return lrc;
+    if (lrcResult.length > 0) {
+      lrcResult.sort((a, b) => a.start - b.start);
+      for (let i = 0; i < lrcResult.length - 1; i++) {
+        lrcResult[i].end = lrcResult[i + 1].start;
+      }
+      return lrcResult;
     }
 
-    const cleanLines = lines.map(l => l.trim()).filter(l => l.length > 0);
+    // 3. 純文字 Fallback
+    const cleanLines = lines.map(l => l.trim()).filter(l => l.length > 0 && !l.includes('-->') && !/^\d+$/.test(l));
     if (cleanLines.length === 0) return [];
     const interval = (duration && !isNaN(duration)) ? duration / cleanLines.length : 5;
-    return cleanLines.map((t, idx) => ({ time: idx * interval, text: t }));
+    return cleanLines.map((t, idx) => ({ start: idx * interval, end: (idx + 1) * interval, text: t }));
   }
 
-  // 播放器核心控制函式
+  function parseTimeString(timeStr) {
+    const parts = timeStr.replace(',', '.').split(':');
+    let secs = 0;
+    if (parts.length === 3) {
+      secs = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
+    } else if (parts.length === 2) {
+      secs = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+    } else {
+      secs = parseFloat(parts[0]) || 0;
+    }
+    return secs;
+  }
+
+  function getActiveSubtitleText(currentTime) {
+    if (!currentLrc || currentLrc.length === 0) return "♪ 享受音樂中 ♪";
+    for (let i = 0; i < currentLrc.length; i++) {
+      const item = currentLrc[i];
+      if (currentTime >= item.start && currentTime <= item.end) {
+        return item.text;
+      }
+    }
+    return "♪ 享受音樂中 ♪";
+  }
+
   function togglePlay() {
     if (!audio.src) return;
     if (audio.paused) {
       audio.play();
+      pipVideo.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
     } else {
       audio.pause();
+      pipVideo.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
@@ -804,7 +871,6 @@
     }
   }
 
-  // 時間與進度條監聽
   audio.addEventListener("timeupdate", () => {
     if (!audio.duration) return;
     const cur = audio.currentTime;
@@ -814,14 +880,7 @@
     document.getElementById("time-current").innerText = formatTime(cur);
     document.getElementById("time-duration").innerText = formatTime(dur);
 
-    // 更新即時字幕
-    let activeText = "♪ 享受音樂中 ♪";
-    if (currentLrc.length > 0) {
-      for (let i = 0; i < currentLrc.length; i++) {
-        if (cur >= currentLrc[i].time) activeText = currentLrc[i].text;
-        else break;
-      }
-    }
+    const activeText = getActiveSubtitleText(cur);
     document.getElementById("lrc-box").innerText = activeText;
     document.getElementById("mini-lrc").innerText = activeText;
 
