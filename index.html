@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景與收合選單)</title>
+  <title>ASMR 私人隨身庫 (極致清晰大字幕)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
-      --pink-glow: rgba(255, 121, 198, 0.7);
+      --pink-glow: rgba(255, 121, 198, 0.85);
       --bg-dark: #0b0b0e;
       --card-glass: rgba(18, 18, 24, 0.88);
       --text-main: #ffffff;
@@ -47,7 +47,6 @@
 
     .container { width: 100%; max-width: 480px; z-index: 1; position: relative; }
 
-    /* 右上角設定按鈕 */
     .top-bar {
       width: 100%; max-width: 480px;
       display: flex; justify-content: space-between; align-items: center;
@@ -63,7 +62,6 @@
       backdrop-filter: blur(10px);
     }
 
-    /* 管理面板抽屜 (預設收合) */
     .admin-drawer {
       max-height: 0; overflow: hidden;
       transition: max-height 0.4s ease-in-out;
@@ -88,7 +86,6 @@
     }
     .btn-pink { width: 100%; background: var(--primary-pink); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 6px; }
 
-    /* 作品集與圖片檢視區 */
     .album-group { border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; margin-bottom: 12px; overflow: hidden; background: rgba(0,0,0,0.3); }
     .album-header { padding: 12px; background: rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.95rem; cursor: pointer; }
     .album-thumb-preview { width: 32px; height: 32px; border-radius: 6px; object-fit: cover; margin-right: 8px; }
@@ -107,7 +104,6 @@
     
     .edit-box { padding: 10px; background: rgba(0,0,0,0.4); border-top: 1px solid rgba(255,255,255,0.08); display: none; margin-top: 8px; border-radius: 8px; }
 
-    /* 播放器卡片與迷你條 */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto;
       max-width: 480px; width: 100%; max-height: 94vh; overflow-y: auto;
@@ -124,13 +120,13 @@
     .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; background: #1a1a22; margin: 0 auto 6px auto; position: relative; }
     .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
 
-    .album-tag { font-size: 0.78rem; color: var(--text-sub); text-align: center; margin-bottom: 2px; }
-    .track-title { font-size: 0.95rem; font-weight: 700; text-align: center; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
+    .album-tag { font-size: 0.78rem; color: var(--text-sub); text-align: center; margin-bottom: 4px; }
+    
+    /* 拿掉上方篇章名稱，專注放大粉紅字幕 */
     .lrc-box {
-      min-height: 46px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink);
-      text-shadow: 0 0 16px var(--pink-glow), 0 0 4px #000; padding: 4px 8px; line-height: 1.35; margin-bottom: 6px;
+      min-height: 70px; display: flex; align-items: center; justify-content: center;
+      text-align: center; font-size: 1.35rem; font-weight: 900; color: var(--primary-pink);
+      text-shadow: 0 0 20px var(--pink-glow), 0 2px 4px rgba(0,0,0,0.9); padding: 4px 8px; line-height: 1.4; margin-bottom: 8px;
     }
 
     .sub-quick-tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; }
@@ -166,7 +162,7 @@
     .mini-thumb { width: 40px; height: 40px; border-radius: 8px; background: #1a1a22; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
     .mini-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .mini-title { font-size: 0.82rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-subtitle { font-size: 0.72rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
     .mini-btn { background: none; border: none; color: #fff; font-size: 1.2rem; padding: 6px; cursor: pointer; }
   </style>
 </head>
@@ -177,19 +173,17 @@
 <div id="bg-overlay"></div>
 
 <div class="container">
-  <!-- 頂端導覽與管理按鈕 -->
   <div class="top-bar">
     <div class="app-logo">🌸 ASMR 隨身庫</div>
     <button class="btn-toggle-admin" onclick="toggleAdminDrawer()">⚙️ 管理選單</button>
   </div>
 
-  <!-- 可收合的管理面板 (包含原本的建立分區與匯入篇章) -->
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card">
       <div class="card-title">📁 建立作品分區</div>
       <div class="form-group">
         <label>作品分區名稱</label>
-        <input type="text" id="album-title" placeholder="例如：彼女さん厳し～♡ 系列">
+        <input type="text" id="album-title" placeholder="例如：系列名稱">
       </div>
       <div class="form-group">
         <label>封面/圖片素材 (圖片/MP4影片)</label>
@@ -210,7 +204,7 @@
       </div>
       <div class="form-group">
         <label>篇章名稱</label>
-        <input type="text" id="track-title-input" placeholder="例如：01_え～♡彼女さん厳し～♡">
+        <input type="text" id="track-title-input" placeholder="例如：01_開場">
       </div>
       <div class="form-group">
         <label>音訊檔案</label>
@@ -224,14 +218,12 @@
     </div>
   </div>
 
-  <!-- 中間主畫面：作品集與圖片檢視 -->
   <div class="glass-card">
     <div class="card-title">📚 作品集與圖片瀏覽</div>
     <div id="album-list">載入中...</div>
   </div>
 </div>
 
-<!-- 底部 Mini 播放條 -->
 <div id="mini-player" class="mini-player hidden" onclick="expandPlayer()">
   <img id="mini-thumb" class="mini-thumb" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>">
   <div class="mini-info">
@@ -242,7 +234,6 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
-<!-- 完整播放器卡片 -->
 <div id="player-card" class="player-card minimized">
   <div class="drag-handle-area" id="drag-handle-area">
     <div class="drag-handle"></div>
@@ -254,8 +245,8 @@
   </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
-  <div id="track-title" class="track-title">未選擇篇章</div>
   
+  <!-- 完美放大且極致清晰的粉紅字幕 (上方篇章名稱已移除) -->
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
@@ -293,7 +284,7 @@
   </div>
 </div>
 
-<canvas id="pip-canvas" width="1000" height="200" style="display:none;"></canvas>
+<canvas id="pip-canvas" width="1200" height="240" style="display:none;"></canvas>
 <video id="pip-video" autoplay muted playsinline webkit-playsinline style="display:none;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
@@ -322,7 +313,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V5", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V6", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -340,8 +331,7 @@
   }
 
   function toggleAdminDrawer() {
-    const drawer = document.getElementById("admin-drawer");
-    drawer.classList.toggle("open");
+    document.getElementById("admin-drawer").classList.toggle("open");
   }
 
   function updateAlbumDropdown() {
@@ -430,6 +420,7 @@
         if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
           currentTrackList[currentIndex].lrcText = lrcText;
           currentLrc = parseSubtitles(lrcText, audio.duration);
+          updateSubtitleDisplay();
         }
         renderAlbumList();
         resolve(true);
@@ -476,7 +467,6 @@
     }
   }
 
-  // 渲染中間的作品集與圖片檢視
   function renderAlbumList() {
     const listEl = document.getElementById("album-list");
     listEl.innerHTML = "";
@@ -497,11 +487,8 @@
 
       if (album.coverBlob) {
         thumbUrl = URL.createObjectURL(album.coverBlob);
-        if (album.coverBlob.type.startsWith('video/')) {
-          isVideoBanner = true;
-        } else {
-          hasBannerImg = true;
-        }
+        if (album.coverBlob.type.startsWith('video/')) isVideoBanner = true;
+        else hasBannerImg = true;
       }
 
       let chaptersHtml = "";
@@ -568,12 +555,9 @@
   function toggleAlbumBody(id) {
     const body = document.getElementById(`album-body-${id}`);
     const isOpen = body.classList.contains("show");
-    
-    // 關閉全部，或是只開點擊的
     document.querySelectorAll('.album-content-body').forEach(b => b.classList.remove("show"));
     if (!isOpen) {
       body.classList.add("show");
-      // 同時切換全域背景為該分區的背景
       const album = albums.find(a => a.id === id);
       if (album) setGlobalBackground(album.bgBlob);
     }
@@ -602,13 +586,11 @@
   async function saveAlbumEdit(id) {
     const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
     if (!newTitle) return alert("請輸入分區名稱！");
-
     const newCover = document.getElementById(`edit-cover-${id}`).files[0];
     const newBg = document.getElementById(`edit-bg-${id}`).files[0];
 
     const tx = db.transaction(["albums"], "readwrite");
     const store = tx.objectStore("albums");
-
     store.get(id).onsuccess = (e) => {
       const album = e.target.result;
       if (!album) return;
@@ -617,11 +599,7 @@
       if (newBg) album.bgBlob = newBg;
       store.put(album);
     };
-
-    tx.oncomplete = () => {
-      alert("更換成功！");
-      loadData();
-    };
+    tx.oncomplete = () => { alert("更換成功！"); loadData(); };
   }
 
   async function deleteTrack(trackId) {
@@ -658,12 +636,9 @@
     const track = currentTrackList[currentIndex];
 
     document.getElementById("album-tag").innerText = album.title;
-    document.getElementById("track-title").innerText = track.title;
     document.getElementById("mini-title").innerText = track.title;
 
     audio.src = URL.createObjectURL(track.audioBlob);
-
-    // 套用全域背景
     setGlobalBackground(album.bgBlob);
 
     if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
@@ -767,31 +742,51 @@
   };
 
   audio.ontimeupdate = () => {
+    updateSubtitleDisplay();
+  };
+
+  // 即使暫停或手動拉進度條也能即時更新字幕的共用函式
+  function updateSubtitleDisplay() {
     document.getElementById("time-current").innerText = formatTime(audio.currentTime);
     document.getElementById("time-duration").innerText = formatTime(audio.duration || 0);
-    if (audio.duration) seekSlider.value = (audio.currentTime / audio.duration) * 100;
+    if (audio.duration && !isNaN(audio.duration)) {
+      seekSlider.value = (audio.currentTime / audio.duration) * 100;
+    }
 
     const lrcBox = document.getElementById("lrc-box");
     const miniLrc = document.getElementById("mini-lrc");
     let currentText = "♪";
 
-    if (!currentTrackList[currentIndex] || !currentTrackList[currentIndex].lrcText) {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
+      currentText = "♪ 選擇小篇章開始收聽 ♪";
+    } else if (!currentTrackList[currentIndex].lrcText) {
       currentText = "♪ 無動態字幕 ♪";
     } else if (currentLrc.length === 0) {
       currentText = "♪ 字幕解析中 ♪";
     } else {
       for (let i = 0; i < currentLrc.length; i++) {
-        if (audio.currentTime >= currentLrc[i].time) currentText = currentLrc[i].text;
-        else break;
+        if (audio.currentTime >= currentLrc[i].time) {
+          currentText = currentLrc[i].text;
+        } else {
+          break;
+        }
       }
     }
     lrcBox.innerText = currentText;
     miniLrc.innerText = currentText;
     drawPiPCanvas(currentText);
-  };
+  }
 
   audio.onended = () => nextTrack();
-  seekSlider.oninput = () => { if (audio.duration) audio.currentTime = (seekSlider.value / 100) * audio.duration; };
+  
+  // 支援音樂暫停時手動調整進度條也能立即看到對應字幕
+  seekSlider.oninput = () => { 
+    if (audio.duration && !isNaN(audio.duration)) {
+      audio.currentTime = (seekSlider.value / 100) * audio.duration;
+      updateSubtitleDisplay();
+    } 
+  };
+
   volumeSlider.oninput = () => { audio.volume = volumeSlider.value; if (audio.volume > 0) lastVolume = audio.volume; updateMuteButtonIcon(); };
 
   function toggleMute() {
@@ -803,11 +798,16 @@
 
   function drawPiPCanvas(lyricText) {
     ctx.fillStyle = "#0b0b0e"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (cachedCoverImage) { ctx.drawImage(cachedCoverImage, 15, 15, 170, 170); }
-    else { ctx.fillStyle = "#1a1a22"; ctx.fillRect(15, 15, 170, 170); }
-    const track = (currentIndex !== -1 && currentTrackList[currentIndex]) ? currentTrackList[currentIndex] : { title: "未選擇篇章" };
-    ctx.fillStyle = "#ffffff"; ctx.font = "bold 24px sans-serif"; ctx.fillText(track.title, 205, 50, 760);
-    ctx.fillStyle = "#ff79c6"; ctx.font = "bold 32px sans-serif"; ctx.fillText(lyricText, 205, 110, 760);
+    if (cachedCoverImage) { ctx.drawImage(cachedCoverImage, 20, 20, 200, 200); }
+    else { ctx.fillStyle = "#1a1a22"; ctx.fillRect(20, 20, 200, 200); }
+    
+    // PiP 畫布也移除上方標題，放大粉紅字幕並置中顯示
+    ctx.fillStyle = "#ff79c6"; 
+    ctx.font = "bold 44px sans-serif"; 
+    ctx.shadowColor = "rgba(255, 121, 198, 0.8)";
+    ctx.shadowBlur = 15;
+    ctx.fillText(lyricText, 250, 135, 910);
+    ctx.shadowBlur = 0; // 重置陰影
   }
 
   function formatTime(seconds) {
@@ -818,11 +818,23 @@
 
   function togglePlay() {
     if (currentIndex === -1) return;
-    if (audio.paused) { audio.play(); document.getElementById("btn-play").innerText = "⏸"; document.getElementById("mini-btn-play").innerText = "⏸"; }
-    else { audio.pause(); document.getElementById("btn-play").innerText = "▶"; document.getElementById("mini-btn-play").innerText = "▶"; }
+    if (audio.paused) { 
+      audio.play(); 
+      document.getElementById("btn-play").innerText = "⏸"; 
+      document.getElementById("mini-btn-play").innerText = "⏸"; 
+    } else { 
+      audio.pause(); 
+      document.getElementById("btn-play").innerText = "▶"; 
+      document.getElementById("mini-btn-play").innerText = "▶"; 
+    }
   }
 
-  function seekRelative(sec) { if (currentIndex !== -1) audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec)); }
+  function seekRelative(sec) { 
+    if (currentIndex !== -1) {
+      audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec));
+      updateSubtitleDisplay();
+    }
+  }
   function prevTrack() { if (currentIndex > 0) { currentIndex--; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
   function nextTrack() { if (currentIndex < currentTrackList.length - 1) { currentIndex++; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
   function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
