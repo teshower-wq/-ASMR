@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (Canvas 實時字幕 PiP 版)</title>
+  <title>ASMR 私人隨身庫 (沈浸式動態字幕版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -89,7 +89,7 @@
 
     /* 主播放面板 */
     .player-card {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; max-height: 94vh; overflow-y: auto;
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; max-height: 96vh; overflow-y: auto;
       background: var(--card-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       padding: 12px 24px 28px 24px; box-shadow: 0 -12px 45px rgba(0,0,0,0.85);
@@ -100,23 +100,21 @@
     .drag-handle-area { width: 100%; padding: 4px 0 16px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 56px; height: 6px; background: rgba(255, 255, 255, 0.4); border-radius: 10px; }
 
-    .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
+    .cover-box { width: 100%; max-height: 28vh; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    /* 隱藏的合成用 Canvas 與 PiP 影片串流 */
-    #pip-canvas { display: none; }
-    #pip-video-stream { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; }
-
-    .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
+    .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 6px; }
     
+    /* 超顯眼動態字幕框 */
     .lrc-box {
       min-height: 90px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.6rem; font-weight: 900; color: var(--primary-pink);
-      text-shadow: 0 0 25px var(--pink-glow), 0 2px 5px rgba(0,0,0,0.9); padding: 8px 12px; line-height: 1.4; margin-bottom: 12px;
+      text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--primary-pink);
+      text-shadow: 0 0 20px var(--pink-glow), 0 2px 4px rgba(0,0,0,0.9); padding: 8px 12px; line-height: 1.4; margin-bottom: 10px;
+      background: rgba(0, 0, 0, 0.3); border-radius: 14px; border: 1px solid rgba(255, 121, 198, 0.2);
     }
 
-    .sub-quick-tools { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
-    .btn-sub-quick { padding: 8px 14px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink); border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+    .sub-quick-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+    .btn-sub-quick { padding: 8px 12px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink); border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
 
     .seek-slider { width: 100%; height: 6px; accent-color: #ffffff; cursor: pointer; }
     .time-box { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 10px; }
@@ -158,10 +156,7 @@
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景</div>
-      <div class="form-group">
-        <label>選取多張圖片或 MP4 影片</label>
-        <input type="file" id="global-bg-input" accept="image/*,video/*" multiple>
-      </div>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存並啟動背景輪播</button>
     </div>
 
@@ -216,12 +211,11 @@
 
   <div class="cover-box">
     <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>">
-    <!-- 用於 Canvas 合成與 PiP 串流 -->
-    <canvas id="pip-canvas" width="640" height="640"></canvas>
-    <video id="pip-video-stream" muted playsinline></video>
   </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
+  
+  <!-- 動態字幕顯示區 -->
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
@@ -245,10 +239,6 @@
     <button class="btn-mute" id="btn-mute" onclick="toggleMute()">🔈</button>
     <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="1">
     <span>🔊</span>
-  </div>
-
-  <div class="bottom-tools">
-    <button class="btn-pink" onclick="triggerCanvasPiP()">📺 彈出桌面小視窗 (含動態字幕)</button>
   </div>
 </div>
 
@@ -277,19 +267,13 @@
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
   const coverImg = document.getElementById("cover-img");
-  
-  const canvas = document.getElementById("pip-canvas");
-  const ctx = canvas.getContext("2d");
-  const pipVideoStream = document.getElementById("pip-video-stream");
-  let canvasStream = null;
-  let cachedCoverImageObj = null;
 
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V18", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V19", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -467,22 +451,35 @@
     if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
   }
 
+  // 強力強化的字幕解析器（支援各種 LRC 格式與純文字）
   function parseSubtitles(rawText) {
     if (!rawText) return [];
     const lines = rawText.split('\n');
     let lrcList = [];
-    const timeReg = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/;
+    const timeReg = /\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/;
+    
     for (let line of lines) {
       const match = timeReg.exec(line);
       if (match) {
         const min = parseInt(match[1], 10);
         const sec = parseInt(match[2], 10);
-        const ms = match[3] ? parseInt(match[3].padEnd(3, '0'), 10) : 0;
+        const msStr = match[3] ? match[3].padEnd(3, '0').slice(0, 3) : '0';
+        const ms = parseInt(msStr, 10);
         const time = min * 60 + sec + ms / 1000;
         const text = line.replace(timeReg, '').trim();
         if (text) lrcList.push({ time, text });
       }
     }
+    
+    // 如果檔案內完全沒有時間標籤（純文字對話），自動均分時間
+    if (lrcList.length === 0 && rawText.trim()) {
+      const plainLines = rawText.split('\n').map(l => l.trim()).filter(l => l);
+      const totalDur = audio.duration || 180;
+      plainLines.forEach((text, idx) => {
+        lrcList.push({ time: (totalDur / plainLines.length) * idx, text });
+      });
+    }
+
     lrcList.sort((a, b) => a.time - b.time);
     return lrcList;
   }
@@ -591,15 +588,10 @@
     if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
     else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
 
-    cachedCoverImageObj = null;
     if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
       coverImg.style.display = "block";
-      
-      const imgObj = new Image();
-      imgObj.onload = () => { cachedCoverImageObj = imgObj; };
-      imgObj.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
@@ -611,93 +603,6 @@
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
     expandPlayer();
-  }
-
-  // 繪製 Canvas 畫布（封面 + 實時動態字幕）
-  function renderCanvasFrame() {
-    ctx.fillStyle = "#0b0b0e";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    if (cachedCoverImageObj) {
-      ctx.drawImage(cachedCoverImageObj, 0, 0, canvas.width, canvas.height);
-      // 加上半透明漸層遮罩讓文字清晰
-      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    let activeText = "♪ ASMR 隨身庫 ♪";
-    if (currentLrc.length > 0) {
-      for (let i = 0; i < currentLrc.length; i++) {
-        if (audio.currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
-        else break;
-      }
-    }
-
-    // 畫上動態字幕
-    ctx.save();
-    ctx.font = "bold 36px -apple-system, BlinkMacSystemFont, Roboto, sans-serif";
-    ctx.fillStyle = "#ff79c6";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-    ctx.shadowBlur = 15;
-    
-    // 自動換行支援
-    wrapText(ctx, activeText, canvas.width / 2, canvas.height - 60, canvas.width - 80, 46);
-    ctx.restore();
-  }
-
-  function wrapText(context, text, x, y, maxWidth, lineHeight) {
-    const words = text.split('');
-    let line = '';
-    let lines = [];
-
-    for(let n = 0; n < words.length; n++) {
-      let testLine = line + words[n];
-      let metrics = context.measureText(testLine);
-      let testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
-        lines.push(line);
-        line = words[n];
-      } else {
-        line = testLine;
-      }
-    }
-    lines.push(line);
-
-    // 限制最多顯示兩行
-    if (lines.length > 2) {
-      lines = lines.slice(lines.length - 2);
-    }
-
-    for(let k = 0; k < lines.length; k++) {
-      context.fillText(lines[k], x, y + (k * lineHeight) - ((lines.length - 1) * lineHeight));
-    }
-  }
-
-  // 啟動 Canvas 影片串流與 PiP
-  async function triggerCanvasPiP() {
-    if (!audio.src) {
-      alert("請先選擇並播放音樂！");
-      return;
-    }
-    try {
-      if (!canvasStream) {
-        canvasStream = canvas.captureStream(30); // 30 FPS
-        pipVideoStream.srcObject = canvasStream;
-        await pipVideoStream.play();
-      }
-
-      renderCanvasFrame();
-
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await pipVideoStream.requestPictureInPicture();
-      }
-    } catch (err) {
-      alert("桌面小視窗啟動失敗，請確認是否允許網頁使用子母畫面。");
-    }
   }
 
   function togglePlay() {
@@ -760,17 +665,15 @@
     let activeText = "♪ 享受音樂中 ♪";
     if (currentLrc.length > 0) {
       for (let i = 0; i < currentLrc.length; i++) {
-        if (audio.currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
-        else break;
+        if (audio.currentTime >= currentLrc[i].time) {
+          activeText = currentLrc[i].text;
+        } else {
+          break;
+        }
       }
     }
     document.getElementById("lrc-box").innerText = activeText;
     document.getElementById("mini-lrc").innerText = activeText;
-
-    // 如果正在跑 PiP 小視窗，同步實時重新整理 Canvas 畫面
-    if (document.pictureInPictureElement) {
-      renderCanvasFrame();
-    }
   });
 
   seekSlider.addEventListener('input', (e) => {
