@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (雙頁面切換 & 手勢滑動)</title>
+  <title>ASMR 私人隨身庫 (雙頁面 & iOS 懸浮最佳化)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -91,7 +91,7 @@
     .page-view { display: none; width: 100%; }
     .page-view.active { display: block; }
 
-    /* 放大兩倍的作品清單 (第一頁) */
+    /* 第一頁：作品集選單 */
     .album-grid-card {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
       border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center;
@@ -103,7 +103,7 @@
     .album-grid-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .album-grid-count { font-size: 0.95rem; color: var(--primary-pink); font-weight: bold; }
 
-    /* 第二頁：篇章清單風格 (對應圖1) */
+    /* 第二頁：篇章清單風格 */
     .breadcrumb-bar {
       display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 1.1rem; font-weight: bold; color: var(--primary-pink); cursor: pointer;
     }
@@ -270,7 +270,7 @@
     </div>
   </div>
 
-  <!-- 第二頁：篇章清單瀏覽 (對應圖1風格) -->
+  <!-- 第二頁：篇章清單瀏覽 -->
   <div id="view-detail" class="page-view">
     <div class="glass-card">
       <div class="breadcrumb-bar" onclick="switchPage('home')">
@@ -340,8 +340,8 @@
   </div>
 </div>
 
-<canvas id="pip-canvas" width="1200" height="240" style="display:none;"></canvas>
-<video id="pip-video" autoplay muted playsinline webkit-playsinline style="display:none;"></video>
+<!-- iOS 專用相容影片懸浮標籤 -->
+<video id="pip-video" crossorigin="anonymous" playsinline controls style="display:none; width:100%; max-height:200px;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -354,7 +354,6 @@
   let currentPlayingAlbumId = null;
   let currentActiveAlbumId = null;
   let lastVolume = 1;
-  let cachedCoverImage = null;
 
   let globalBackgrounds = [];
   let bgIndex = 0;
@@ -372,13 +371,10 @@
 
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
-  const canvas = document.getElementById("pip-canvas");
-  const ctx = canvas.getContext("2d");
-  const pipVideo = document.getElementById("pip-video");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V9", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V10", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -599,7 +595,6 @@
     }
   }
 
-  // 渲染第一頁的作品集清單
   function renderAlbumList() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
@@ -663,7 +658,6 @@
     renderAlbumList();
   }
 
-  // 渲染第二頁的篇章清單 (對應圖1)
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
@@ -736,14 +730,10 @@
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
       coverImg.style.display = "block"; coverVideo.style.display = "none";
-      const imgObj = new Image();
-      imgObj.onload = () => { cachedCoverImage = imgObj; };
-      imgObj.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
       coverImg.style.display = "block"; coverVideo.style.display = "none";
-      cachedCoverImage = null;
     }
 
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
@@ -862,7 +852,6 @@
     }
     lrcBox.innerText = currentText;
     miniLrc.innerText = currentText;
-    drawPiPCanvas(currentText);
   }
 
   audio.onended = () => nextTrack();
@@ -882,19 +871,6 @@
     updateMuteButtonIcon();
   }
   function updateMuteButtonIcon() { document.getElementById("btn-mute").innerText = (audio.volume === 0) ? "🔇" : "🔈"; }
-
-  function drawPiPCanvas(lyricText) {
-    ctx.fillStyle = "#0b0b0e"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (cachedCoverImage) { ctx.drawImage(cachedCoverImage, 20, 20, 200, 200); }
-    else { ctx.fillStyle = "#1a1a22"; ctx.fillRect(20, 20, 200, 200); }
-    
-    ctx.fillStyle = "#ff79c6"; 
-    ctx.font = "bold 44px sans-serif"; 
-    ctx.shadowColor = "rgba(255, 121, 198, 0.8)";
-    ctx.shadowBlur = 15;
-    ctx.fillText(lyricText, 250, 135, 910);
-    ctx.shadowBlur = 0;
-  }
 
   function formatTime(seconds) {
     if (isNaN(seconds)) return "00:00";
@@ -927,20 +903,46 @@
   function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
   function minimizePlayer() { playerCard.classList.add("minimized"); miniPlayer.classList.remove("hidden"); }
 
+  // iOS 完美適配的桌面懸浮 (PiP) 啟動函式
   async function enablePiP() {
     try {
-      if (!document.pictureInPictureEnabled) return alert("瀏覽器不支援 PiP！");
-      pipVideo.srcObject = canvas.captureStream(30);
+      const pipVideo = document.getElementById("pip-video");
+      
+      if (currentIndex === -1 || !currentTrackList[currentIndex]) {
+        return alert("請先選擇並播放一個篇章，才能開啟桌面懸浮！");
+      }
+
+      if (!document.pictureInPictureEnabled && !pipVideo.webkitSupportsPresentationMode) {
+        return alert("你的瀏覽器或裝置不支援子母畫面 (PiP) 功能。");
+      }
+
+      pipVideo.src = audio.src;
+      pipVideo.currentTime = audio.currentTime;
       await pipVideo.play();
-      await pipVideo.requestPictureInPicture();
-    } catch (err) { alert("啟動懸浮失敗。"); }
+
+      if (pipVideo.webkitSetPresentationMode) {
+        if (pipVideo.webkitPresentationMode === "picture-in-picture") {
+          pipVideo.webkitSetPresentationMode("inline");
+        } else {
+          pipVideo.webkitSetPresentationMode("picture-in-picture");
+        }
+      } else if (document.pictureInPictureEnabled) {
+        if (document.pictureInPictureElement) {
+          await document.exitPictureInPicture();
+        } else {
+          await pipVideo.requestPictureInPicture();
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("啟動桌面懸浮失敗。請確認您使用的是 Safari 瀏覽器，並且已經點擊播放了音樂！");
+    }
   }
 
-  // 滑鼠與手指拖曳控制（支援上下滑動關閉與拉回展開）
+  // 手勢上下滑動控制面板
   let startY = 0;
   let currentY = 0;
   let isDragging = false;
-
   const dragArea = document.getElementById("drag-handle-area");
 
   dragArea.addEventListener("touchstart", (e) => {
@@ -960,7 +962,6 @@
 
   dragArea.addEventListener("touchend", () => { isDragging = false; });
 
-  // 同時支援滑鼠點擊拖曳
   dragArea.addEventListener("mousedown", (e) => {
     startY = e.clientY;
     isDragging = true;
@@ -976,8 +977,6 @@
   });
 
   window.addEventListener("mouseup", () => { isDragging = false; });
-  
-  // 讓迷你播放器也可以向上滑動或點擊展開
   miniPlayer.addEventListener("click", () => expandPlayer());
 </script>
 </body>
