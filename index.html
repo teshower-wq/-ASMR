@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (音訊分離穩定版)</title>
+  <title>ASMR 私人隨身庫 (PiP 完美解鎖版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -251,11 +251,8 @@
   </div>
 </div>
 
-<!-- 核心改良：音訊改用獨立標準 <audio> 標籤，絕對不會被 Safari 阻擋 -->
 <audio id="main-audio" preload="auto"></audio>
-
-<!-- 專供 PiP 懸浮視窗顯示字幕串流的視訊物件 -->
-<video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<video id="pip-video" crossorigin="anonymous" muted playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 
 <script>
   let db;
@@ -285,7 +282,6 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 初始化 Canvas 字幕串流給 PiP 使用
   function initPiPVideoSource() {
     try {
       const canvas = document.createElement('canvas');
@@ -321,8 +317,7 @@
       drawPiPFrame("♪ 享受音樂中 ♪");
       const stream = canvas.captureStream(15);
       pipVideo.srcObject = stream;
-      pipVideo.play().catch(() => {});
-
+      
       window.updatePiPCanvasText = (text) => {
         drawPiPFrame(text);
       };
@@ -340,8 +335,8 @@
         artwork: [{ src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="100%" height="100%" fill="%23ff79c6"/></svg>', sizes: '512x512', type: 'image/svg+xml' }]
       });
 
-      navigator.mediaSession.setActionHandler('play', () => { mainAudio.play(); updatePlayButtonState(true); });
-      navigator.mediaSession.setActionHandler('pause', () => { mainAudio.pause(); updatePlayButtonState(false); });
+      navigator.mediaSession.setActionHandler('play', () => { triggerPlay(); });
+      navigator.mediaSession.setActionHandler('pause', () => { triggerPause(); });
       navigator.mediaSession.setActionHandler('seekbackward', () => { seekRelative(-5); });
       navigator.mediaSession.setActionHandler('seekforward', () => { seekRelative(30); });
       navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
@@ -354,7 +349,7 @@
     document.getElementById("mini-btn-play").innerText = isPlaying ? "⏸" : "▶";
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V16", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V17", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -614,7 +609,7 @@
     tx.objectStore("tracks").delete(trackId);
     tx.oncomplete = () => {
       if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
-        mainAudio.pause(); mainAudio.src = ""; currentIndex = -1; minimizePlayer();
+        mainAudio.pause(); pipVideo.pause(); mainAudio.src = ""; currentIndex = -1; minimizePlayer();
       }
       loadData();
     };
@@ -638,9 +633,25 @@
 
     currentLrc = parseSubtitles(track.lrcText, mainAudio.duration);
     setupMediaSession(track.title, album.title);
+    
+    // 關鍵修正：點擊播放時，同步讓 pipVideo 處於播放狀態以解鎖 PiP 權限
     mainAudio.play();
+    pipVideo.play().catch(() => {});
+    
     updatePlayButtonState(true);
     expandPlayer();
+  }
+
+  function triggerPlay() {
+    mainAudio.play();
+    pipVideo.play().catch(() => {});
+    updatePlayButtonState(true);
+  }
+
+  function triggerPause() {
+    mainAudio.pause();
+    pipVideo.pause();
+    updatePlayButtonState(false);
   }
 
   function parseSubtitles(text, duration) {
@@ -738,11 +749,9 @@
       return;
     }
     if (mainAudio.paused) {
-      mainAudio.play();
-      updatePlayButtonState(true);
+      triggerPlay();
     } else {
-      mainAudio.pause();
-      updatePlayButtonState(false);
+      triggerPause();
     }
   }
 
@@ -767,24 +776,24 @@
   function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
   function minimizePlayer() { playerCard.classList.add("minimized"); if (currentIndex !== -1) miniPlayer.classList.remove("hidden"); }
 
-  // 完美呼叫 PiP 懸浮視窗
-  function enablePiP() {
+  // 完美解鎖並呼叫 PiP 懸浮視窗
+  async function enablePiP() {
     if (currentIndex === -1 || !currentTrackList[currentIndex]) {
       return alert("請先開始播放一個篇章才能啟動桌面懸浮！");
     }
 
     try {
       if (document.pictureInPictureElement) {
-        document.exitPictureInPicture();
+        await document.exitPictureInPicture();
       } else {
-        pipVideo.requestPictureInPicture().catch(err => {
-          console.error(err);
-          alert("無法啟動懸浮：請確定您使用的是 Safari 瀏覽器，並且已在畫面上按過播放鍵。");
-        });
+        if (pipVideo.paused) {
+          await pipVideo.play();
+        }
+        await pipVideo.requestPictureInPicture();
       }
     } catch (err) {
       console.error(err);
-      alert("啟動桌面懸浮失敗，請確認已開始播放。");
+      alert("無法啟動懸浮：請確定您使用的是 Safari 瀏覽器，並且已在畫面上按過播放鍵。");
     }
   }
 
