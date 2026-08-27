@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (終極美化加強版)</title>
+  <title>ASMR 私人隨身庫 (PiP 旗艦升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -15,7 +15,7 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0; padding: 16px; padding-bottom: 110px;
+      margin: 0; padding: 16px; padding-bottom: 120px;
       background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
@@ -59,13 +59,14 @@
     .album-grid-card {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
       border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center; cursor: pointer;
+      position: relative;
     }
     .album-grid-thumb { width: 96px; height: 96px; border-radius: 14px; object-fit: cover; margin-right: 18px; flex-shrink: 0; }
     .album-grid-info { flex: 1; overflow: hidden; }
     .album-grid-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .album-grid-count { font-size: 0.95rem; color: var(--primary-pink); font-weight: bold; }
 
-    .breadcrumb-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 1.1rem; font-weight: bold; color: var(--primary-pink); cursor: pointer; }
+    .breadcrumb-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-size: 1.1rem; font-weight: bold; color: var(--primary-pink); }
     .chapter-file-list { display: flex; flex-direction: column; gap: 12px; }
     .chapter-file-item {
       display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;
@@ -99,52 +100,49 @@
     .drag-handle-area { width: 100%; padding: 4px 0 16px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 56px; height: 6px; background: rgba(255, 255, 255, 0.4); border-radius: 10px; }
 
-    .cover-box { width: 100%; max-height: 25vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
+    .cover-box { width: 100%; max-height: 30vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
     .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 6px; }
+    .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
     
     .lrc-box {
-      min-height: 85px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--primary-pink);
-      text-shadow: 0 0 25px var(--pink-glow), 0 2px 5px rgba(0,0,0,0.9); padding: 8px 12px; line-height: 1.4; margin-bottom: 10px;
+      min-height: 80px; display: flex; align-items: center; justify-content: center;
+      text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--primary-pink);
+      text-shadow: 0 0 25px var(--pink-glow), 0 2px 5px rgba(0,0,0,0.9); padding: 8px 12px; line-height: 1.4; margin-bottom: 12px;
     }
 
     .sub-quick-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
-    .btn-sub-quick { padding: 6px 12px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink); border-radius: 10px; font-size: 0.82rem; font-weight: bold; cursor: pointer; }
+    .btn-sub-quick { padding: 8px 12px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink); border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
 
     .seek-slider { width: 100%; height: 6px; accent-color: #ffffff; cursor: pointer; }
     .time-box { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 10px; }
     
     .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; padding: 6px; }
-    .btn-play-main { width: 52px; height: 52px; background: #fff; color: #000; border-radius: 50%; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
+    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; padding: 6px; }
+    .btn-play-main { width: 54px; height: 54px; background: #fff; color: #000; border-radius: 50%; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
 
     .volume-box { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 12px; }
     .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); }
     .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer; }
 
-    .bottom-tools { display: flex; gap: 10px; }
+    .bottom-tools { display: flex; gap: 12px; }
     .btn-pip {
       flex: 1; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink);
       color: var(--primary-pink); padding: 12px; border-radius: 12px; font-weight: bold; font-size: 0.88rem; cursor: pointer; text-align: center;
     }
-    .btn-speed {
-      background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #fff; padding: 12px 16px; border-radius: 12px; font-weight: bold; font-size: 0.88rem; cursor: pointer;
-    }
 
     .mini-player {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 68px;
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 72px;
       background: rgba(18, 18, 24, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; padding: 0 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; padding: 0 12px;
       z-index: 999; cursor: pointer; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); transition: transform 0.3s ease;
     }
     .mini-player.hidden { transform: translateY(100%); }
-    .mini-thumb { width: 48px; height: 48px; border-radius: 10px; background: #1a1a22; object-fit: cover; margin-right: 14px; flex-shrink: 0; }
-    .mini-info { flex: 1; overflow: hidden; margin-right: 14px; }
-    .mini-title { font-size: 0.92rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-subtitle { font-size: 0.82rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
-    .mini-btn { background: none; border: none; color: #fff; font-size: 1.4rem; padding: 6px; cursor: pointer; }
+    .mini-thumb { width: 46px; height: 46px; border-radius: 10px; background: #1a1a22; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
+    .mini-info { flex: 1; overflow: hidden; margin-right: 8px; }
+    .mini-title { font-size: 0.9rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-subtitle { font-size: 0.8rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+    .mini-btn { background: none; border: none; color: #fff; font-size: 1.1rem; padding: 6px; cursor: pointer; }
+    .mini-btn-speed { font-size: 0.8rem; font-weight: bold; color: var(--primary-pink); background: rgba(255,121,198,0.2); padding: 4px 6px; border-radius: 6px; border: 1px solid var(--primary-pink); }
   </style>
 </head>
 <body>
@@ -197,8 +195,9 @@
 
   <div id="view-detail" class="page-view">
     <div class="glass-card">
-      <div class="breadcrumb-bar" onclick="switchPage('home')">
-        <span>⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
+      <div class="breadcrumb-bar">
+        <span onclick="switchPage('home')" style="cursor:pointer;">⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
+        <button class="btn-sm btn-sm-del" onclick="deleteCurrentAlbum()">刪除此分區</button>
       </div>
       <div id="chapter-list-container" class="chapter-file-list"></div>
     </div>
@@ -211,8 +210,10 @@
     <div id="mini-title" class="mini-title">未選擇篇章</div>
     <div id="mini-lrc" class="mini-subtitle">♪ 點擊展開播放面板</div>
   </div>
+  <button class="mini-btn" onclick="event.stopPropagation(); seekRelative(-5);" title="倒退5秒">↺5</button>
   <button class="mini-btn" onclick="event.stopPropagation(); togglePlay();" id="mini-btn-play">▶</button>
-  <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
+  <button class="mini-btn" onclick="event.stopPropagation(); seekRelative(10);" title="快進10秒">↻10</button>
+  <button class="mini-btn mini-btn-speed" onclick="event.stopPropagation(); toggleSpeed();" id="mini-btn-speed">1.0x</button>
 </div>
 
 <div id="player-card" class="player-card minimized">
@@ -230,17 +231,18 @@
     <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
+    <button class="btn-sub-quick" id="btn-speed" onclick="toggleSpeed()">⚡ 1.0x 倍速</button>
   </div>
 
   <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100" step="0.1">
   <div class="time-box"><span id="time-current">00:00</span><span id="time-duration">00:00</span></div>
 
   <div class="controls">
-    <button class="btn-ctrl" onclick="prevTrack()">⏮</button>
-    <button class="btn-ctrl" onclick="seekRelative(-10)">↺10</button>
+    <button class="btn-ctrl" onclick="prevTrack()" title="上一首">⏮</button>
+    <button class="btn-ctrl" onclick="seekRelative(-5)" title="倒退5秒">↺5</button>
     <button class="btn-ctrl btn-play-main" id="btn-play" onclick="togglePlay()">▶</button>
-    <button class="btn-ctrl" onclick="seekRelative(10)">↻10</button>
-    <button class="btn-ctrl" onclick="nextTrack()">⏭</button>
+    <button class="btn-ctrl" onclick="seekRelative(10)" title="快進10秒">↻10</button>
+    <button class="btn-ctrl" onclick="nextTrack()" title="下一首">⏭</button>
   </div>
 
   <div class="volume-box">
@@ -250,12 +252,11 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP)</button>
-    <button class="btn-speed" id="btn-speed" onclick="togglePlaybackSpeed()">⚡ 1.0x</button>
+    <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP 小視窗)</button>
   </div>
 </div>
 
-<video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -265,11 +266,12 @@
   let currentTrackList = [];
   let currentIndex = -1;
   let currentLrc = [];
-  let currentPlayingAlbumId = null;
   let currentActiveAlbumId = null;
   let lastVolume = 1;
-  let currentSpeed = 1.0;
-  const speeds = [1.0, 1.25, 1.5, 2.0];
+
+  // 倍速控制 (0.75, 1.0, 1.25, 1.5, 2.0)
+  const speeds = [0.75, 1.0, 1.25, 1.5, 2.0];
+  let currentSpeedIndex = 1; // 預設 1.0x
 
   let globalBackgrounds = [];
   let bgIndex = 0;
@@ -280,10 +282,6 @@
   let pipCtx = null;
   let cachedCoverImage = null;
   let isPiPInitialized = false;
-
-  let audioCtx = null;
-  let audioSource = null;
-  let streamDestination = null;
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -300,58 +298,83 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 1. 初始化 Web Audio API 與 PiP 雙軌流融合（確保聲音與畫面同時送到小視窗）
-  function connectAudioToPip() {
-    try {
-      if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContextClass) return;
-        audioCtx = new AudioContextClass();
-        audioSource = audioCtx.createMediaElementSource(audio);
-        streamDestination = audioCtx.createMediaStreamDestination();
-        
-        audioSource.connect(audioCtx.destination);
-        audioSource.connect(streamDestination);
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    } catch(e) {
-      console.warn("WebAudio 初始化警告:", e);
+  // 音訊事件綁定
+  audio.addEventListener("timeupdate", onTimeUpdate);
+  audio.addEventListener("ended", () => nextTrack());
+  audio.addEventListener("play", () => updatePlayStateUI(true));
+  audio.addEventListener("pause", () => updatePlayStateUI(false));
+  audio.addEventListener("loadedmetadata", () => {
+    document.getElementById("time-duration").innerText = formatTime(audio.duration);
+    updatePositionState();
+  });
+
+  seekSlider.addEventListener("input", () => {
+    if (audio.duration) {
+      audio.currentTime = (seekSlider.value / 100) * audio.duration;
+      updatePositionState();
+    }
+  });
+
+  volumeSlider.addEventListener("input", (e) => {
+    audio.volume = e.target.value;
+    lastVolume = audio.volume;
+  });
+
+  // 雙向同步懸浮視窗（PiP）播放與暫停事件
+  pipVideo.addEventListener('pause', () => {
+    if (!audio.paused) audio.pause();
+  });
+
+  pipVideo.addEventListener('play', () => {
+    if (audio.paused) audio.play();
+  });
+
+  function updatePlayStateUI(isPlaying) {
+    const playText = isPlaying ? "⏸" : "▶";
+    document.getElementById("btn-play").innerText = playText;
+    document.getElementById("mini-btn-play").innerText = playText;
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
     }
   }
 
-  // 2. 核心 MediaSession 事件與 iOS 快轉/倒退綁定
-  function setupMediaSessionHandlers() {
-    if (!('mediaSession' in navigator)) return;
+  // 倍速切換邏輯
+  function toggleSpeed() {
+    currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+    const speed = speeds[currentSpeedIndex];
+    audio.playbackRate = speed;
+    
+    document.getElementById("btn-speed").innerText = `⚡ ${speed}x 倍速`;
+    document.getElementById("mini-btn-speed").innerText = `${speed}x`;
+    updatePositionState();
+  }
 
-    const actionMap = [
-      ['play', () => togglePlay()],
-      ['pause', () => togglePlay()],
-      ['previoustrack', () => prevTrack()],
-      ['nexttrack', () => nextTrack()],
-      ['seekbackward', (details) => {
-        const skip = (details && details.seekOffset) ? details.seekOffset : 10;
-        seekRelative(-skip);
-      }],
-      ['seekforward', (details) => {
-        const skip = (details && details.seekOffset) ? details.seekOffset : 10;
-        seekRelative(skip);
-      }],
-      ['seekto', (details) => {
-        if (details && details.seekTime !== undefined && !isNaN(details.seekTime)) {
-          if (audio && isFinite(audio.duration)) {
-            audio.currentTime = Math.max(0, Math.min(audio.duration, details.seekTime));
+  // Media Session 系統 (鎖屏/懸浮/耳機鍵快進倒退控制)
+  function initMediaSession() {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => togglePlay());
+      navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+      navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+      navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+      
+      // 快進與倒退支援 (PiP 畫面上也會出現倒退/快進按鈕)
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+        const skipTime = details.seekOffset || 5;
+        seekRelative(-skipTime);
+      });
+      navigator.mediaSession.setActionHandler('seekforward', (details) => {
+        const skipTime = details.seekOffset || 10;
+        seekRelative(skipTime);
+      });
+
+      try {
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.seekTime !== undefined && audio.duration) {
+            audio.currentTime = details.seekTime;
             updatePositionState();
           }
-        }
-      }]
-    ];
-
-    for (const [action, handler] of actionMap) {
-      try {
-        navigator.mediaSession.setActionHandler(action, handler);
-      } catch (e) {}
+        });
+      } catch (e) { console.log(e); }
     }
   }
 
@@ -363,44 +386,25 @@
         album: albumTitle || 'ASMR 隨身庫',
         artwork: coverUrl ? [{ src: coverUrl, sizes: '512x512', type: 'image/png' }] : []
       });
-      setupMediaSessionHandlers();
     }
   }
 
-  // 3. 高頻率心跳回報：向 iOS 系統層推送總時長與當前進度，解鎖小視窗倒退/加快按鈕
   function updatePositionState() {
-    if ('mediaSession' in navigator && typeof navigator.mediaSession.setPositionState === 'function') {
-      try {
-        if (audio && !isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
-          const pos = Math.max(0, Math.min(audio.currentTime || 0, audio.duration));
-          const rate = Math.max(0.1, audio.playbackRate || 1);
+    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+        try {
           navigator.mediaSession.setPositionState({
             duration: audio.duration,
-            playbackRate: rate,
-            position: pos
+            playbackRate: audio.playbackRate || 1,
+            position: audio.currentTime
           });
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
     }
   }
 
-  setInterval(() => {
-    if (audio && !audio.paused && audio.duration) {
-      updatePositionState();
-    }
-  }, 500);
-
-  function togglePlaybackSpeed() {
-    let nextIdx = (speeds.indexOf(currentSpeed) + 1) % speeds.length;
-    currentSpeed = speeds[nextIdx];
-    audio.playbackRate = currentSpeed;
-    document.getElementById("btn-speed").innerText = `⚡ ${currentSpeed.toFixed(1)}x`;
-    updatePositionState();
-  }
-
-  // 4. 建立支援畫布 + 聲音的終極 PiP 引擎（圖片縮小、加大字幕區與字體）
+  // PiP 畫布渲染引擎
   function initPiPEngine() {
-    connectAudioToPip();
     if (isPiPInitialized) return;
     try {
       pipCanvas = document.createElement('canvas');
@@ -408,92 +412,90 @@
       pipCanvas.height = 512;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
-      let waveOffset = 0;
-
       setInterval(() => {
         if (!pipCtx) return;
-        waveOffset += 0.15;
-
+        
         // 背景
         pipCtx.fillStyle = "#121218";
         pipCtx.fillRect(0, 0, 512, 512);
 
-        // 上方圖片縮小排版（從原本大尺寸改為較小尺寸，騰出下方空間）
+        // 繪製封面圖片或預設畫面
         if (cachedCoverImage && cachedCoverImage.complete) {
-          pipCtx.drawImage(cachedCoverImage, 106, 15, 300, 270);
+          pipCtx.drawImage(cachedCoverImage, 56, 30, 400, 360);
         } else {
           pipCtx.fillStyle = "#1a1a22";
-          pipCtx.fillRect(106, 15, 300, 270);
+          pipCtx.fillRect(56, 30, 400, 360);
           pipCtx.fillStyle = "#ff79c6";
-          pipCtx.font = "bold 22px sans-serif";
+          pipCtx.font = "bold 28px sans-serif";
           pipCtx.textAlign = "center";
-          pipCtx.fillText("🌸 ASMR 隨身庫", 256, 150);
+          pipCtx.fillText("ASMR 隨身庫", 256, 210);
         }
 
-        // 畫布下方的動態進度條
-        if (audio.duration) {
-          const progress = audio.currentTime / audio.duration;
-          pipCtx.fillStyle = "rgba(255, 255, 255, 0.2)";
-          pipCtx.fillRect(56, 298, 400, 6);
-          pipCtx.fillStyle = "#ff79c6";
-          pipCtx.fillRect(56, 298, 400 * progress, 6);
-        }
+        // 資訊列（進度與倍速）
+        pipCtx.fillStyle = "rgba(0,0,0,0.7)";
+        pipCtx.fillRect(56, 350, 400, 40);
+        pipCtx.fillStyle = "#ffffff";
+        pipCtx.font = "16px sans-serif";
+        pipCtx.textAlign = "left";
+        const curT = formatTime(audio.currentTime);
+        const durT = formatTime(audio.duration || 0);
+        pipCtx.fillText(`${curT} / ${durT}`, 70, 376);
 
-        // 播放時顯示聲波跳動
-        if (!audio.paused) {
-          pipCtx.fillStyle = "rgba(255, 121, 198, 0.6)";
-          for (let i = 0; i < 9; i++) {
-            const barHeight = Math.sin(waveOffset + i * 0.8) * 8 + 12;
-            pipCtx.fillRect(180 + i * 18, 288 - barHeight, 10, barHeight);
-          }
-        }
+        pipCtx.textAlign = "right";
+        pipCtx.fillStyle = "#ff79c6";
+        pipCtx.fillText(`⚡ ${audio.playbackRate || 1}x`, 440, 376);
 
-        // 字幕底框與放大的字體空間
+        // 字幕條
         const currentTime = audio.currentTime;
         let currentText = getActiveSubtitleText(currentTime);
 
-        pipCtx.fillStyle = "rgba(0, 0, 0, 0.92)";
-        pipCtx.fillRect(16, 315, 480, 185);
+        pipCtx.fillStyle = "rgba(0, 0, 0, 0.9)";
+        pipCtx.fillRect(20, 405, 472, 90);
 
         pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 26px -apple-system, BlinkMacSystemFont, sans-serif"; // 加大字體
+        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
         pipCtx.textAlign = "center";
         
-        // 自動換行支援
         if (pipCtx.measureText(currentText).width > 440) {
-          pipCtx.fillText(currentText.substring(0, 18), 256, 375);
-          pipCtx.fillText(currentText.substring(18, 36), 256, 420);
+          pipCtx.fillText(currentText.substring(0, 20), 256, 440);
+          pipCtx.fillText(currentText.substring(20, 40), 256, 470);
         } else {
-          pipCtx.fillText(currentText, 256, 395);
+          pipCtx.fillText(currentText, 256, 455);
         }
       }, 1000 / 15);
 
-      const canvasStream = pipCanvas.captureStream(15);
-      const combinedStream = new MediaStream();
-
-      canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-
-      // 將 WebAudio 產生的音訊軌道結合進來，確保小視窗有聲音
-      if (streamDestination && streamDestination.stream.getAudioTracks().length > 0) {
-        streamDestination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-      }
-
-      pipVideo.srcObject = combinedStream;
-      pipVideo.play().catch(()=>{});
+      const stream = pipCanvas.captureStream(15);
+      pipVideo.srcObject = stream;
+      pipVideo.play();
       isPiPInitialized = true;
     } catch(e) {
       console.error(e);
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V15", 1);
+  async function enablePiP() {
+    try {
+      initPiPEngine();
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (pipVideo) {
+        await pipVideo.play();
+        await pipVideo.requestPictureInPicture();
+      }
+    } catch (err) {
+      alert("開啟桌面懸浮 (PiP) 失敗: " + err.message);
+    }
+  }
+
+  // IndexedDB 資料庫初始化
+  const request = indexedDB.open("ASMR_Categorized_DB_V13", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { db = e.target.result; loadData(); setupMediaSessionHandlers(); };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); };
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
@@ -579,6 +581,17 @@
     };
   }
 
+  function deleteCurrentAlbum() {
+    if (!currentActiveAlbumId) return;
+    if (confirm("確定要刪除這個作品分區及其所有篇章嗎？")) {
+      const tx = db.transaction(["albums", "tracks"], "readwrite");
+      tx.objectStore("albums").delete(currentActiveAlbumId);
+      const trackStore = tx.objectStore("tracks");
+      tracks.filter(t => t.albumId === currentActiveAlbumId).forEach(t => trackStore.delete(t.id));
+      tx.oncomplete = () => { switchPage('home'); loadData(); };
+    }
+  }
+
   function readFileTextSmart(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -613,6 +626,14 @@
       document.getElementById("track-lrc").value = "";
       loadData();
     };
+  }
+
+  function deleteTrack(trackId) {
+    if (confirm("確定要刪除此篇章嗎？")) {
+      const tx = db.transaction(["tracks"], "readwrite");
+      tx.objectStore("tracks").delete(trackId);
+      tx.oncomplete = () => loadData();
+    }
   }
 
   async function saveTrackSubtitle(trackId, lrcText) {
@@ -733,265 +754,143 @@
         </div>
         <div class="btn-action-group" onclick="event.stopPropagation()">
           <button class="btn-sm btn-sm-edit" onclick="editTrackLrc(${track.id})">字幕</button>
-          <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id})">刪</button>
+          <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id})">刪除</button>
         </div>
       `;
       container.appendChild(item);
     });
   }
 
-  async function deleteTrack(trackId) {
-    if (!confirm("確定要刪除這個篇章嗎？")) return;
-    const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").delete(trackId);
-    tx.oncomplete = () => {
-      if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
-        audio.pause(); audio.src = ""; currentIndex = -1; minimizePlayer();
-      }
-      loadData();
-    };
-  }
-
   function playTrack(albumId, trackId) {
-    initPiPEngine();
-    currentPlayingAlbumId = albumId;
     const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
     currentIndex = currentTrackList.findIndex(t => t.id === trackId);
+    if (currentIndex === -1) return;
+
     const track = currentTrackList[currentIndex];
+    audio.src = URL.createObjectURL(track.audioBlob);
+    audio.playbackRate = speeds[currentSpeedIndex];
+    audio.play();
 
     document.getElementById("album-tag").innerText = album.title;
     document.getElementById("mini-title").innerText = track.title;
-    audio.src = URL.createObjectURL(track.audioBlob);
-    audio.playbackRate = currentSpeed;
-    
-    if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
-    else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
+    document.getElementById("mini-lrc").innerText = "♪ 播放中...";
 
-    let coverUrl = "";
-    if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
-      coverUrl = URL.createObjectURL(album.coverBlob);
-      coverImg.src = coverUrl; document.getElementById("mini-thumb").src = coverUrl;
+    // 封面處理
+    if (album.coverBlob) {
+      const cUrl = URL.createObjectURL(album.coverBlob);
+      if (album.coverBlob.type.startsWith('video/')) {
+        coverVideo.src = cUrl; coverVideo.style.display = "block"; coverImg.style.display = "none";
+      } else {
+        coverImg.src = cUrl; coverImg.style.display = "block"; coverVideo.style.display = "none";
+        cachedCoverImage = new Image(); cachedCoverImage.src = cUrl;
+      }
+      document.getElementById("mini-thumb").src = cUrl;
+    } else {
+      coverImg.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.style.display = "block"; coverVideo.style.display = "none";
-      cachedCoverImage = new Image(); cachedCoverImage.src = coverUrl;
-    } else {
-      coverUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
-      coverImg.src = coverUrl; document.getElementById("mini-thumb").src = coverUrl;
-      coverImg.style.display = "block"; coverVideo.style.display = "none"; cachedCoverImage = null;
+      cachedCoverImage = null;
     }
 
-    updateMediaSessionMetadata(track.title, album.title, coverUrl);
-
-    currentLrc = parseSubtitles(track.lrcText, audio.duration);
+    currentLrc = parseSubtitles(track.lrcText || "", audio.duration);
+    updateMediaSessionMetadata(track.title, album.title, album.coverBlob && !album.coverBlob.type.startsWith('video/') ? URL.createObjectURL(album.coverBlob) : null);
     
-    audio.play().then(() => {
-      connectAudioToPip();
-      setupMediaSessionHandlers();
-      updatePositionState();
-    });
-
-    pipVideo.play().catch(()=>{});
-    document.getElementById("btn-play").innerText = "⏸";
-    document.getElementById("mini-btn-play").innerText = "⏸";
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+    miniPlayer.classList.remove("hidden");
     expandPlayer();
-  }
-
-  function parseSubtitles(text, duration) {
-    if (!text || !text.trim()) return [];
-    const rawText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-
-    if (rawText.includes('-->')) {
-      const blocks = rawText.split(/\n\s*\n/);
-      const result = [];
-      for (let block of blocks) {
-        const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        let timeLineIdx = lines.findIndex(l => l.includes('-->'));
-        if (timeLineIdx !== -1) {
-          const timeStr = lines[timeLineIdx];
-          const times = timeStr.split('-->');
-          if (times.length === 2) {
-            const start = parseTimeString(times[0].trim());
-            const end = parseTimeString(times[1].trim());
-            const contentLines = lines.slice(timeLineIdx + 1);
-            const content = contentLines.join(' ').replace(/<[^>]*>/g, '').trim();
-            if (content) {
-              result.push({ start, end, text: content });
-            }
-          }
-        }
-      }
-      if (result.length > 0) return result;
-    }
-
-    const lines = rawText.split('\n');
-    const lrcResult = [];
-    const lrcRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\](.*)/;
-
-    for (let line of lines) {
-      line = line.trim();
-      const match = lrcRegex.exec(line);
-      if (match) {
-        const min = parseInt(match[1]);
-        const sec = parseInt(match[2]);
-        const ms = match[3] ? parseFloat("0." + match[3]) : 0;
-        const time = min * 60 + sec + ms;
-        const content = match[4].trim();
-        if (content) lrcResult.push({ start: time, end: 999999, text: content });
-      }
-    }
-
-    if (lrcResult.length > 0) {
-      lrcResult.sort((a, b) => a.start - b.start);
-      for (let i = 0; i < lrcResult.length - 1; i++) {
-        lrcResult[i].end = lrcResult[i + 1].start;
-      }
-      return lrcResult;
-    }
-
-    const cleanLines = lines.map(l => l.trim()).filter(l => l.length > 0 && !l.includes('-->') && !/^\d+$/.test(l));
-    if (cleanLines.length === 0) return [];
-    const interval = (duration && !isNaN(duration)) ? duration / cleanLines.length : 5;
-    return cleanLines.map((t, idx) => ({ start: idx * interval, end: (idx + 1) * interval, text: t }));
-  }
-
-  function parseTimeString(timeStr) {
-    const parts = timeStr.replace(',', '.').split(':');
-    let secs = 0;
-    if (parts.length === 3) {
-      secs = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseFloat(parts[2]);
-    } else if (parts.length === 2) {
-      secs = parseInt(parts[0]) * 60 + parseFloat(parts[1]);
-    } else {
-      secs = parseFloat(parts[0]) || 0;
-    }
-    return secs;
-  }
-
-  function getActiveSubtitleText(currentTime) {
-    if (!currentLrc || currentLrc.length === 0) return "♪ 享受音樂中 ♪";
-    for (let i = 0; i < currentLrc.length; i++) {
-      const item = currentLrc[i];
-      if (currentTime >= item.start && currentTime <= item.end) {
-        return item.text;
-      }
-    }
-    return "♪ 享受音樂中 ♪";
   }
 
   function togglePlay() {
     if (!audio.src) return;
-    connectAudioToPip();
-    if (audio.paused) {
-      audio.play();
-      pipVideo.play().catch(()=>{});
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
-      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-    } else {
-      audio.pause();
-      pipVideo.pause();
-      document.getElementById("btn-play").innerText = "▶";
-      document.getElementById("mini-btn-play").innerText = "▶";
-      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
-    }
+    if (audio.paused) { audio.play(); } else { audio.pause(); }
   }
 
   function prevTrack() {
-    if (currentTrackList.length === 0) return;
-    currentIndex = (currentIndex - 1 + currentTrackList.length) % currentTrackList.length;
-    playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
+    if (currentIndex > 0) {
+      playTrack(currentTrackList[currentIndex - 1].albumId, currentTrackList[currentIndex - 1].id);
+    }
   }
 
   function nextTrack() {
-    if (currentTrackList.length === 0) return;
-    currentIndex = (currentIndex + 1) % currentTrackList.length;
-    playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
+    if (currentIndex < currentTrackList.length - 1) {
+      playTrack(currentTrackList[currentIndex + 1].albumId, currentTrackList[currentIndex + 1].id);
+    }
   }
 
-  function seekRelative(seconds) {
-    if (!audio || isNaN(audio.duration) || audio.duration <= 0) return;
-    let target = audio.currentTime + seconds;
-    target = Math.max(0, Math.min(audio.duration, target));
-    audio.currentTime = target;
-    updatePositionState();
+  function seekRelative(sec) {
+    if (audio.duration) {
+      audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + sec));
+      updatePositionState();
+    }
   }
 
   function toggleMute() {
-    if (audio.volume > 0) {
-      lastVolume = audio.volume;
-      audio.volume = 0;
-      volumeSlider.value = 0;
-      document.getElementById("btn-mute").innerText = "🔇";
-    } else {
-      audio.volume = lastVolume || 1;
-      volumeSlider.value = audio.volume;
-      document.getElementById("btn-mute").innerText = "🔈";
-    }
+    audio.muted = !audio.muted;
+    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
   }
 
-  function expandPlayer() {
-    playerCard.classList.remove("minimized");
-    miniPlayer.classList.add("hidden");
-  }
+  function minimizePlayer() { playerCard.classList.add("minimized"); }
+  function expandPlayer() { playerCard.classList.remove("minimized"); }
 
-  function minimizePlayer() {
-    playerCard.classList.add("minimized");
-    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
-  }
-
-  async function enablePiP() {
-    initPiPEngine();
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await pipVideo.requestPictureInPicture();
-      }
-    } catch (e) {
-      alert("PiP 啟動失敗：" + e.message);
-    }
-  }
-
-  audio.addEventListener("timeupdate", () => {
+  function onTimeUpdate() {
     if (!audio.duration) return;
     const cur = audio.currentTime;
     const dur = audio.duration;
     seekSlider.value = (cur / dur) * 100;
-    
     document.getElementById("time-current").innerText = formatTime(cur);
-    document.getElementById("time-duration").innerText = formatTime(dur);
 
-    const activeText = getActiveSubtitleText(cur);
-    document.getElementById("lrc-box").innerText = activeText;
-    document.getElementById("mini-lrc").innerText = activeText;
+    const lrcText = getActiveSubtitleText(cur);
+    document.getElementById("lrc-box").innerText = lrcText;
+    document.getElementById("mini-lrc").innerText = lrcText;
+  }
 
-    updatePositionState();
-  });
-
-  audio.addEventListener("loadedmetadata", () => {
-    document.getElementById("time-duration").innerText = formatTime(audio.duration);
-    if (currentIndex !== -1 && currentTrackList[currentIndex]) {
-      currentLrc = parseSubtitles(currentTrackList[currentIndex].lrcText, audio.duration);
+  function getActiveSubtitleText(curTime) {
+    if (!currentLrc || currentLrc.length === 0) return "♪ 無動態字幕 ♪";
+    let activeText = "♪ ... ♪";
+    for (let i = 0; i < currentLrc.length; i++) {
+      if (curTime >= currentLrc[i].time) {
+        activeText = currentLrc[i].text;
+      } else { break; }
     }
-    updatePositionState();
-  });
+    return activeText;
+  }
 
-  audio.addEventListener("ended", () => { nextTrack(); });
+  // 通用動態字幕解析器 (支援 LRC / SRT / VTT / TXT)
+  function parseSubtitles(text, duration) {
+    if (!text || !text.trim()) return [];
+    const lines = text.split(/\r?\n/);
+    const result = [];
 
-  seekSlider.addEventListener("input", (e) => {
-    if (!audio.duration) return;
-    audio.currentTime = (e.target.value / 100) * audio.duration;
-    updatePositionState();
-  });
+    const lrcRegex = /\[(\d{2}):(\d{2})(?:\.|:)(\d{2,3})\]/g;
+    const srtRegex = /(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->/;
 
-  volumeSlider.addEventListener("input", (e) => {
-    audio.volume = e.target.value;
-    document.getElementById("btn-mute").innerText = audio.volume == 0 ? "🔇" : "🔈";
-  });
+    lines.forEach(line => {
+      let match;
+      if (lrcRegex.test(line)) {
+        lrcRegex.lastIndex = 0;
+        while ((match = lrcRegex.exec(line)) !== null) {
+          const min = parseInt(match[1]);
+          const sec = parseInt(match[2]);
+          const ms = parseInt(match[3]);
+          const time = min * 60 + sec + (ms > 99 ? ms / 1000 : ms / 100);
+          const txt = line.replace(/\[\d{2}:\d{2}(?:\.|:)\d{2,3}\]/g, '').trim();
+          if (txt) result.push({ time, text: txt });
+        }
+      } else if ((match = srtRegex.exec(line)) !== null) {
+        const hrs = parseInt(match[1]);
+        const min = parseInt(match[2]);
+        const sec = parseInt(match[3]);
+        const ms = parseInt(match[4]);
+        const time = hrs * 3600 + min * 60 + sec + ms / 1000;
+        const txt = line.replace(srtRegex, '').trim();
+        if (txt) result.push({ time, text: txt });
+      }
+    });
+
+    return result.sort((a, b) => a.time - b.time);
+  }
 
   function formatTime(sec) {
-    if (isNaN(sec)) return "00:00";
+    if (isNaN(sec) || !isFinite(sec)) return "00:00";
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
