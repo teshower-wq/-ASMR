@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (雙頁面 & iOS 懸浮最佳化)</title>
+  <title>ASMR 私人隨身庫 (動態字幕懸浮最佳化)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -87,11 +87,9 @@
     }
     .btn-pink { width: 100%; background: var(--primary-pink); color: #000; border: none; padding: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 1rem; }
 
-    /* 頁面切換控制 */
     .page-view { display: none; width: 100%; }
     .page-view.active { display: block; }
 
-    /* 第一頁：作品集選單 */
     .album-grid-card {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
       border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center;
@@ -103,7 +101,6 @@
     .album-grid-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .album-grid-count { font-size: 0.95rem; color: var(--primary-pink); font-weight: bold; }
 
-    /* 第二頁：篇章清單風格 */
     .breadcrumb-bar {
       display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 1.1rem; font-weight: bold; color: var(--primary-pink); cursor: pointer;
     }
@@ -138,7 +135,6 @@
     .btn-page:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.2); color: var(--text-sub); }
     .page-info { font-size: 0.95rem; color: var(--text-sub); }
 
-    /* 播放面板與手勢滑動關閉 */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto;
       max-width: 680px; width: 100%; max-height: 94vh; overflow-y: auto;
@@ -261,7 +257,6 @@
     </div>
   </div>
 
-  <!-- 第一頁：作品集選擇與瀏覽 -->
   <div id="view-home" class="page-view active">
     <div class="glass-card">
       <div class="card-title">📚 選擇作品集</div>
@@ -270,7 +265,6 @@
     </div>
   </div>
 
-  <!-- 第二頁：篇章清單瀏覽 -->
   <div id="view-detail" class="page-view">
     <div class="glass-card">
       <div class="breadcrumb-bar" onclick="switchPage('home')">
@@ -291,7 +285,6 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
-<!-- 支援上下滑動關閉與拉回的播放器 -->
 <div id="player-card" class="player-card minimized">
   <div class="drag-handle-area" id="drag-handle-area">
     <div class="drag-handle"></div>
@@ -340,8 +333,8 @@
   </div>
 </div>
 
-<!-- iOS 專用相容影片懸浮標籤 -->
-<video id="pip-video" crossorigin="anonymous" playsinline controls style="display:none; width:100%; max-height:200px;"></video>
+<!-- iOS 專用 Canvas 串流影片懸浮標籤 (設定 muted 徹底解決回音問題) -->
+<video id="pip-video" crossorigin="anonymous" playsinline muted style="display:none;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -359,6 +352,7 @@
   let bgIndex = 0;
   let bgIntervalTimer = null;
   let isCustomAlbumPlaying = false;
+  let pipDrawInterval = null;
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -374,7 +368,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V10", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V11", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -903,7 +897,7 @@
   function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
   function minimizePlayer() { playerCard.classList.add("minimized"); miniPlayer.classList.remove("hidden"); }
 
-  // iOS 完美適配的桌面懸浮 (PiP) 啟動函式
+  // iOS 完美適配的 Canvas 動態字幕懸浮 (PiP) 啟動函式
   async function enablePiP() {
     try {
       const pipVideo = document.getElementById("pip-video");
@@ -916,10 +910,67 @@
         return alert("你的瀏覽器或裝置不支援子母畫面 (PiP) 功能。");
       }
 
-      pipVideo.src = audio.src;
-      pipVideo.currentTime = audio.currentTime;
+      // 建立動態繪製字幕的 Canvas
+      let canvas = document.getElementById("pip-canvas");
+      if (!canvas) {
+        canvas = document.createElement("canvas");
+        canvas.id = "pip-canvas";
+        canvas.width = 640;
+        canvas.height = 640;
+        canvas.style.display = "none";
+        document.body.appendChild(canvas);
+      }
+      const ctx = canvas.getContext("2d");
+
+      // 準備封面圖
+      let coverImgObj = new Image();
+      coverImgObj.crossOrigin = "anonymous";
+      const activeAlbum = albums.find(a => a.id === currentPlayingAlbumId);
+      if (activeAlbum && activeAlbum.coverBlob) {
+        coverImgObj.src = URL.createObjectURL(activeAlbum.coverBlob);
+      } else {
+        coverImgObj.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='640'><rect width='100%' height='100%' fill='%231a1a22'/><text x='50%' y='50%' fill='%23ff79c6' font-size='40' text-anchor='middle' dominant-baseline='middle'>ASMR 隨身庫</text></svg>";
+      }
+
+      await new Promise((resolve) => {
+        if (coverImgObj.complete) resolve();
+        else coverImgObj.onload = resolve;
+      });
+
+      // 將 Canvas 轉換成影片串流餵給隱藏的 video 標籤
+      const stream = canvas.captureStream(30);
+      pipVideo.srcObject = stream;
+      pipVideo.muted = true; // 強制靜音，解決回音問題
       await pipVideo.play();
 
+      // 即時繪製迴圈：讓懸浮窗內的字幕隨音樂同步更新
+      if (pipDrawInterval) clearInterval(pipDrawInterval);
+      pipDrawInterval = setInterval(() => {
+        ctx.drawImage(coverImgObj, 0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+        ctx.fillRect(0, canvas.height - 180, canvas.width, 180);
+
+        let currentText = currentTrackList[currentIndex].title;
+        if (currentLrc && currentLrc.length > 0) {
+          for (let i = 0; i < currentLrc.length; i++) {
+            if (audio.currentTime >= currentLrc[i].time) {
+              currentText = currentLrc[i].text;
+            } else {
+              break;
+            }
+          }
+        }
+
+        ctx.fillStyle = "#ff79c6";
+        ctx.font = "bold 32px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        
+        wrapText(ctx, currentText, canvas.width / 2, canvas.height - 100, canvas.width - 80, 42);
+      }, 100);
+
+      // 喚起 iOS / 瀏覽器原生 PiP 視窗
       if (pipVideo.webkitSetPresentationMode) {
         if (pipVideo.webkitPresentationMode === "picture-in-picture") {
           pipVideo.webkitSetPresentationMode("inline");
@@ -933,9 +984,38 @@
           await pipVideo.requestPictureInPicture();
         }
       }
+
     } catch (err) {
       console.error(err);
-      alert("啟動桌面懸浮失敗。請確認您使用的是 Safari 瀏覽器，並且已經點擊播放了音樂！");
+      alert("啟動桌面懸浮失敗，請確認您使用的是 Safari 瀏覽器並已開始播放！");
+    }
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    let words = text.split('');
+    let line = '';
+    let lines = [];
+
+    for(let n = 0; n < words.length; n++) {
+      let testLine = line + words[n];
+      let metrics = ctx.measureText(testLine);
+      let testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        lines.push(line);
+        line = words[n];
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+    
+    if (lines.length > 2) {
+      lines = lines.slice(0, 2);
+      lines[1] += '...';
+    }
+
+    for(let k = 0; k < lines.length; k++) {
+      ctx.fillText(lines[k], x, y + (k * lineHeight));
     }
   }
 
