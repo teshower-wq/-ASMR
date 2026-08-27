@@ -333,8 +333,8 @@
   </div>
 </div>
 
-<!-- iOS 專用 Canvas 串流影片懸浮標籤 (設定 muted 徹底解決回音問題) -->
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="display:none;"></video>
+<!-- iOS 專用 Canvas 串流影片懸浮標籤 (調整隱藏樣式以完美相容 Safari PiP 檢核) -->
+<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
