@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (PiP 終極修復版)</title>
+  <title>ASMR 私人隨身庫 (iOS PiP 修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -257,7 +257,7 @@
 </div>
 
 <!-- PiP 專用視窗元件 -->
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -999;"></video>
+<video id="pip-video" autoplay loop muted playsinline crossorigin="anonymous" style="position: fixed; bottom: 0; right: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -304,8 +304,10 @@
       pipCanvas.height = 512;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
-      const stream = pipCanvas.captureStream(15);
-      pipVideo.srcObject = stream;
+      if (pipCanvas.captureStream) {
+        const stream = pipCanvas.captureStream(15);
+        pipVideo.srcObject = stream;
+      }
       setInterval(drawPiPFrame, 1000 / 15);
     } catch(e) { console.error("PiP 畫布初始化錯誤:", e); }
   }
@@ -358,21 +360,39 @@
     }
   }
 
-  // 100% 同步觸發，徹底解決 User Activation 權限錯誤
+  // 100% 同步觸發，徹底修復 iOS Safari "User Activation" 報錯
   function enablePiP() {
     if (document.pictureInPictureElement) {
       document.exitPictureInPicture().catch(() => {});
       return;
     }
 
-    // 必須在點擊發生的第一時間調用 play()，然後鏈式啟動 PiP
-    const playPromise = pipVideo.play();
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        return pipVideo.requestPictureInPicture();
-      }).catch(err => {
-        alert("開啟桌面懸浮 (PiP) 失敗: " + err.message);
-      });
+    // 智能判斷目標 Video 元素（優先度：PiP Canvas 串流 > 封面影片 > 背景影片）
+    let targetVideo = pipVideo;
+    if (coverVideo && coverVideo.style.display !== 'none' && coverVideo.src) {
+      targetVideo = coverVideo;
+    } else if (bgVideo && bgVideo.style.display !== 'none' && bgVideo.src) {
+      targetVideo = bgVideo;
+    }
+
+    try {
+      // 1. 同步執行 play() (不能使用 .then 或 await)
+      targetVideo.play().catch(() => {});
+
+      // 2. 同步發起小視窗請求
+      if (targetVideo.requestPictureInPicture) {
+        targetVideo.requestPictureInPicture().catch(err => {
+          console.error("Standard PiP Error:", err);
+          alert("開啟桌面懸浮 (PiP) 失敗: " + err.message + "\n\n提示：請確保影片/音訊已點擊播放。");
+        });
+      } else if (targetVideo.webkitSetPresentationMode) {
+        // iOS Safari 傳統視窗相容機制
+        targetVideo.webkitSetPresentationMode('picture-in-picture');
+      } else {
+        alert("您的裝置/瀏覽器不支援桌面小視窗 (PiP) 功能。");
+      }
+    } catch (err) {
+      alert("開啟桌面懸浮 (PiP) 失敗: " + err.message);
     }
   }
 
@@ -837,7 +857,6 @@
     return activeText;
   }
 
-  // 徹底濾除 SRT 純數字與時間標記的字幕解析器
   function parseSubtitles(text) {
     if (!text || !text.trim()) return [];
     const cleanText = text.replace(/\r/g, '');
