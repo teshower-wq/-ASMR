@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極速 PiP 最終版)</title>
+  <title>ASMR 私人隨身庫 (全功能懸浮控制版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -15,7 +15,7 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0; padding: 16px; padding-bottom: 110px;
+      margin: 0; padding: 16px; padding-bottom: 150px;
       background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
@@ -87,6 +87,7 @@
     .btn-page:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.2); color: var(--text-sub); }
     .page-info { font-size: 0.95rem; color: var(--text-sub); }
 
+    /* 主播放面板 */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; max-height: 94vh; overflow-y: auto;
       background: var(--card-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -123,12 +124,28 @@
     .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); }
     .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer; }
 
-    .bottom-tools { display: flex; gap: 12px; }
-    .btn-pip {
-      flex: 1; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink);
-      color: var(--primary-pink); padding: 12px; border-radius: 12px; font-weight: bold; font-size: 0.88rem; cursor: pointer; text-align: center;
+    /* 懸浮控制視窗 (可任意拖曳、隨時暫停與快轉) */
+    .floating-control-dock {
+      position: fixed; top: 20px; right: 20px; width: 320px; max-width: 90vw;
+      background: rgba(18, 18, 24, 0.95); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 121, 198, 0.4); border-radius: 18px; padding: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 9999; display: none; cursor: move; user-select: none;
     }
+    .floating-control-dock.active { display: block; }
+    .dock-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; color: var(--primary-pink); font-weight: bold; }
+    .dock-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+    .dock-close { background: none; border: none; color: var(--text-sub); font-size: 1rem; cursor: pointer; }
+    
+    .dock-lrc {
+      background: rgba(0,0,0,0.5); border-radius: 10px; padding: 8px; text-align: center;
+      font-size: 1rem; font-weight: bold; color: #fff; margin-bottom: 10px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .dock-btns { display: flex; justify-content: space-around; align-items: center; }
+    .btn-dock { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .btn-dock-main { background: var(--primary-pink); color: #000; font-size: 1.1rem; width: 42px; height: 42px; }
 
+    /* 底部收合時的小工具列 */
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 68px;
       background: rgba(18, 18, 24, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -148,6 +165,22 @@
 <video id="bg-video" autoplay loop muted playsinline></video>
 <img id="bg-img" alt="全域背景">
 <div id="bg-overlay"></div>
+
+<!-- 懸浮控制視窗 (可任意拖曳、隨時暫停與快轉) -->
+<div id="floating-dock" class="floating-control-dock">
+  <div class="dock-header">
+    <span class="dock-title" id="dock-title">ASMR 懸浮控制</span>
+    <button class="dock-close" onclick="toggleFloatingDock(false)">✕ 關閉</button>
+  </div>
+  <div id="dock-lrc" class="dock-lrc">♪ 載入中...</div>
+  <div class="dock-btns">
+    <button class="btn-dock" onclick="prevTrack()" title="上一首">⏮</button>
+    <button class="btn-dock" onclick="seekRelative(-5)" title="倒退5秒">↺5</button>
+    <button class="btn-dock btn-dock-main" id="dock-btn-play" onclick="togglePlay()" title="播放/暫停">▶</button>
+    <button class="btn-dock" onclick="seekRelative(30)" title="快轉30秒">↻30</button>
+    <button class="btn-dock" onclick="nextTrack()" title="下一首">⏭</button>
+  </div>
+</div>
 
 <div class="container">
   <div class="top-bar">
@@ -246,11 +279,10 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP)</button>
+    <button class="btn-pink" onclick="toggleFloatingDock(true)">📺 開啟懸浮控制列 (可暫停/快轉)</button>
   </div>
 </div>
 
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -269,11 +301,6 @@
   let bgIntervalTimer = null;
   let isCustomAlbumPlaying = false;
 
-  let pipCanvas = null;
-  let pipCtx = null;
-  let cachedCoverImage = null;
-  let isPiPInitialized = false;
-
   let currentPage = 1;
   const itemsPerPage = 4;
 
@@ -282,75 +309,15 @@
   const bgImg = document.getElementById("bg-img");
   const coverImg = document.getElementById("cover-img");
   const coverVideo = document.getElementById("cover-video");
-  const pipVideo = document.getElementById("pip-video");
 
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
+  const floatingDock = document.getElementById("floating-dock");
 
-  function initPiPEngine() {
-    if (isPiPInitialized) return;
-    try {
-      pipCanvas = document.createElement('canvas');
-      pipCanvas.width = 512;
-      pipCanvas.height = 512;
-      pipCtx = pipCanvas.getContext('2d', { alpha: false });
-
-      setInterval(() => {
-        if (!pipCtx) return;
-        pipCtx.fillStyle = "#121218";
-        pipCtx.fillRect(0, 0, 512, 512);
-
-        if (cachedCoverImage && cachedCoverImage.complete) {
-          pipCtx.drawImage(cachedCoverImage, 56, 30, 400, 360);
-        } else {
-          pipCtx.fillStyle = "#1a1a22";
-          pipCtx.fillRect(56, 30, 400, 360);
-          pipCtx.fillStyle = "#ff79c6";
-          pipCtx.font = "bold 24px sans-serif";
-          pipCtx.textAlign = "center";
-          pipCtx.fillText("ASMR 隨身庫", 256, 210);
-        }
-
-        const currentTime = audio.currentTime;
-        let currentText = "♪ 享受音樂中 ♪";
-        if (currentLrc.length > 0) {
-          for (let i = 0; i < currentLrc.length; i++) {
-            if (currentTime >= currentLrc[i].time) currentText = currentLrc[i].text;
-            else break;
-          }
-        }
-
-        // 懸浮視窗專屬的長條字幕區塊
-        pipCtx.fillStyle = "rgba(0, 0, 0, 0.85)";
-        pipCtx.fillRect(16, 405, 480, 92);
-        pipCtx.strokeStyle = "rgba(255, 121, 198, 0.4)";
-        pipCtx.lineWidth = 2;
-        pipCtx.strokeRect(16, 405, 480, 92);
-
-        pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
-        pipCtx.textAlign = "center";
-        
-        if (pipCtx.measureText(currentText).width > 440) {
-          pipCtx.fillText(currentText.substring(0, 22), 256, 438);
-          pipCtx.fillText(currentText.substring(22, 44), 256, 470);
-        } else {
-          pipCtx.fillText(currentText, 256, 458);
-        }
-      }, 1000 / 15);
-
-      const stream = pipCanvas.captureStream(15);
-      pipVideo.srcObject = stream;
-      pipVideo.play();
-      isPiPInitialized = true;
-    } catch(e) {
-      console.error(e);
-    }
-  }
-
-  const request = indexedDB.open("ASMR_Categorized_DB_V14", 1);
+  // IndexedDB 初始化
+  const request = indexedDB.open("ASMR_Categorized_DB_V15", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -492,7 +459,7 @@
         if (t) t.lrcText = lrcText;
         if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
           currentTrackList[currentIndex].lrcText = lrcText;
-          currentLrc = parseSubtitles(lrcText, audio.duration);
+          currentLrc = parseSubtitles(lrcText);
         }
         loadData(); resolve(true);
       };
@@ -528,12 +495,11 @@
     if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
   }
 
-  function parseSubtitles(rawText, duration) {
+  function parseSubtitles(rawText) {
     if (!rawText) return [];
     const lines = rawText.split('\n');
     let lrcList = [];
     const timeReg = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/;
-    
     for (let line of lines) {
       const match = timeReg.exec(line);
       if (match) {
@@ -638,7 +604,6 @@
   }
 
   function playTrack(albumId, trackId) {
-    initPiPEngine();
     currentPlayingAlbumId = albumId;
     const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
@@ -647,6 +612,7 @@
 
     document.getElementById("album-tag").innerText = album.title;
     document.getElementById("mini-title").innerText = track.title;
+    document.getElementById("dock-title").innerText = track.title;
     audio.src = URL.createObjectURL(track.audioBlob);
     
     if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
@@ -656,17 +622,17 @@
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
       coverImg.style.display = "block"; coverVideo.style.display = "none";
-      cachedCoverImage = new Image(); cachedCoverImage.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
-      coverImg.style.display = "block"; coverVideo.style.display = "none"; cachedCoverImage = null;
+      coverImg.style.display = "block"; coverVideo.style.display = "none";
     }
 
-    currentLrc = parseSubtitles(track.lrcText, audio.duration);
+    currentLrc = parseSubtitles(track.lrcText);
     audio.play();
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
+    document.getElementById("dock-btn-play").innerText = "⏸";
     expandPlayer();
   }
 
@@ -676,10 +642,12 @@
       audio.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
+      document.getElementById("dock-btn-play").innerText = "⏸";
     } else {
       audio.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
+      document.getElementById("dock-btn-play").innerText = "▶";
     }
   }
 
@@ -736,6 +704,7 @@
     }
     document.getElementById("lrc-box").innerText = activeText;
     document.getElementById("mini-lrc").innerText = activeText;
+    document.getElementById("dock-lrc").innerText = activeText;
   });
 
   seekSlider.addEventListener('input', (e) => {
@@ -750,6 +719,7 @@
     } else {
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
+      document.getElementById("dock-btn-play").innerText = "▶";
     }
   });
 
@@ -769,6 +739,47 @@
     if (audio.src) miniPlayer.classList.remove('hidden');
   }
 
+  function toggleFloatingDock(show) {
+    if (show) {
+      floatingDock.classList.add('active');
+      minimizePlayer(); // 縮小主面板，讓控制交給懸浮視窗
+    } else {
+      floatingDock.classList.remove('active');
+    }
+  }
+
+  // 讓懸浮控制視窗支援滑鼠/觸控自由拖曳移動
+  let isDragging = false, startX, startY, initialX, initialY;
+  floatingDock.addEventListener('mousedown', dragStart);
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', dragEnd);
+  floatingDock.addEventListener('touchstart', dragStart);
+  document.addEventListener('touchmove', drag);
+  document.addEventListener('touchend', dragEnd);
+
+  function dragStart(e) {
+    if (e.target.tagName === 'BUTTON') return; // 按鈕不觸發拖曳
+    isDragging = true;
+    startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+    startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+    const rect = floatingDock.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+    floatingDock.style.right = 'auto'; // 解除 right 限制，改用 left/top 定位
+  }
+
+  function drag(e) {
+    if (!isDragging) return;
+    const currentX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+    const currentY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+    const dx = currentX - startX;
+    const dy = currentY - startY;
+    floatingDock.style.left = `${initialX + dx}px`;
+    floatingDock.style.top = `${initialY + dy}px`;
+  }
+
+  function dragEnd() { isDragging = false; }
+
   let touchStartY = 0;
   const dragHandleArea = document.getElementById("drag-handle-area");
   dragHandleArea.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; });
@@ -776,19 +787,6 @@
     const deltaY = e.touches[0].clientY - touchStartY;
     if (deltaY > 40) minimizePlayer();
   });
-
-  async function enablePiP() {
-    initPiPEngine();
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else if (pipVideo !== document.pictureInPictureElement) {
-        await pipVideo.requestPictureInPicture();
-      }
-    } catch (err) {
-      alert("無法啟動懸浮：請確定您使用 Safari 瀏覽器，且畫面已經點擊播放過。");
-    }
-  }
 </script>
 </body>
 </html>
