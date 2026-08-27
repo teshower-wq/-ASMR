@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (iOS 桌面真影片 PiP 版)</title>
+  <title>ASMR 私人隨身庫 (Canvas 實時字幕 PiP 版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -103,8 +103,9 @@
     .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
     .cover-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
     
-    /* 隱藏的真實 PiP 影片元件，用來繞過 iOS 限制 */
-    #pip-video { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; }
+    /* 隱藏的合成用 Canvas 與 PiP 影片串流 */
+    #pip-canvas { display: none; }
+    #pip-video-stream { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; }
 
     .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
     
@@ -215,8 +216,9 @@
 
   <div class="cover-box">
     <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>">
-    <!-- 真正的隱形影片標籤，直接吃音訊源讓 iOS 信任觸發 PiP -->
-    <video id="pip-video" playsinline></video>
+    <!-- 用於 Canvas 合成與 PiP 串流 -->
+    <canvas id="pip-canvas" width="640" height="640"></canvas>
+    <video id="pip-video-stream" muted playsinline></video>
   </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
@@ -246,8 +248,7 @@
   </div>
 
   <div class="bottom-tools">
-    <!-- 直接在按鈕的 onclick 內同步觸發 requestPictureInPicture，不使用非同步阻擋 -->
-    <button class="btn-pink" onclick="triggerDesktopPiP()">📺 彈出桌面小視窗 (含控制與字幕)</button>
+    <button class="btn-pink" onclick="triggerCanvasPiP()">📺 彈出桌面小視窗 (含動態字幕)</button>
   </div>
 </div>
 
@@ -276,14 +277,19 @@
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
   const coverImg = document.getElementById("cover-img");
-  const pipVideo = document.getElementById("pip-video");
+  
+  const canvas = document.getElementById("pip-canvas");
+  const ctx = canvas.getContext("2d");
+  const pipVideoStream = document.getElementById("pip-video-stream");
+  let canvasStream = null;
+  let cachedCoverImageObj = null;
 
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V17", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V18", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -581,15 +587,19 @@
     
     const audioUrl = URL.createObjectURL(track.audioBlob);
     audio.src = audioUrl;
-    pipVideo.src = audioUrl; // 同步讓隱形影片吃同一個音訊，才能完美原生畫中畫
 
     if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
     else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
 
+    cachedCoverImageObj = null;
     if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
       coverImg.style.display = "block";
+      
+      const imgObj = new Image();
+      imgObj.onload = () => { cachedCoverImageObj = imgObj; };
+      imgObj.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
@@ -598,29 +608,95 @@
 
     currentLrc = parseSubtitles(track.lrcText);
     audio.play();
-    pipVideo.load();
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
     expandPlayer();
   }
 
-  // 關鍵：直接同步觸發原生 PiP，避開 iOS 的非同步非信任攔截
-  async function triggerDesktopPiP() {
+  // 繪製 Canvas 畫布（封面 + 實時動態字幕）
+  function renderCanvasFrame() {
+    ctx.fillStyle = "#0b0b0e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (cachedCoverImageObj) {
+      ctx.drawImage(cachedCoverImageObj, 0, 0, canvas.width, canvas.height);
+      // 加上半透明漸層遮罩讓文字清晰
+      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    let activeText = "♪ ASMR 隨身庫 ♪";
+    if (currentLrc.length > 0) {
+      for (let i = 0; i < currentLrc.length; i++) {
+        if (audio.currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
+        else break;
+      }
+    }
+
+    // 畫上動態字幕
+    ctx.save();
+    ctx.font = "bold 36px -apple-system, BlinkMacSystemFont, Roboto, sans-serif";
+    ctx.fillStyle = "#ff79c6";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+    ctx.shadowBlur = 15;
+    
+    // 自動換行支援
+    wrapText(ctx, activeText, canvas.width / 2, canvas.height - 60, canvas.width - 80, 46);
+    ctx.restore();
+  }
+
+  function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    const words = text.split('');
+    let line = '';
+    let lines = [];
+
+    for(let n = 0; n < words.length; n++) {
+      let testLine = line + words[n];
+      let metrics = context.measureText(testLine);
+      let testWidth = metrics.width;
+      if (testWidth > maxWidth && n > 0) {
+        lines.push(line);
+        line = words[n];
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+
+    // 限制最多顯示兩行
+    if (lines.length > 2) {
+      lines = lines.slice(lines.length - 2);
+    }
+
+    for(let k = 0; k < lines.length; k++) {
+      context.fillText(lines[k], x, y + (k * lineHeight) - ((lines.length - 1) * lineHeight));
+    }
+  }
+
+  // 啟動 Canvas 影片串流與 PiP
+  async function triggerCanvasPiP() {
     if (!audio.src) {
       alert("請先選擇並播放音樂！");
       return;
     }
     try {
+      if (!canvasStream) {
+        canvasStream = canvas.captureStream(30); // 30 FPS
+        pipVideoStream.srcObject = canvasStream;
+        await pipVideoStream.play();
+      }
+
+      renderCanvasFrame();
+
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
       } else {
-        if (pipVideo.paused) {
-          await pipVideo.play();
-        }
-        await pipVideo.requestPictureInPicture();
+        await pipVideoStream.requestPictureInPicture();
       }
     } catch (err) {
-      alert("iOS 桌面小視窗啟動失敗：請確認音訊已開始播放，或是嘗試點擊網頁其他地方後再按一次按鈕。");
+      alert("桌面小視窗啟動失敗，請確認是否允許網頁使用子母畫面。");
     }
   }
 
@@ -628,12 +704,10 @@
     if (!audio.src) return;
     if (audio.paused) {
       audio.play();
-      pipVideo.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     } else {
       audio.pause();
-      pipVideo.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
     }
@@ -641,9 +715,7 @@
 
   function seekRelative(seconds) {
     if (!audio.src) return;
-    let newTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration || 0);
-    audio.currentTime = newTime;
-    pipVideo.currentTime = newTime;
+    audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration || 0);
   }
 
   function prevTrack() {
@@ -663,13 +735,11 @@
   function toggleMute() {
     if (audio.muted) {
       audio.muted = false;
-      pipVideo.muted = false;
       document.getElementById("btn-mute").innerText = "🔈";
       volumeSlider.value = lastVolume;
     } else {
       lastVolume = audio.volume;
       audio.muted = true;
-      pipVideo.muted = true;
       document.getElementById("btn-mute").innerText = "🔇";
       volumeSlider.value = 0;
     }
@@ -677,9 +747,7 @@
 
   volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
-    pipVideo.volume = e.target.value;
     audio.muted = (audio.volume === 0);
-    pipVideo.muted = (audio.volume === 0);
     document.getElementById("btn-mute").innerText = (audio.volume === 0) ? "🔇" : "🔈";
   });
 
@@ -698,13 +766,16 @@
     }
     document.getElementById("lrc-box").innerText = activeText;
     document.getElementById("mini-lrc").innerText = activeText;
+
+    // 如果正在跑 PiP 小視窗，同步實時重新整理 Canvas 畫面
+    if (document.pictureInPictureElement) {
+      renderCanvasFrame();
+    }
   });
 
   seekSlider.addEventListener('input', (e) => {
     if (!isNaN(audio.duration)) {
-      let t = (e.target.value / 100) * audio.duration;
-      audio.currentTime = t;
-      pipVideo.currentTime = t;
+      audio.currentTime = (e.target.value / 100) * audio.duration;
     }
   });
 
