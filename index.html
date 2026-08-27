@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (iOS 終極桌面字幕 PiP 版)</title>
+  <title>ASMR 私人隨身庫 (iOS 桌面真影片 PiP 版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -101,7 +101,11 @@
     .drag-handle { width: 56px; height: 6px; background: rgba(255, 255, 255, 0.4); border-radius: 10px; }
 
     .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
-    .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .cover-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    /* 隱藏的真實 PiP 影片元件，用來繞過 iOS 限制 */
+    #pip-video { position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; }
+
     .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
     
     .lrc-box {
@@ -124,10 +128,6 @@
     .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); }
     .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer; }
 
-    /* 隱藏但專門用來生成桌面 PiP 小視窗帶字幕的 Canvas 影片產生器 */
-    #pip-canvas { display: none; }
-
-    /* 底部收合時的小工具列 */
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 68px;
       background: rgba(18, 18, 24, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -158,7 +158,7 @@
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景</div>
       <div class="form-group">
-        <label>選取多張圖片或 MP4 影片（每 1 分鐘自動輪換）</label>
+        <label>選取多張圖片或 MP4 影片</label>
         <input type="file" id="global-bg-input" accept="image/*,video/*" multiple>
       </div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存並啟動背景輪播</button>
@@ -214,9 +214,9 @@
   <div class="drag-handle-area" id="drag-handle-area"><div class="drag-handle"></div></div>
 
   <div class="cover-box">
-    <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>' style="display:block;">
-    <!-- 專門用來產生帶字幕的桌面 PiP 視窗影片元件 -->
-    <video id="pip-video" autoplay muted playsinline></video>
+    <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>">
+    <!-- 真正的隱形影片標籤，直接吃音訊源讓 iOS 信任觸發 PiP -->
+    <video id="pip-video" playsinline></video>
   </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
@@ -246,12 +246,12 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pink" onclick="toggleDesktopPiP()">📺 彈出桌面小視窗 (含動態字幕)</button>
+    <!-- 直接在按鈕的 onclick 內同步觸發 requestPictureInPicture，不使用非同步阻擋 -->
+    <button class="btn-pink" onclick="triggerDesktopPiP()">📺 彈出桌面小視窗 (含控制與字幕)</button>
   </div>
 </div>
 
-<audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
-<canvas id="pip-canvas" width="640" height="640"></canvas>
+<audio id="main-audio" preload="auto"></audio>
 
 <script>
   let db;
@@ -277,19 +277,13 @@
   const bgImg = document.getElementById("bg-img");
   const coverImg = document.getElementById("cover-img");
   const pipVideo = document.getElementById("pip-video");
-  const pipCanvas = document.getElementById("pip-canvas");
-  const ctx = pipCanvas.getContext("2d");
 
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  let coverImageObj = new Image();
-  let canvasUpdateInterval = null;
-
-  // IndexedDB 初始化
-  const request = indexedDB.open("ASMR_Categorized_DB_V16", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V17", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -584,77 +578,49 @@
 
     document.getElementById("album-tag").innerText = album.title;
     document.getElementById("mini-title").innerText = track.title;
-    audio.src = URL.createObjectURL(track.audioBlob);
     
+    const audioUrl = URL.createObjectURL(track.audioBlob);
+    audio.src = audioUrl;
+    pipVideo.src = audioUrl; // 同步讓隱形影片吃同一個音訊，才能完美原生畫中畫
+
     if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
     else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
 
     if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
-      coverImageObj.src = url;
       coverImg.style.display = "block";
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
-      coverImageObj.src = defaultImg;
       coverImg.style.display = "block";
     }
 
     currentLrc = parseSubtitles(track.lrcText);
     audio.play();
+    pipVideo.load();
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
     expandPlayer();
-    setupPipStream();
   }
 
-  function setupPipStream() {
-    if (canvasUpdateInterval) clearInterval(canvasUpdateInterval);
-    canvasUpdateInterval = setInterval(() => {
-      if (audio.paused) return;
-      // 繪製封面與即時字幕到 Canvas 上，藉此強行塞進 PiP 影片串流
-      ctx.fillStyle = "#0b0b0e";
-      ctx.fillRect(0, 0, 640, 640);
-      if (coverImageObj.complete && coverImageObj.naturalWidth !== 0) {
-        ctx.drawImage(coverImageObj, 80, 40, 480, 480);
-      }
-      // 畫上字幕
-      let activeText = "♪ 享受音樂中 ♪";
-      if (currentLrc.length > 0) {
-        for (let i = 0; i < currentLrc.length; i++) {
-          if (audio.currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
-          else break;
-        }
-      }
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(40, 530, 560, 70);
-      ctx.fillStyle = "#ff79c6";
-      ctx.font = "bold 28px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(activeText, 320, 565);
-    }, 100);
-
-    if (!pipVideo.srcObject) {
-      const stream = pipCanvas.captureStream(25);
-      pipVideo.srcObject = stream;
-      pipVideo.play();
+  // 關鍵：直接同步觸發原生 PiP，避開 iOS 的非同步非信任攔截
+  async function triggerDesktopPiP() {
+    if (!audio.src) {
+      alert("請先選擇並播放音樂！");
+      return;
     }
-  }
-
-  async function toggleDesktopPiP() {
     try {
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
-      } else if (pipVideo.requestPictureInPicture) {
-        if (!pipVideo.srcObject) setupPipStream();
-        await pipVideo.requestPictureInPicture();
       } else {
-        alert("您的瀏覽器或裝置不支援原生桌面 PiP 視窗。");
+        if (pipVideo.paused) {
+          await pipVideo.play();
+        }
+        await pipVideo.requestPictureInPicture();
       }
     } catch (err) {
-      alert("無法啟動桌面小視窗，請先點擊網頁任意處播放音樂後再試一次。");
+      alert("iOS 桌面小視窗啟動失敗：請確認音訊已開始播放，或是嘗試點擊網頁其他地方後再按一次按鈕。");
     }
   }
 
@@ -662,10 +628,12 @@
     if (!audio.src) return;
     if (audio.paused) {
       audio.play();
+      pipVideo.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     } else {
       audio.pause();
+      pipVideo.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
     }
@@ -673,7 +641,9 @@
 
   function seekRelative(seconds) {
     if (!audio.src) return;
-    audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration || 0);
+    let newTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration || 0);
+    audio.currentTime = newTime;
+    pipVideo.currentTime = newTime;
   }
 
   function prevTrack() {
@@ -693,11 +663,13 @@
   function toggleMute() {
     if (audio.muted) {
       audio.muted = false;
+      pipVideo.muted = false;
       document.getElementById("btn-mute").innerText = "🔈";
       volumeSlider.value = lastVolume;
     } else {
       lastVolume = audio.volume;
       audio.muted = true;
+      pipVideo.muted = true;
       document.getElementById("btn-mute").innerText = "🔇";
       volumeSlider.value = 0;
     }
@@ -705,7 +677,9 @@
 
   volumeSlider.addEventListener('input', (e) => {
     audio.volume = e.target.value;
+    pipVideo.volume = e.target.value;
     audio.muted = (audio.volume === 0);
+    pipVideo.muted = (audio.volume === 0);
     document.getElementById("btn-mute").innerText = (audio.volume === 0) ? "🔇" : "🔈";
   });
 
@@ -728,7 +702,9 @@
 
   seekSlider.addEventListener('input', (e) => {
     if (!isNaN(audio.duration)) {
-      audio.currentTime = (e.target.value / 100) * audio.duration;
+      let t = (e.target.value / 100) * audio.duration;
+      audio.currentTime = t;
+      pipVideo.currentTime = t;
     }
   });
 
