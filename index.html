@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極致清晰大字幕 & 分頁版)</title>
+  <title>ASMR 私人隨身庫 (背景輪播 & 超大作品集)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -16,8 +16,8 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0;
-      padding: 12px;
-      padding-bottom: 90px;
+      padding: 16px;
+      padding-bottom: 110px;
       background-color: var(--bg-dark);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
@@ -36,6 +36,7 @@
       z-index: -2;
       display: none;
       filter: brightness(0.4);
+      transition: opacity 1s ease-in-out;
     }
     #bg-overlay {
       position: fixed;
@@ -45,21 +46,20 @@
       z-index: -1;
     }
 
-    /* 放大容器與第一面作品瀏覽區塊 */
-    .container { width: 100%; max-width: 600px; z-index: 1; position: relative; }
+    .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
 
     .top-bar {
-      width: 100%; max-width: 600px;
+      width: 100%; max-width: 680px;
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 16px; z-index: 10;
+      margin-bottom: 20px; z-index: 10;
     }
-    .app-logo { font-size: 1.15rem; font-weight: bold; color: var(--primary-pink); text-shadow: 0 0 10px var(--pink-glow); }
+    .app-logo { font-size: 1.3rem; font-weight: bold; color: var(--primary-pink); text-shadow: 0 0 12px var(--pink-glow); }
     .btn-toggle-admin {
       background: rgba(255, 121, 198, 0.2);
       border: 1px solid var(--primary-pink);
       color: var(--primary-pink);
-      padding: 8px 14px; border-radius: 12px;
-      font-size: 0.85rem; font-weight: bold; cursor: pointer;
+      padding: 10px 18px; border-radius: 14px;
+      font-size: 0.9rem; font-weight: bold; cursor: pointer;
       backdrop-filter: blur(10px);
     }
 
@@ -68,114 +68,114 @@
       transition: max-height 0.4s ease-in-out;
       width: 100%;
     }
-    .admin-drawer.open { max-height: 1800px; }
+    .admin-drawer.open { max-height: 2000px; }
 
     .glass-card {
       background: var(--card-glass);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 18px; padding: 20px; margin-bottom: 16px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      border-radius: 20px; padding: 24px; margin-bottom: 20px;
+      box-shadow: 0 10px 36px rgba(0,0,0,0.6);
     }
-    .card-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 14px; color: var(--primary-pink); display: flex; align-items: center; gap: 6px; }
+    .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; color: var(--primary-pink); display: flex; align-items: center; gap: 8px; }
     
-    .form-group { margin-bottom: 12px; }
-    label { font-size: 0.82rem; color: var(--text-sub); display: block; margin-bottom: 6px; }
+    .form-group { margin-bottom: 14px; }
+    label { font-size: 0.88rem; color: var(--text-sub); display: block; margin-bottom: 6px; }
     input, select {
-      width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; color: #fff; font-size: 0.9rem;
+      width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 0.95rem;
     }
-    .btn-pink { width: 100%; background: var(--primary-pink); color: #000; border: none; padding: 12px; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 8px; font-size: 0.95rem; }
+    .btn-pink { width: 100%; background: var(--primary-pink); color: #000; border: none; padding: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 1rem; }
 
-    .album-group { border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; margin-bottom: 12px; overflow: hidden; background: rgba(0,0,0,0.4); }
-    .album-header { padding: 14px; background: rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.05rem; cursor: pointer; }
-    .album-thumb-preview { width: 42px; height: 42px; border-radius: 8px; object-fit: cover; margin-right: 12px; }
+    /* 放大兩倍的作品集區塊與排版 */
+    .album-group { border: 1px solid rgba(255,255,255,0.15); border-radius: 18px; margin-bottom: 16px; overflow: hidden; background: rgba(0,0,0,0.45); }
+    .album-header { padding: 20px; background: rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.25rem; cursor: pointer; }
+    .album-thumb-preview { width: 84px; height: 84px; border-radius: 14px; object-fit: cover; margin-right: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
     
-    .album-content-body { padding: 14px; display: none; }
+    .album-content-body { padding: 20px; display: none; }
     .album-content-body.show { display: block; }
     
-    .album-banner-preview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: none; }
+    .album-banner-preview { width: 100%; max-height: 320px; object-fit: cover; border-radius: 16px; margin-bottom: 16px; display: none; }
 
-    .chapter-list { display: flex; flex-direction: column; gap: 8px; }
-    .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
-    .btn-sm { padding: 6px 12px; border-radius: 8px; border: none; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
-    .btn-sm-play { background: var(--primary-pink); color: #000; margin-right: 6px; }
-    .btn-sm-edit { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid var(--primary-pink); margin-right: 6px; }
+    .chapter-list { display: flex; flex-direction: column; gap: 12px; }
+    .chapter-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; background: rgba(255,255,255,0.04); border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); font-size: 1.05rem; }
+    .btn-sm { padding: 8px 16px; border-radius: 10px; border: none; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
+    .btn-sm-play { background: var(--primary-pink); color: #000; margin-right: 8px; }
+    .btn-sm-edit { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid var(--primary-pink); margin-right: 8px; }
     .btn-sm-del { background: rgba(255,255,255,0.1); color: #ff5555; }
     
-    .edit-box { padding: 12px; background: rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.08); display: none; margin-top: 10px; border-radius: 10px; }
+    .edit-box { padding: 16px; background: rgba(0,0,0,0.55); border-top: 1px solid rgba(255,255,255,0.1); display: none; margin-top: 14px; border-radius: 12px; }
 
-    /* 分頁控制按鈕列 */
     .pagination-bar {
-      display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding: 0 4px;
+      display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 6px;
     }
     .btn-page {
       background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink);
-      padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
+      padding: 10px 20px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer;
     }
     .btn-page:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.2); color: var(--text-sub); }
-    .page-info { font-size: 0.85rem; color: var(--text-sub); }
+    .page-info { font-size: 0.95rem; color: var(--text-sub); }
 
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto;
-      max-width: 600px; width: 100%; max-height: 94vh; overflow-y: auto;
+      max-width: 680px; width: 100%; max-height: 94vh; overflow-y: auto;
       background: var(--card-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 24px 24px 0 0;
-      padding: 10px 20px 24px 20px; box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
+      padding: 12px 24px 28px 24px; box-shadow: 0 -12px 45px rgba(0,0,0,0.85);
       z-index: 1000; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
     .player-card.minimized { transform: translateY(105%); }
 
-    .drag-handle-area { width: 100%; padding: 4px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
-    .drag-handle { width: 44px; height: 4px; background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
+    .drag-handle-area { width: 100%; padding: 4px 0 12px 0; display: flex; justify-content: center; cursor: grab; }
+    .drag-handle { width: 48px; height: 5px; background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
 
-    .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 16px; overflow: hidden; background: #1a1a22; margin: 0 auto 8px auto; position: relative; }
+    .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
     .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
 
-    .album-tag { font-size: 0.85rem; color: var(--text-sub); text-align: center; margin-bottom: 6px; }
+    .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
     
-    /* 拿掉上方篇章名稱，專注放大粉紅字幕 */
+    /* 拿掉上方篇章名稱，保留超大極致清晰粉紅字幕 */
     .lrc-box {
-      min-height: 80px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.45rem; font-weight: 900; color: var(--primary-pink);
-      text-shadow: 0 0 22px var(--pink-glow), 0 2px 4px rgba(0,0,0,0.9); padding: 6px 10px; line-height: 1.4; margin-bottom: 10px;
+      min-height: 90px; display: flex; align-items: center; justify-content: center;
+      text-align: center; font-size: 1.6rem; font-weight: 900; color: var(--primary-pink);
+      text-shadow: 0 0 25px var(--pink-glow), 0 2px 5px rgba(0,0,0,0.9); padding: 8px 12px; line-height: 1.4; margin-bottom: 12px;
     }
 
-    .sub-quick-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+    .sub-quick-tools { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
     .btn-sub-quick {
-      padding: 6px 10px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink);
-      color: var(--primary-pink); border-radius: 8px; font-size: 0.78rem; font-weight: bold; cursor: pointer;
+      padding: 8px 14px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink);
+      color: var(--primary-pink); border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
     }
 
-    .seek-slider { width: 100%; height: 5px; accent-color: #ffffff; cursor: pointer; }
-    .time-box { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin-top: 4px; margin-bottom: 8px; }
+    .seek-slider { width: 100%; height: 6px; accent-color: #ffffff; cursor: pointer; }
+    .time-box { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 10px; }
     
-    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; padding: 4px; }
-    .btn-play-main { width: 48px; height: 48px; background: #fff; color: #000; border-radius: 50%; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; }
+    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; padding: 6px; }
+    .btn-play-main { width: 52px; height: 52px; background: #fff; color: #000; border-radius: 50%; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
 
-    .volume-box { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; }
-    .volume-slider { flex: 1; height: 4px; accent-color: var(--text-sub); }
-    .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.1rem; cursor: pointer; }
+    .volume-box { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 12px; }
+    .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); }
+    .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer; }
 
-    .bottom-tools { display: flex; gap: 10px; }
+    .bottom-tools { display: flex; gap: 12px; }
     .btn-pip, .btn-minimize {
       flex: 1; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink);
-      color: var(--primary-pink); padding: 10px; border-radius: 10px; font-weight: bold; font-size: 0.82rem; cursor: pointer;
+      color: var(--primary-pink); padding: 12px; border-radius: 12px; font-weight: bold; font-size: 0.88rem; cursor: pointer;
     }
 
     .mini-player {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 600px; height: 64px;
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 68px;
       background: rgba(18, 18, 24, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; padding: 0 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; padding: 0 16px;
       z-index: 999; cursor: pointer; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); transition: transform 0.3s ease;
     }
     .mini-player.hidden { transform: translateY(100%); }
-    .mini-thumb { width: 44px; height: 44px; border-radius: 8px; background: #1a1a22; object-fit: cover; margin-right: 12px; flex-shrink: 0; }
-    .mini-info { flex: 1; overflow: hidden; margin-right: 12px; }
-    .mini-title { font-size: 0.88rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-subtitle { font-size: 0.78rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
-    .mini-btn { background: none; border: none; color: #fff; font-size: 1.3rem; padding: 6px; cursor: pointer; }
+    .mini-thumb { width: 48px; height: 48px; border-radius: 10px; background: #1a1a22; object-fit: cover; margin-right: 14px; flex-shrink: 0; }
+    .mini-info { flex: 1; overflow: hidden; margin-right: 14px; }
+    .mini-title { font-size: 0.92rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-subtitle { font-size: 0.82rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+    .mini-btn { background: none; border: none; color: #fff; font-size: 1.4rem; padding: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -191,14 +191,14 @@
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
-    <!-- 新增：首頁直接設置全域背景 -->
+    <!-- 多張背景圖輪播設定 -->
     <div class="glass-card">
-      <div class="card-title">🖼️ 設定預設全域背景</div>
+      <div class="card-title">🖼️ 設定預設全域背景 (支援多張輪播)</div>
       <div class="form-group">
-        <label>上傳背景素材 (圖片 / MP4影片)</label>
-        <input type="file" id="global-bg-input" accept="image/*,video/*">
+        <label>可一次選取多張圖片或 MP4 影片（每 1 分鐘自動輪換）</label>
+        <input type="file" id="global-bg-input" accept="image/*,video/*" multiple>
       </div>
-      <button class="btn-pink" onclick="saveGlobalBackground()">套用並儲存背景</button>
+      <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存並啟動背景輪播</button>
     </div>
 
     <div class="glass-card">
@@ -212,7 +212,7 @@
         <input type="file" id="album-cover" accept="image/*,video/*">
       </div>
       <div class="form-group">
-        <label>此分區專屬背景 (選填，不填則用預設背景)</label>
+        <label>此分區專屬背景 (選填)</label>
         <input type="file" id="album-bg" accept="image/*,video/*">
       </div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
@@ -240,7 +240,7 @@
     </div>
   </div>
 
-  <!-- 放大的第一面作品集與圖片瀏覽 -->
+  <!-- 放大兩倍的作品集與圖片瀏覽 -->
   <div class="glass-card">
     <div class="card-title">📚 作品集與圖片瀏覽</div>
     <div id="album-list">載入中...</div>
@@ -270,7 +270,6 @@
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
   
-  <!-- 完美放大且極致清晰的粉紅字幕 (上方篇章名稱已移除) -->
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
@@ -323,9 +322,14 @@
   let lastVolume = 1;
   let cachedCoverImage = null;
 
-  // 分頁設定
+  // 背景輪播控制變數
+  let globalBackgrounds = [];
+  let bgIndex = 0;
+  let bgIntervalTimer = null;
+  let isCustomAlbumPlaying = false; // 是否正在播放有專屬背景的分區
+
   let currentPage = 1;
-  const itemsPerPage = 5; // 每頁顯示 5 個作品分區，可依需求調整
+  const itemsPerPage = 4; // 作品放大兩倍後，每頁預設顯示 4 個分區
 
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
@@ -341,7 +345,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V7", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V8", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -357,10 +361,11 @@
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
     tx.objectStore("albums").getAll().onsuccess = (e) => { albums = e.target.result; updateAlbumDropdown(); renderAlbumList(); };
     tx.objectStore("tracks").getAll().onsuccess = (e) => { tracks = e.target.result; renderAlbumList(); };
-    tx.objectStore("settings").get("globalBg").onsuccess = (e) => {
+    tx.objectStore("settings").get("globalBgs").onsuccess = (e) => {
       const res = e.target.result;
-      if (res && res.blob) {
-        setGlobalBackground(res.blob);
+      if (res && res.blobs && res.blobs.length > 0) {
+        globalBackgrounds = res.blobs;
+        startBackgroundCarousel();
       }
     };
   }
@@ -380,18 +385,51 @@
     });
   }
 
-  // 儲存首頁預設全局背景
-  async function saveGlobalBackground() {
-    const file = document.getElementById("global-bg-input").files[0];
-    if (!file) return alert("請先選擇背景檔案！");
+  // 儲存多張全局背景並啟動 1 分鐘輪播
+  async function saveGlobalBackgrounds() {
+    const files = document.getElementById("global-bg-input").files;
+    if (!files || files.length === 0) return alert("請至少選擇一張背景檔案！");
 
+    const blobsArray = Array.from(files);
     const tx = db.transaction(["settings"], "readwrite");
-    tx.objectStore("settings").put({ key: "globalBg", blob: file });
+    tx.objectStore("settings").put({ key: "globalBgs", blobs: blobsArray });
     tx.oncomplete = () => {
-      setGlobalBackground(file);
-      alert("預設全域背景設定成功！");
+      globalBackgrounds = blobsArray;
+      bgIndex = 0;
+      isCustomAlbumPlaying = false;
+      startBackgroundCarousel();
+      alert(`成功設定 ${blobsArray.length} 張背景，將每 1 分鐘自動輪換！`);
       document.getElementById("global-bg-input").value = "";
     };
+  }
+
+  function startBackgroundCarousel() {
+    if (bgIntervalTimer) clearInterval(bgIntervalTimer);
+    if (!globalBackgrounds || globalBackgrounds.length === 0) return;
+
+    if (!isCustomAlbumPlaying) {
+      applyBackgroundBlob(globalBackgrounds[bgIndex]);
+    }
+
+    // 每 60 秒（1分鐘）自動切換下一張背景
+    bgIntervalTimer = setInterval(() => {
+      if (!isCustomAlbumPlaying && globalBackgrounds.length > 0) {
+        bgIndex = (bgIndex + 1) % globalBackgrounds.length;
+        applyBackgroundBlob(globalBackgrounds[bgIndex]);
+      }
+    }, 60000);
+  }
+
+  function applyBackgroundBlob(blob) {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    if (blob.type && blob.type.startsWith('video/')) {
+      bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play();
+      bgImg.style.display = "none";
+    } else {
+      bgImg.src = url; bgImg.style.display = "block";
+      bgVideo.style.display = "none"; bgVideo.pause();
+    }
   }
 
   async function createAlbum() {
@@ -516,7 +554,7 @@
     }
   }
 
-  // 帶分頁與放大設計的渲染作品集清單
+  // 渲染放大兩倍過後的作品集清單與分頁
   function renderAlbumList() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
@@ -524,11 +562,10 @@
     paginationEl.innerHTML = "";
 
     if (albums.length === 0) {
-      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0;'>目前沒有作品分區，請點擊右上角「⚙️ 管理選單」新增。</div>";
+      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:1rem; padding:12px 0;'>目前沒有作品分區，請點擊右上角「⚙️ 管理選單」新增。</div>";
       return;
     }
 
-    // 計算分頁
     const totalPages = Math.ceil(albums.length / itemsPerPage);
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
@@ -554,13 +591,13 @@
 
       let chaptersHtml = "";
       if (albumTracks.length === 0) {
-        chaptersHtml = "<div style='color:var(--text-sub); font-size:0.85rem; padding:8px 0;'>此分區尚無篇章。</div>";
+        chaptersHtml = "<div style='color:var(--text-sub); font-size:0.95rem; padding:10px 0;'>此分區尚無篇章。</div>";
       } else {
         albumTracks.forEach(track => {
           const hasLrcTag = (track.lrcText && track.lrcText.trim()) ? "💬" : "⚪";
           chaptersHtml += `
             <div class="chapter-item">
-              <span style="font-size:0.9rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px;">${hasLrcTag} ${track.title}</span>
+              <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:10px;">${hasLrcTag} ${track.title}</span>
               <div style="display:flex; flex-shrink:0;">
                 <button class="btn-sm btn-sm-play" onclick="playTrack(${album.id}, ${track.id})">播放</button>
                 <button class="btn-sm btn-sm-edit" onclick="editTrackLrc(${track.id})">字幕</button>
@@ -577,7 +614,7 @@
             ${thumbUrl ? `<img src="${thumbUrl}" class="album-thumb-preview">` : ''}
             <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📁 ${album.title} (${albumTracks.length})</span>
           </div>
-          <div style="display:flex; gap:6px;" onclick="event.stopPropagation()">
+          <div style="display:flex; gap:8px;" onclick="event.stopPropagation()">
             <button class="btn-sm btn-sm-edit" onclick="toggleEditAlbum(${album.id})">⚙️</button>
             <button class="btn-sm btn-sm-del" onclick="deleteAlbum(${album.id})">刪</button>
           </div>
@@ -602,9 +639,9 @@
               <label>更換分區專屬背景 (選填)</label>
               <input type="file" id="edit-bg-${album.id}" accept="image/*,video/*">
             </div>
-            <div style="display:flex; gap:10px; margin-top:10px;">
+            <div style="display:flex; gap:12px; margin-top:12px;">
               <button class="btn-pink" style="margin-top:0;" onclick="saveAlbumEdit(${album.id})">儲存變更</button>
-              <button class="btn-sm" style="background:rgba(255,255,255,0.2); color:#fff; padding:10px 14px;" onclick="toggleEditAlbum(${album.id})">取消</button>
+              <button class="btn-sm" style="background:rgba(255,255,255,0.2); color:#fff; padding:12px 16px;" onclick="toggleEditAlbum(${album.id})">取消</button>
             </div>
           </div>
         </div>
@@ -612,7 +649,6 @@
       listEl.appendChild(group);
     });
 
-    // 如果總頁數大於 1，渲染分頁按鈕
     if (totalPages > 1) {
       paginationEl.innerHTML = `
         <div class="pagination-bar">
@@ -637,31 +673,16 @@
       body.classList.add("show");
       const album = albums.find(a => a.id === id);
       if (album && album.bgBlob) {
-        setGlobalBackground(album.bgBlob);
+        isCustomAlbumPlaying = true;
+        applyBackgroundBlob(album.bgBlob);
       } else {
-        // 如果該分區沒有專屬背景，重新載入資料庫裡的預設全局背景
-        const tx = db.transaction(["settings"], "readonly");
-        tx.objectStore("settings").get("globalBg").onsuccess = (e) => {
-          const res = e.target.result;
-          if (res && res.blob) setGlobalBackground(res.blob);
-          else setGlobalBackground(null);
-        };
+        isCustomAlbumPlaying = false;
+        if (globalBackgrounds.length > 0) {
+          applyBackgroundBlob(globalBackgrounds[bgIndex]);
+        } else {
+          applyBackgroundBlob(null);
+        }
       }
-    }
-  }
-
-  function setGlobalBackground(bgBlob) {
-    if (bgBlob) {
-      const url = URL.createObjectURL(bgBlob);
-      if (bgBlob.type && bgBlob.type.startsWith('video/')) {
-        bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play();
-        bgImg.style.display = "none";
-      } else {
-        bgImg.src = url; bgImg.style.display = "block";
-        bgVideo.style.display = "none"; bgVideo.pause();
-      }
-    } else {
-      bgVideo.style.display = "none"; bgImg.style.display = "none";
     }
   }
 
@@ -727,15 +748,14 @@
 
     audio.src = URL.createObjectURL(track.audioBlob);
     
-    // 檢查分區是否有專屬背景，沒有則用全局背景
     if (album.bgBlob) {
-      setGlobalBackground(album.bgBlob);
+      isCustomAlbumPlaying = true;
+      applyBackgroundBlob(album.bgBlob);
     } else {
-      const tx = db.transaction(["settings"], "readonly");
-      tx.objectStore("settings").get("globalBg").onsuccess = (e) => {
-        const res = e.target.result;
-        if (res && res.blob) setGlobalBackground(res.blob);
-      };
+      isCustomAlbumPlaying = false;
+      if (globalBackgrounds.length > 0) {
+        applyBackgroundBlob(globalBackgrounds[bgIndex]);
+      }
     }
 
     if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
