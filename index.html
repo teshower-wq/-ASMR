@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (PiP 修復旗艦版)</title>
+  <title>ASMR 私人隨身庫 (PiP 終極修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -106,7 +106,7 @@
     
     .lrc-box {
       min-height: 80px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.5rem; font-weight: 900; color: var(--primary-pink);
+      text-align: center; font-size: 1.4rem; font-weight: 900; color: var(--primary-pink);
       text-shadow: 0 0 25px var(--pink-glow), 0 2px 5px rgba(0,0,0,0.9); padding: 8px 12px; line-height: 1.4; margin-bottom: 12px;
     }
 
@@ -252,7 +252,7 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP 小視窗)</button>
+    <button class="btn-pip" id="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP 小視窗)</button>
   </div>
 </div>
 
@@ -296,7 +296,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 初始化 PiP 畫布與串流（頁面載入即準備好，避免觸發 User Activation 錯誤）
+  // 初始化 PiP 畫布與動態串流
   function setupPiPCanvas() {
     try {
       pipCanvas = document.createElement('canvas');
@@ -306,7 +306,6 @@
 
       const stream = pipCanvas.captureStream(15);
       pipVideo.srcObject = stream;
-
       setInterval(drawPiPFrame, 1000 / 15);
     } catch(e) { console.error("PiP 畫布初始化錯誤:", e); }
   }
@@ -359,17 +358,21 @@
     }
   }
 
-  // 完美觸發小視窗 PiP
-  async function enablePiP() {
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await pipVideo.play();
-        await pipVideo.requestPictureInPicture();
-      }
-    } catch (err) {
-      alert("開啟桌面懸浮 (PiP) 失敗: " + err.message);
+  // 100% 同步觸發，徹底解決 User Activation 權限錯誤
+  function enablePiP() {
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture().catch(() => {});
+      return;
+    }
+
+    // 必須在點擊發生的第一時間調用 play()，然後鏈式啟動 PiP
+    const playPromise = pipVideo.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        return pipVideo.requestPictureInPicture();
+      }).catch(err => {
+        alert("開啟桌面懸浮 (PiP) 失敗: " + err.message);
+      });
     }
   }
 
@@ -418,6 +421,7 @@
       navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
       navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
       
+      // 設定小視窗與鎖屏控制面的倒退5秒與快進10秒
       navigator.mediaSession.setActionHandler('seekbackward', (details) => {
         const skipTime = details.seekOffset || 5;
         seekRelative(-skipTime);
@@ -463,7 +467,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V13", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V14", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -833,13 +837,12 @@
     return activeText;
   }
 
-  // 重構升級版字幕解析器：徹底去除 SRT/VTT 區塊序號與 HTML 標籤
+  // 徹底濾除 SRT 純數字與時間標記的字幕解析器
   function parseSubtitles(text) {
     if (!text || !text.trim()) return [];
     const cleanText = text.replace(/\r/g, '');
     const result = [];
 
-    // 判斷是否為 SRT / VTT 區塊格式
     if (cleanText.includes('-->')) {
       const blocks = cleanText.split(/\n\s*\n/);
       blocks.forEach(block => {
@@ -850,11 +853,10 @@
           const times = timeStr.split('-->');
           if (times.length >= 2) {
             const startTime = parseTimestamp(times[0].trim());
-            // 只擷取時間軸之後的行（過濾掉頂部的序號行）
             const subText = lines.slice(timeLineIndex + 1)
               .join(' ')
-              .replace(/<[^>]*>/g, '') // 濾除 <i> <b> 等 HTML 標籤
-              .replace(/\{\\k\d+\}/g, '') // 濾除卡拉OK標籤
+              .replace(/<[^>]*>/g, '')
+              .replace(/\{\\k\d+\}/g, '')
               .trim();
             if (subText && !isNaN(startTime)) {
               result.push({ time: startTime, text: subText });
@@ -863,12 +865,10 @@
         }
       });
     } else {
-      // 標準 LRC / 方括號格式
       const lines = cleanText.split('\n');
       const lrcRegex = /\[(\d{2}):(\d{2})(?:\.|:)(\d{2,3})\]/g;
       lines.forEach(line => {
         let match;
-        // 先清理純數字的行號
         let lText = line.replace(/^\d+\s*$/, '').trim();
         if (!lText) return;
 
