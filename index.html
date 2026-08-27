@@ -691,140 +691,232 @@
     if (!file) return;
     const text = await readFileTextSmart(file);
     await saveTrackSubtitle(currentTrackList[currentIndex].id, text);
-    alert("字幕匯入成功！"); event.target.value = "";
+    alert("字幕匯入成功！");
+    event.target.value = "";
   }
 
   async function pasteCurrentTrackLrc() {
     if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
-    const text = prompt("請貼上字幕內容：");
-    if (text && text.trim()) { await saveTrackSubtitle(currentTrackList[currentIndex].id, text.trim()); alert("字幕更新成功！"); }
+    const text = prompt("請貼上字幕內容 (.lrc / .srt / .vtt / 明文)：");
+    if (text !== null) {
+      await saveTrackSubtitle(currentTrackList[currentIndex].id, text);
+      alert("字幕更新成功！");
+    }
   }
 
   async function inspectCurrentTrackLrc() {
     if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
-    const track = currentTrackList[currentIndex];
-    const newText = prompt(`【${track.title}】字幕內容：`, track.lrcText || "");
-    if (newText !== null) { await saveTrackSubtitle(track.id, newText.trim()); alert("字幕已儲存！"); }
+    const currentText = currentTrackList[currentIndex].lrcText || "";
+    const newText = prompt("檢視 / 修改當前字幕內容：", currentText);
+    if (newText !== null && newText !== currentText) {
+      await saveTrackSubtitle(currentTrackList[currentIndex].id, newText);
+      alert("字幕修改儲存成功！");
+    }
   }
 
-  async function editTrackLrc(trackId) {
-    const track = tracks.find(t => t.id === trackId);
-    if (!track) return;
-    const newText = prompt(`編輯【${track.title}】字幕：`, track.lrcText || "");
-    if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
+  function parseSubtitles(text) {
+    if (!text) return [];
+    text = text.replace(/\r/g, '');
+    let result = [];
+
+    // 1. 嘗試解析 LRC 格式
+    const lrcRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\](.*)/g;
+    let match;
+    while ((match = lrcRegex.exec(text)) !== null) {
+      const min = parseInt(match[1]);
+      const sec = parseInt(match[2]);
+      const ms = match[3] ? (match[3].length === 2 ? parseInt(match[3]) * 10 : parseInt(match[3])) : 0;
+      const time = min * 60 + sec + ms / 1000;
+      const content = match[4].trim();
+      if (content) result.push({ time, text: content });
+    }
+    if (result.length > 0) return result.sort((a, b) => a.time - b.time);
+
+    // 2. 嘗試解析 SRT 或 VTT 格式
+    const srtBlocks = text.split(/\n\n+/);
+    const timeRegex = /(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[,.](\d{3})/;
+    for (const block of srtBlocks) {
+      const lines = block.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        const tMatch = lines[i].match(timeRegex);
+        if (tMatch) {
+          const time = parseInt(tMatch[1])*3600 + parseInt(tMatch[2])*60 + parseInt(tMatch[3]) + parseInt(tMatch[4])/1000;
+          const content = lines.slice(i + 1).join(' ').trim();
+          if (content) result.push({ time, text: content });
+          break;
+        }
+      }
+    }
+    if (result.length > 0) return result.sort((a, b) => a.time - b.time);
+
+    // 3. 一般純文字分行
+    const plainLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    return plainLines.map((l, i) => ({ time: i * 5, text: l }));
+  }
+
+  function getActiveSubtitleText(currentTime) {
+    if (!currentLrc || currentLrc.length === 0) return "♪ 暫無動態字幕 ♪";
+    let activeText = currentLrc[0].text;
+    for (let i = 0; i < currentLrc.length; i++) {
+      if (currentTime >= currentLrc[i].time) {
+        activeText = currentLrc[i].text;
+      } else { break; }
+    }
+    return activeText;
+  }
+
+  function onTimeUpdate() {
+    if (audio.duration) {
+      seekSlider.value = (audio.currentTime / audio.duration) * 100;
+      document.getElementById("time-current").innerText = formatTime(audio.currentTime);
+    }
+    const currentText = getActiveSubtitleText(audio.currentTime);
+    document.getElementById("lrc-box").innerText = currentText;
+    document.getElementById("mini-lrc").innerText = currentText;
+  }
+
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds === null) return "00:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
   function renderAlbumList() {
     const listEl = document.getElementById("album-list");
-    const paginationEl = document.getElementById("pagination-container");
-    listEl.innerHTML = ""; paginationEl.innerHTML = "";
-    if (albums.length === 0) {
-      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:1rem; padding:12px 0;'>目前沒有作品分區，請從右上角管理選單新增。</div>";
-      return;
+    const pageContainer = document.getElementById("pagination-container");
+    if (!albums || albums.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">尚無作品分區，請從右上角管理選單建立。</div>';
+      pageContainer.innerHTML = ''; return;
     }
+
     const totalPages = Math.ceil(albums.length / itemsPerPage);
-    if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
-    const start = (currentPage - 1) * itemsPerPage;
-    const paginatedAlbums = albums.slice(start, start + itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages || 1;
 
-    paginatedAlbums.forEach(album => {
-      const albumTracks = tracks.filter(t => t.albumId === album.id);
-      const card = document.createElement("div");
-      card.className = "album-grid-card";
-      card.onclick = () => {
-        if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
-        else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
-        switchPage('detail', album.id);
-      };
-      let thumbUrl = album.coverBlob ? URL.createObjectURL(album.coverBlob) : "";
-      card.innerHTML = `
-        ${thumbUrl ? `<img src="${thumbUrl}" class="album-grid-thumb">` : '<div class="album-grid-thumb" style="background:#222; display:flex; align-items:center; justify-content:center; color:#555;">📁</div>'}
-        <div class="album-grid-info"><div class="album-grid-title">${album.title}</div><div class="album-grid-count">包含 ${albumTracks.length} 個篇章 ▶</div></div>
-      `;
-      listEl.appendChild(card);
-    });
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const pageAlbums = albums.slice(startIdx, startIdx + itemsPerPage);
 
-    if (totalPages > 1) {
-      paginationEl.innerHTML = `
-        <div class="pagination-bar">
-          <button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">◀ 上一頁</button>
-          <span class="page-info">第 ${currentPage} / ${totalPages} 頁</span>
-          <button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁 ▶</button>
+    let html = "";
+    pageAlbums.forEach(album => {
+      const count = tracks.filter(t => t.albumId === album.id).length;
+      let coverSrc = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
+      if (album.coverBlob) coverSrc = URL.createObjectURL(album.coverBlob);
+
+      html += `
+        <div class="album-grid-card" onclick="switchPage('detail', ${album.id})">
+          <img class="album-grid-thumb" src="${coverSrc}">
+          <div class="album-grid-info">
+            <div class="album-grid-title">${escapeHtml(album.title)}</div>
+            <div class="album-grid-count">共 ${count} 個小篇章</div>
+          </div>
         </div>
       `;
-    }
+    });
+    listEl.innerHTML = html;
+
+    pageContainer.innerHTML = `
+      <div class="pagination-bar">
+        <button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(-1)">◀ 上一頁</button>
+        <span class="page-info">第 ${currentPage} / ${totalPages} 頁</span>
+        <button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(1)">下一頁 ▶</button>
+      </div>
+    `;
   }
 
-  function changePage(page) { currentPage = page; renderAlbumList(); }
+  function changePage(delta) {
+    currentPage += delta;
+    renderAlbumList();
+  }
 
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
     document.getElementById("detail-album-title").innerText = album.title;
-    const container = document.getElementById("chapter-list-container");
-    container.innerHTML = "";
+
+    if (album.bgBlob) {
+      applyBackgroundBlob(album.bgBlob);
+      isCustomAlbumPlaying = true;
+    }
+
     const albumTracks = tracks.filter(t => t.albumId === albumId);
+    const container = document.getElementById("chapter-list-container");
+
     if (albumTracks.length === 0) {
-      container.innerHTML = "<div style='color:var(--text-sub); font-size:1rem; padding:12px 0;'>此分區目前沒有篇章。</div>";
+      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">此分區尚無小篇章，請至管理選單新增。</div>';
       return;
     }
-    albumTracks.forEach(track => {
-      const item = document.createElement("div");
-      item.className = "chapter-file-item";
-      item.onclick = () => playTrack(album.id, track.id);
-      item.innerHTML = `
-        <div class="chapter-info-left">
-          <div class="play-icon-circle">▶</div>
-          <div class="chapter-meta-text">
-            <div class="chapter-name">${track.title}</div>
-            <div class="chapter-duration-sub">${(track.lrcText && track.lrcText.trim()) ? '💬 有動態字幕' : '⚪ 無動態字幕'}</div>
+
+    let html = "";
+    albumTracks.forEach((track, idx) => {
+      html += `
+        <div class="chapter-file-item" onclick="playTrackFromList(${albumId}, ${idx})">
+          <div class="chapter-info-left">
+            <div class="play-icon-circle">▶</div>
+            <div class="chapter-meta-text">
+              <div class="chapter-name">${escapeHtml(track.title)}</div>
+              <div class="chapter-duration-sub">${track.lrcText ? '💬 含字幕' : '🎵 純音訊'}</div>
+            </div>
+          </div>
+          <div class="btn-action-group" onclick="event.stopPropagation()">
+            <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id})">刪除</button>
           </div>
         </div>
-        <div class="btn-action-group" onclick="event.stopPropagation()">
-          <button class="btn-sm btn-sm-edit" onclick="editTrackLrc(${track.id})">字幕</button>
-          <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id})">刪除</button>
-        </div>
       `;
-      container.appendChild(item);
     });
+    container.innerHTML = html;
   }
 
-  function playTrack(albumId, trackId) {
-    const album = albums.find(a => a.id === albumId);
+  function playTrackFromList(albumId, index) {
     currentTrackList = tracks.filter(t => t.albumId === albumId);
-    currentIndex = currentTrackList.findIndex(t => t.id === trackId);
-    if (currentIndex === -1) return;
+    currentIndex = index;
+    const album = albums.find(a => a.id === albumId);
 
-    const track = currentTrackList[currentIndex];
-    audio.src = URL.createObjectURL(track.audioBlob);
-    audio.playbackRate = speeds[currentSpeedIndex];
-    audio.play();
-
-    document.getElementById("album-tag").innerText = album.title;
-    document.getElementById("mini-title").innerText = track.title;
-    document.getElementById("mini-lrc").innerText = "♪ 播放中...";
-
-    if (album.coverBlob) {
-      const cUrl = URL.createObjectURL(album.coverBlob);
-      if (album.coverBlob.type.startsWith('video/')) {
-        coverVideo.src = cUrl; coverVideo.style.display = "block"; coverImg.style.display = "none";
-      } else {
-        coverImg.src = cUrl; coverImg.style.display = "block"; coverVideo.style.display = "none";
-        cachedCoverImage = new Image(); cachedCoverImage.src = cUrl;
-      }
-      document.getElementById("mini-thumb").src = cUrl;
-    } else {
-      coverImg.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
-      coverImg.style.display = "block"; coverVideo.style.display = "none";
-      cachedCoverImage = null;
+    if (album) {
+      document.getElementById("album-tag").innerText = album.title;
+      updateCoverUI(album.coverBlob);
     }
 
-    currentLrc = parseSubtitles(track.lrcText || "");
-    updateMediaSessionMetadata(track.title, album.title, album.coverBlob && !album.coverBlob.type.startsWith('video/') ? URL.createObjectURL(album.coverBlob) : null);
-    
-    miniPlayer.classList.remove("hidden");
+    loadAndPlayCurrentTrack();
     expandPlayer();
+  }
+
+  function updateCoverUI(blob) {
+    if (!blob) {
+      coverImg.style.display = "block";
+      coverVideo.style.display = "none";
+      cachedCoverImage = null;
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    if (blob.type && blob.type.startsWith('video/')) {
+      coverVideo.src = url; coverVideo.style.display = "block"; coverImg.style.display = "none";
+      cachedCoverImage = null;
+    } else {
+      coverImg.src = url; coverImg.style.display = "block"; coverVideo.style.display = "none";
+      cachedCoverImage = new Image();
+      cachedCoverImage.src = url;
+    }
+  }
+
+  function loadAndPlayCurrentTrack() {
+    if (currentIndex < 0 || currentIndex >= currentTrackList.length) return;
+    const track = currentTrackList[currentIndex];
+
+    audio.src = URL.createObjectURL(track.audioBlob);
+    audio.play().catch(e => console.log("Auto-play interrupted:", e));
+
+    currentLrc = parseSubtitles(track.lrcText);
+    document.getElementById("mini-title").innerText = track.title;
+    
+    const album = albums.find(a => a.id === track.albumId);
+    let coverUrl = "";
+    if (album && album.coverBlob && album.coverBlob.type.startsWith('image/')) {
+      coverUrl = URL.createObjectURL(album.coverBlob);
+      document.getElementById("mini-thumb").src = coverUrl;
+    }
+
+    updateMediaSessionMetadata(track.title, album ? album.title : "ASMR", coverUrl);
+    updatePlayStateUI(true);
   }
 
   function togglePlay() {
@@ -833,20 +925,20 @@
   }
 
   function prevTrack() {
-    if (currentIndex > 0) {
-      playTrack(currentTrackList[currentIndex - 1].albumId, currentTrackList[currentIndex - 1].id);
-    }
+    if (currentTrackList.length === 0) return;
+    currentIndex = (currentIndex - 1 + currentTrackList.length) % currentTrackList.length;
+    loadAndPlayCurrentTrack();
   }
 
   function nextTrack() {
-    if (currentIndex < currentTrackList.length - 1) {
-      playTrack(currentTrackList[currentIndex + 1].albumId, currentTrackList[currentIndex + 1].id);
-    }
+    if (currentTrackList.length === 0) return;
+    currentIndex = (currentIndex + 1) % currentTrackList.length;
+    loadAndPlayCurrentTrack();
   }
 
-  function seekRelative(sec) {
+  function seekRelative(seconds) {
     if (audio.duration) {
-      audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + sec));
+      audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
       updatePositionState();
     }
   }
@@ -856,100 +948,18 @@
     document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
   }
 
-  function minimizePlayer() { playerCard.classList.add("minimized"); }
-  function expandPlayer() { playerCard.classList.remove("minimized"); }
-
-  function onTimeUpdate() {
-    if (!audio.duration) return;
-    const cur = audio.currentTime;
-    const dur = audio.duration;
-    seekSlider.value = (cur / dur) * 100;
-    document.getElementById("time-current").innerText = formatTime(cur);
-
-    const lrcText = getActiveSubtitleText(cur);
-    document.getElementById("lrc-box").innerText = lrcText;
-    document.getElementById("mini-lrc").innerText = lrcText;
+  function expandPlayer() {
+    playerCard.classList.remove("minimized");
+    miniPlayer.classList.add("hidden");
   }
 
-  function getActiveSubtitleText(curTime) {
-    if (!currentLrc || currentLrc.length === 0) return "♪ 無動態字幕 ♪";
-    let activeText = "♪ ... ♪";
-    for (let i = 0; i < currentLrc.length; i++) {
-      if (curTime >= currentLrc[i].time) {
-        activeText = currentLrc[i].text;
-      } else { break; }
-    }
-    return activeText;
+  function minimizePlayer() {
+    playerCard.classList.add("minimized");
+    miniPlayer.classList.remove("hidden");
   }
 
-  function parseSubtitles(text) {
-    if (!text || !text.trim()) return [];
-    const cleanText = text.replace(/\r/g, '');
-    const result = [];
-
-    if (cleanText.includes('-->')) {
-      const blocks = cleanText.split(/\n\s*\n/);
-      blocks.forEach(block => {
-        const lines = block.trim().split('\n');
-        const timeLineIndex = lines.findIndex(l => l.includes('-->'));
-        if (timeLineIndex !== -1) {
-          const timeStr = lines[timeLineIndex];
-          const times = timeStr.split('-->');
-          if (times.length >= 2) {
-            const startTime = parseTimestamp(times[0].trim());
-            const subText = lines.slice(timeLineIndex + 1)
-              .join(' ')
-              .replace(/<[^>]*>/g, '')
-              .replace(/\{\\k\d+\}/g, '')
-              .trim();
-            if (subText && !isNaN(startTime)) {
-              result.push({ time: startTime, text: subText });
-            }
-          }
-        }
-      });
-    } else {
-      const lines = cleanText.split('\n');
-      const lrcRegex = /\[(\d{2}):(\d{2})(?:\.|:)(\d{2,3})\]/g;
-      lines.forEach(line => {
-        let match;
-        let lText = line.replace(/^\d+\s*$/, '').trim();
-        if (!lText) return;
-
-        lrcRegex.lastIndex = 0;
-        while ((match = lrcRegex.exec(lText)) !== null) {
-          const min = parseInt(match[1]);
-          const sec = parseInt(match[2]);
-          const msStr = match[3];
-          const ms = msStr.length === 3 ? parseInt(msStr) / 1000 : parseInt(msStr) / 100;
-          const time = min * 60 + sec + ms;
-
-          const pureText = lText.replace(/\[\d{2}:\d{2}(?:\.|:)\d{2,3}\]/g, '').replace(/<[^>]*>/g, '').trim();
-          if (pureText) {
-            result.push({ time, text: pureText });
-          }
-        }
-      });
-    }
-
-    return result.sort((a, b) => a.time - b.time);
-  }
-
-  function parseTimestamp(str) {
-    const parts = str.replace(',', '.').split(':');
-    if (parts.length === 3) {
-      return parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2]);
-    } else if (parts.length === 2) {
-      return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
-    }
-    return 0;
-  }
-
-  function formatTime(sec) {
-    if (isNaN(sec) || !isFinite(sec)) return "00:00";
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 </script>
 </body>
