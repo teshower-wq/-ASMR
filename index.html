@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (動態字幕懸浮最佳化)</title>
+  <title>ASMR 私人隨身庫 (極速 PiP 最終版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -15,76 +15,42 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0;
-      padding: 16px;
-      padding-bottom: 110px;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-x: hidden;
+      margin: 0; padding: 16px; padding-bottom: 110px;
+      background-color: var(--bg-dark); color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
 
     #bg-video, #bg-img {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      object-fit: cover;
-      z-index: -2;
-      display: none;
-      filter: brightness(0.4);
-      transition: opacity 1s ease-in-out;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      object-fit: cover; z-index: -2; display: none; filter: brightness(0.4);
     }
     #bg-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: radial-gradient(circle, rgba(11,11,14,0.3) 0%, rgba(11,11,14,0.85) 100%);
       z-index: -1;
     }
 
     .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
-
-    .top-bar {
-      width: 100%; max-width: 680px;
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; z-index: 10;
-    }
+    .top-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
     .app-logo { font-size: 1.3rem; font-weight: bold; color: var(--primary-pink); text-shadow: 0 0 12px var(--pink-glow); cursor: pointer; }
     .btn-toggle-admin {
-      background: rgba(255, 121, 198, 0.2);
-      border: 1px solid var(--primary-pink);
-      color: var(--primary-pink);
-      padding: 10px 18px; border-radius: 14px;
-      font-size: 0.9rem; font-weight: bold; cursor: pointer;
-      backdrop-filter: blur(10px);
+      background: rgba(255, 121, 198, 0.2); border: 1px solid var(--primary-pink);
+      color: var(--primary-pink); padding: 10px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: bold; cursor: pointer;
     }
 
-    .admin-drawer {
-      max-height: 0; overflow: hidden;
-      transition: max-height 0.4s ease-in-out;
-      width: 100%;
-    }
+    .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; width: 100%; }
     .admin-drawer.open { max-height: 2000px; }
 
     .glass-card {
-      background: var(--card-glass);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px; padding: 24px; margin-bottom: 20px;
+      background: var(--card-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 24px; margin-bottom: 20px;
       box-shadow: 0 10px 36px rgba(0,0,0,0.6);
     }
     .card-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 16px; color: var(--primary-pink); display: flex; align-items: center; gap: 8px; }
-    
     .form-group { margin-bottom: 14px; }
     label { font-size: 0.88rem; color: var(--text-sub); display: block; margin-bottom: 6px; }
-    input, select {
-      width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 0.95rem;
-    }
+    input, select { width: 100%; padding: 12px 14px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; color: #fff; font-size: 0.95rem; }
     .btn-pink { width: 100%; background: var(--primary-pink); color: #000; border: none; padding: 14px; font-weight: bold; border-radius: 12px; cursor: pointer; margin-top: 10px; font-size: 1rem; }
 
     .page-view { display: none; width: 100%; }
@@ -92,30 +58,21 @@
 
     .album-grid-card {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center;
-      cursor: pointer; transition: background 0.2s, transform 0.2s;
+      border-radius: 18px; padding: 18px; margin-bottom: 16px; display: flex; align-items: center; cursor: pointer;
     }
-    .album-grid-card:hover { background: rgba(255,121,198,0.12); transform: translateY(-2px); }
-    .album-grid-thumb { width: 96px; height: 96px; border-radius: 14px; object-fit: cover; margin-right: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.6); flex-shrink: 0; }
+    .album-grid-thumb { width: 96px; height: 96px; border-radius: 14px; object-fit: cover; margin-right: 18px; flex-shrink: 0; }
     .album-grid-info { flex: 1; overflow: hidden; }
     .album-grid-title { font-size: 1.25rem; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .album-grid-count { font-size: 0.95rem; color: var(--primary-pink); font-weight: bold; }
 
-    .breadcrumb-bar {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 1.1rem; font-weight: bold; color: var(--primary-pink); cursor: pointer;
-    }
+    .breadcrumb-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 1.1rem; font-weight: bold; color: var(--primary-pink); cursor: pointer; }
     .chapter-file-list { display: flex; flex-direction: column; gap: 12px; }
     .chapter-file-item {
       display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
-      font-size: 1.1rem; cursor: pointer; transition: background 0.2s;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; font-size: 1.1rem; cursor: pointer;
     }
-    .chapter-file-item:hover { background: rgba(255,121,198,0.1); border-color: rgba(255,121,198,0.3); }
     .chapter-info-left { display: flex; align-items: center; gap: 16px; overflow: hidden; flex: 1; margin-right: 12px; }
-    .play-icon-circle {
-      width: 44px; height: 44px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem; flex-shrink: 0;
-      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
-    }
+    .play-icon-circle { width: 44px; height: 44px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.2rem; flex-shrink: 0; }
     .chapter-meta-text { overflow: hidden; }
     .chapter-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; margin-bottom: 4px; color: #fff; }
     .chapter-duration-sub { font-size: 0.85rem; color: var(--text-sub); }
@@ -125,19 +82,13 @@
     .btn-sm-edit { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid var(--primary-pink); }
     .btn-sm-del { background: rgba(255,255,255,0.1); color: #ff5555; }
 
-    .pagination-bar {
-      display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 6px;
-    }
-    .btn-page {
-      background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink);
-      padding: 10px 20px; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer;
-    }
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 6px; }
+    .btn-page { background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink); padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     .btn-page:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255,255,255,0.2); color: var(--text-sub); }
     .page-info { font-size: 0.95rem; color: var(--text-sub); }
 
     .player-card {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto;
-      max-width: 680px; width: 100%; max-height: 94vh; overflow-y: auto;
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; max-height: 94vh; overflow-y: auto;
       background: var(--card-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       padding: 12px 24px 28px 24px; box-shadow: 0 -12px 45px rgba(0,0,0,0.85);
@@ -150,7 +101,6 @@
 
     .cover-box { width: 100%; max-height: 32vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #1a1a22; margin: 0 auto 10px auto; position: relative; }
     .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
-
     .album-tag { font-size: 0.9rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; }
     
     .lrc-box {
@@ -160,10 +110,7 @@
     }
 
     .sub-quick-tools { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
-    .btn-sub-quick {
-      padding: 8px 14px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink);
-      color: var(--primary-pink); border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer;
-    }
+    .btn-sub-quick { padding: 8px 14px; background: rgba(255, 121, 198, 0.15); border: 1px solid var(--primary-pink); color: var(--primary-pink); border-radius: 10px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
 
     .seek-slider { width: 100%; height: 6px; accent-color: #ffffff; cursor: pointer; }
     .time-box { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 10px; }
@@ -210,9 +157,9 @@
 
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card">
-      <div class="card-title">🖼️ 設定預設全域背景 (支援多張輪播)</div>
+      <div class="card-title">🖼️ 設定預設全域背景</div>
       <div class="form-group">
-        <label>可一次選取多張圖片或 MP4 影片（每 1 分鐘自動輪換）</label>
+        <label>選取多張圖片或 MP4 影片（每 1 分鐘自動輪換）</label>
         <input type="file" id="global-bg-input" accept="image/*,video/*" multiple>
       </div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存並啟動背景輪播</button>
@@ -220,39 +167,18 @@
 
     <div class="glass-card">
       <div class="card-title">📁 建立作品分區</div>
-      <div class="form-group">
-        <label>作品分區名稱</label>
-        <input type="text" id="album-title" placeholder="例如：系列名稱">
-      </div>
-      <div class="form-group">
-        <label>封面/圖片素材 (圖片/MP4影片)</label>
-        <input type="file" id="album-cover" accept="image/*,video/*">
-      </div>
-      <div class="form-group">
-        <label>此分區專屬背景 (選填)</label>
-        <input type="file" id="album-bg" accept="image/*,video/*">
-      </div>
+      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：系列名稱"></div>
+      <div class="form-group"><label>封面/圖片素材</label><input type="file" id="album-cover" accept="image/*,video/*"></div>
+      <div class="form-group"><label>此分區專屬背景 (選填)</label><input type="file" id="album-bg" accept="image/*,video/*"></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
     <div class="glass-card">
       <div class="card-title">🎵 匯入篇章至分區</div>
-      <div class="form-group">
-        <label>選擇所屬作品分區</label>
-        <select id="select-album"><option value="">-- 請先建立分區 --</option></select>
-      </div>
-      <div class="form-group">
-        <label>篇章名稱</label>
-        <input type="text" id="track-title-input" placeholder="例如：01_開場">
-      </div>
-      <div class="form-group">
-        <label>音訊檔案</label>
-        <input type="file" id="track-audio">
-      </div>
-      <div class="form-group">
-        <label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label>
-        <input type="file" id="track-lrc">
-      </div>
+      <div class="form-group"><label>選擇作品分區</label><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
+      <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場"></div>
+      <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio"></div>
+      <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc"></div>
       <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
     </div>
   </div>
@@ -286,33 +212,24 @@
 </div>
 
 <div id="player-card" class="player-card minimized">
-  <div class="drag-handle-area" id="drag-handle-area">
-    <div class="drag-handle"></div>
-  </div>
+  <div class="drag-handle-area" id="drag-handle-area"><div class="drag-handle"></div></div>
 
   <div class="cover-box">
-    <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>" style="display:block;">
+    <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>' style="display:block;">
     <video id="cover-video" autoplay loop muted playsinline style="display:none;"></video>
   </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
-  
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
-    <label class="btn-sub-quick">
-      📂 匯入字幕
-      <input type="file" id="quick-lrc-input" style="display:none;" onchange="uploadCurrentTrackLrc(event)">
-    </label>
+    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
   </div>
 
   <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100" step="0.1">
-  <div class="time-box">
-    <span id="time-current">00:00</span>
-    <span id="time-duration">00:00</span>
-  </div>
+  <div class="time-box"><span id="time-current">00:00</span><span id="time-duration">00:00</span></div>
 
   <div class="controls">
     <button class="btn-ctrl" onclick="prevTrack()">⏮</button>
@@ -333,7 +250,7 @@
   </div>
 </div>
 
-<!-- iOS 專用 Canvas 串流影片懸浮標籤 (合規尺寸與透明度設置) -->
+<!-- iOS 專用即時串流影片元素 (預先初始化) -->
 <video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
@@ -352,10 +269,11 @@
   let bgIndex = 0;
   let bgIntervalTimer = null;
   let isCustomAlbumPlaying = false;
-  let pipDrawInterval = null;
+
   let pipCanvas = null;
   let pipCtx = null;
   let cachedCoverImage = null;
+  let isPiPInitialized = false;
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -372,17 +290,73 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V12", 1);
+  // 初始化全域 Canvas 串流引擎（在頁面載入時就準備好，繞過 iOS 限制）
+  function initPiPEngine() {
+    if (isPiPInitialized) return;
+    try {
+      pipCanvas = document.createElement('canvas');
+      pipCanvas.width = 512;
+      pipCanvas.height = 512;
+      pipCtx = pipCanvas.getContext('2d', { alpha: false });
+
+      // 持續繪製畫面
+      setInterval(() => {
+        if (!pipCtx) return;
+        pipCtx.fillStyle = "#121218";
+        pipCtx.fillRect(0, 0, 512, 512);
+
+        if (cachedCoverImage && cachedCoverImage.complete) {
+          pipCtx.drawImage(cachedCoverImage, 56, 40, 400, 400);
+        } else {
+          pipCtx.fillStyle = "#1a1a22";
+          pipCtx.fillRect(56, 40, 400, 400);
+          pipCtx.fillStyle = "#ff79c6";
+          pipCtx.font = "bold 24px sans-serif";
+          pipCtx.textAlign = "center";
+          pipCtx.fillText("ASMR 隨身庫", 256, 240);
+        }
+
+        const currentTime = audio.currentTime;
+        let currentText = "♪ 享受音樂中 ♪";
+        if (currentLrc.length > 0) {
+          for (let i = 0; i < currentLrc.length; i++) {
+            if (currentTime >= currentLrc[i].time) currentText = currentLrc[i].text;
+            else break;
+          }
+        }
+
+        pipCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        pipCtx.fillRect(20, 430, 472, 65);
+
+        pipCtx.fillStyle = "#ff79c6";
+        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
+        pipCtx.textAlign = "center";
+        
+        if (pipCtx.measureText(currentText).width > 440) {
+          pipCtx.fillText(currentText.substring(0, 20), 256, 455);
+          pipCtx.fillText(currentText.substring(20, 40), 256, 480);
+        } else {
+          pipCtx.fillText(currentText, 256, 470);
+        }
+      }, 1000 / 15);
+
+      const stream = pipCanvas.captureStream(15);
+      pipVideo.srcObject = stream;
+      pipVideo.play();
+      isPiPInitialized = true;
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  const request = indexedDB.open("ASMR_Categorized_DB_V13", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { 
-    db = e.target.result; 
-    loadData(); 
-  };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); };
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
@@ -401,44 +375,32 @@
     document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
     if (viewName === 'home') {
       document.getElementById('view-home').classList.add('active');
-      currentActiveAlbumId = null;
-      isCustomAlbumPlaying = false;
+      currentActiveAlbumId = null; isCustomAlbumPlaying = false;
       if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
     } else if (viewName === 'detail') {
       document.getElementById('view-detail').classList.add('active');
-      currentActiveAlbumId = albumId;
-      renderDetailView(albumId);
+      currentActiveAlbumId = albumId; renderDetailView(albumId);
     }
   }
 
-  function toggleAdminDrawer() {
-    document.getElementById("admin-drawer").classList.toggle("open");
-  }
-
+  function toggleAdminDrawer() { document.getElementById("admin-drawer").classList.toggle("open"); }
   function updateAlbumDropdown() {
     const select = document.getElementById("select-album");
     select.innerHTML = albums.length ? "" : '<option value="">-- 請先建立分區 --</option>';
     albums.forEach(a => {
-      const opt = document.createElement("option");
-      opt.value = a.id;
-      opt.innerText = a.title;
-      select.appendChild(opt);
+      const opt = document.createElement("option"); opt.value = a.id; opt.innerText = a.title; select.appendChild(opt);
     });
   }
 
   async function saveGlobalBackgrounds() {
     const files = document.getElementById("global-bg-input").files;
-    if (!files || files.length === 0) return alert("請至少選擇一張背景檔案！");
-
+    if (!files || files.length === 0) return alert("請選擇背景檔案！");
     const blobsArray = Array.from(files);
     const tx = db.transaction(["settings"], "readwrite");
     tx.objectStore("settings").put({ key: "globalBgs", blobs: blobsArray });
     tx.oncomplete = () => {
-      globalBackgrounds = blobsArray;
-      bgIndex = 0;
-      isCustomAlbumPlaying = false;
-      startBackgroundCarousel();
-      alert(`成功設定 ${blobsArray.length} 張背景，將每 1 分鐘自動輪換！`);
+      globalBackgrounds = blobsArray; bgIndex = 0; isCustomAlbumPlaying = false; startBackgroundCarousel();
+      alert(`成功設定 ${blobsArray.length} 張背景！`);
       document.getElementById("global-bg-input").value = "";
     };
   }
@@ -446,11 +408,7 @@
   function startBackgroundCarousel() {
     if (bgIntervalTimer) clearInterval(bgIntervalTimer);
     if (!globalBackgrounds || globalBackgrounds.length === 0) return;
-
-    if (!isCustomAlbumPlaying) {
-      applyBackgroundBlob(globalBackgrounds[bgIndex]);
-    }
-
+    if (!isCustomAlbumPlaying) applyBackgroundBlob(globalBackgrounds[bgIndex]);
     bgIntervalTimer = setInterval(() => {
       if (!isCustomAlbumPlaying && globalBackgrounds.length > 0) {
         bgIndex = (bgIndex + 1) % globalBackgrounds.length;
@@ -463,29 +421,24 @@
     if (!blob) return;
     const url = URL.createObjectURL(blob);
     if (blob.type && blob.type.startsWith('video/')) {
-      bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play();
-      bgImg.style.display = "none";
+      bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play(); bgImg.style.display = "none";
     } else {
-      bgImg.src = url; bgImg.style.display = "block";
-      bgVideo.style.display = "none"; bgVideo.pause();
+      bgImg.src = url; bgImg.style.display = "block"; bgVideo.style.display = "none"; bgVideo.pause();
     }
   }
 
   async function createAlbum() {
     const title = document.getElementById("album-title").value.trim();
     if (!title) return alert("請輸入分區名稱！");
-
     const coverBlob = document.getElementById("album-cover").files[0] || null;
     const bgBlob = document.getElementById("album-bg").files[0] || null;
-
     const tx = db.transaction(["albums"], "readwrite");
     tx.objectStore("albums").add({ title, coverBlob, bgBlob });
     tx.oncomplete = () => {
       document.getElementById("album-title").value = "";
       document.getElementById("album-cover").value = "";
       document.getElementById("album-bg").value = "";
-      loadData();
-      toggleAdminDrawer();
+      loadData(); toggleAdminDrawer();
     };
   }
 
@@ -498,9 +451,7 @@
           const readerSJIS = new FileReader();
           readerSJIS.onload = (e2) => resolve(e2.target.result);
           readerSJIS.readAsText(file, 'shift-jis');
-        } else {
-          resolve(text);
-        }
+        } else { resolve(text); }
       };
       reader.readAsText(file, 'utf-8');
     });
@@ -508,11 +459,9 @@
 
   async function addTrack() {
     const albumId = parseInt(document.getElementById("select-album").value);
-    if (!albumId) return alert("請先選擇或建立作品分區！");
-
+    if (!albumId) return alert("請先選擇作品分區！");
     const audioFile = document.getElementById("track-audio").files[0];
     if (!audioFile) return alert("請選擇音訊檔案！");
-
     const title = document.getElementById("track-title-input").value.trim() || audioFile.name;
     const lrcFile = document.getElementById("track-lrc").files[0];
     let lrcText = "";
@@ -535,10 +484,7 @@
       const store = tx.objectStore("tracks");
       store.get(trackId).onsuccess = (e) => {
         const track = e.target.result;
-        if (track) {
-          track.lrcText = lrcText;
-          store.put(track);
-        }
+        if (track) { track.lrcText = lrcText; store.put(track); }
       };
       tx.oncomplete = () => {
         const t = tracks.find(item => item.id === trackId);
@@ -546,96 +492,68 @@
         if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
           currentTrackList[currentIndex].lrcText = lrcText;
           currentLrc = parseSubtitles(lrcText, audio.duration);
-          updateSubtitleDisplay();
         }
-        loadData();
-        resolve(true);
+        loadData(); resolve(true);
       };
     });
   }
 
   async function uploadCurrentTrackLrc(event) {
-    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
     const file = event.target.files[0];
     if (!file) return;
     const text = await readFileTextSmart(file);
     await saveTrackSubtitle(currentTrackList[currentIndex].id, text);
-    alert("字幕匯入成功！");
-    event.target.value = "";
+    alert("字幕匯入成功！"); event.target.value = "";
   }
 
   async function pasteCurrentTrackLrc() {
-    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
     const text = prompt("請貼上字幕內容：");
-    if (text && text.trim()) {
-      await saveTrackSubtitle(currentTrackList[currentIndex].id, text.trim());
-      alert("字幕更新成功！");
-    }
+    if (text && text.trim()) { await saveTrackSubtitle(currentTrackList[currentIndex].id, text.trim()); alert("字幕更新成功！"); }
   }
 
   async function inspectCurrentTrackLrc() {
-    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇要播放的小篇章！");
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
     const track = currentTrackList[currentIndex];
-    const newText = prompt(`【${track.title}】的目前字幕原始內容：`, track.lrcText || "");
-    if (newText !== null) {
-      await saveTrackSubtitle(track.id, newText.trim());
-      alert("字幕修改已儲存！");
-    }
+    const newText = prompt(`【${track.title}】字幕內容：`, track.lrcText || "");
+    if (newText !== null) { await saveTrackSubtitle(track.id, newText.trim()); alert("字幕已儲存！"); }
   }
 
   async function editTrackLrc(trackId) {
     const track = tracks.find(t => t.id === trackId);
     if (!track) return;
-    const newText = prompt(`請編輯【${track.title}】的字幕內容：`, track.lrcText || "");
-    if (newText !== null) {
-      await saveTrackSubtitle(trackId, newText.trim());
-      alert("字幕已儲存！");
-    }
+    const newText = prompt(`編輯【${track.title}】字幕：`, track.lrcText || "");
+    if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
   }
 
   function renderAlbumList() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
-    listEl.innerHTML = "";
-    paginationEl.innerHTML = "";
-
+    listEl.innerHTML = ""; paginationEl.innerHTML = "";
     if (albums.length === 0) {
-      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:1rem; padding:12px 0;'>目前沒有作品分區，請點擊右上角「⚙️ 管理選單」新增。</div>";
+      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:1rem; padding:12px 0;'>目前沒有作品分區，請從右上角管理選單新增。</div>";
       return;
     }
-
     const totalPages = Math.ceil(albums.length / itemsPerPage);
     if (currentPage > totalPages) currentPage = totalPages;
     if (currentPage < 1) currentPage = 1;
-
     const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const paginatedAlbums = albums.slice(start, end);
+    const paginatedAlbums = albums.slice(start, start + itemsPerPage);
 
     paginatedAlbums.forEach(album => {
       const albumTracks = tracks.filter(t => t.albumId === album.id);
       const card = document.createElement("div");
       card.className = "album-grid-card";
       card.onclick = () => {
-        if (album.bgBlob) {
-          isCustomAlbumPlaying = true;
-          applyBackgroundBlob(album.bgBlob);
-        } else {
-          isCustomAlbumPlaying = false;
-          if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
-        }
+        if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
+        else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
         switchPage('detail', album.id);
       };
-
-      let thumbUrl = "";
-      if (album.coverBlob) thumbUrl = URL.createObjectURL(album.coverBlob);
-
+      let thumbUrl = album.coverBlob ? URL.createObjectURL(album.coverBlob) : "";
       card.innerHTML = `
         ${thumbUrl ? `<img src="${thumbUrl}" class="album-grid-thumb">` : '<div class="album-grid-thumb" style="background:#222; display:flex; align-items:center; justify-content:center; color:#555;">📁</div>'}
-        <div class="album-grid-info">
-          <div class="album-grid-title">${album.title}</div>
-          <div class="album-grid-count">包含 ${albumTracks.length} 個篇章 ▶</div>
-        </div>
+        <div class="album-grid-info"><div class="album-grid-title">${album.title}</div><div class="album-grid-count">包含 ${albumTracks.length} 個篇章 ▶</div></div>
       `;
       listEl.appendChild(card);
     });
@@ -651,30 +569,23 @@
     }
   }
 
-  function changePage(page) {
-    currentPage = page;
-    renderAlbumList();
-  }
+  function changePage(page) { currentPage = page; renderAlbumList(); }
 
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
     document.getElementById("detail-album-title").innerText = album.title;
-
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
-
     const albumTracks = tracks.filter(t => t.albumId === albumId);
     if (albumTracks.length === 0) {
       container.innerHTML = "<div style='color:var(--text-sub); font-size:1rem; padding:12px 0;'>此分區目前沒有篇章。</div>";
       return;
     }
-
     albumTracks.forEach(track => {
       const item = document.createElement("div");
       item.className = "chapter-file-item";
       item.onclick = () => playTrack(album.id, track.id);
-
       item.innerHTML = `
         <div class="chapter-info-left">
           <div class="play-icon-circle">▶</div>
@@ -705,6 +616,7 @@
   }
 
   function playTrack(albumId, trackId) {
+    initPiPEngine(); // 每次點擊播放時確保串流引擎啟動
     currentPlayingAlbumId = albumId;
     const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
@@ -713,29 +625,20 @@
 
     document.getElementById("album-tag").innerText = album.title;
     document.getElementById("mini-title").innerText = track.title;
-
     audio.src = URL.createObjectURL(track.audioBlob);
     
-    if (album.bgBlob) {
-      isCustomAlbumPlaying = true;
-      applyBackgroundBlob(album.bgBlob);
-    } else {
-      isCustomAlbumPlaying = false;
-      if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
-    }
+    if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
+    else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
 
     if (album.coverBlob && album.coverBlob.type.startsWith('image/')) {
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
       coverImg.style.display = "block"; coverVideo.style.display = "none";
-      
-      cachedCoverImage = new Image();
-      cachedCoverImage.src = url;
+      cachedCoverImage = new Image(); cachedCoverImage.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
-      coverImg.style.display = "block"; coverVideo.style.display = "none";
-      cachedCoverImage = null;
+      coverImg.style.display = "block"; coverVideo.style.display = "none"; cachedCoverImage = null;
     }
 
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
@@ -760,10 +663,7 @@
       if (!line || line.startsWith('WEBVTT') || line.startsWith('NOTE')) return;
       const srtMatch = line.match(srtVttReg);
       if (srtMatch) {
-        const h = parseInt(srtMatch[1] || 0);
-        const m = parseInt(srtMatch[2]);
-        const s = parseInt(srtMatch[3]);
-        const ms = parseInt(srtMatch[4]);
+        const h = parseInt(srtMatch[1] || 0), m = parseInt(srtMatch[2]), s = parseInt(srtMatch[3]), ms = parseInt(srtMatch[4]);
         pendingSrtTime = h * 3600 + m * 60 + s + ms / 1000;
         return;
       }
@@ -774,39 +674,23 @@
       }
       let match;
       while ((match = lrcReg.exec(line)) !== null) {
-        const min = parseInt(match[1]);
-        const sec = parseInt(match[2]);
-        const ms = match[3] ? parseInt(match[3].padEnd(3, '0')) : 0;
-        const time = min * 60 + sec + ms / 1000;
+        const time = parseInt(match[1]) * 60 + parseInt(match[2]) + (match[3] ? parseInt(match[3].padEnd(3, '0')) : 0) / 1000;
         const content = line.replace(lrcReg, '').trim();
         if (content) result.push({ time, text: content });
       }
       while ((match = lrcThreeReg.exec(line)) !== null) {
-        const hr = parseInt(match[1]);
-        const min = parseInt(match[2]);
-        const sec = parseInt(match[3]);
-        const ms = match[4] ? parseInt(match[4].padEnd(3, '0')) : 0;
-        const time = hr * 3600 + min * 60 + sec + ms / 1000;
+        const time = parseInt(match[1]) * 3600 + parseInt(match[2]) * 60 + parseInt(match[3]) + (match[4] ? parseInt(match[4].padEnd(3, '0')) : 0) / 1000;
         const content = line.replace(lrcThreeReg, '').trim();
         if (content) result.push({ time, text: content });
       }
       const plainMatch = line.match(plainTimeReg);
       if (plainMatch) {
-        const min = parseInt(plainMatch[1]);
-        const sec = parseInt(plainMatch[2]);
-        const ms = plainMatch[3] ? parseInt(plainMatch[3].padEnd(3, '0')) : 0;
-        const time = min * 60 + sec + ms / 1000;
+        const time = parseInt(plainMatch[1]) * 60 + parseInt(plainMatch[2]) + (plainMatch[3] ? parseInt(plainMatch[3].padEnd(3, '0')) : 0) / 1000;
         const content = plainMatch[4].trim();
         if (content) result.push({ time, text: content });
       }
     });
-
     result.sort((a, b) => a.time - b.time);
-    if (duration && !isNaN(duration)) {
-      for (let i = 0; i < result.length; i++) {
-        result[i].endTime = (i < result.length - 1) ? result[i + 1].time : duration;
-      }
-    }
     return result;
   }
 
@@ -818,10 +702,6 @@
   }
 
   audio.ontimeupdate = () => {
-    updateSubtitleDisplay();
-  };
-
-  function updateSubtitleDisplay() {
     const currentTime = audio.currentTime;
     seekSlider.value = currentTime;
     document.getElementById("time-current").innerText = formatTime(currentTime);
@@ -829,55 +709,33 @@
     if (currentLrc.length > 0) {
       let activeIndex = -1;
       for (let i = 0; i < currentLrc.length; i++) {
-        if (currentTime >= currentLrc[i].time) {
-          activeIndex = i;
-        } else {
-          break;
-        }
+        if (currentTime >= currentLrc[i].time) activeIndex = i;
+        else break;
       }
       const lrcBox = document.getElementById("lrc-box");
       const miniLrc = document.getElementById("mini-lrc");
       if (activeIndex !== -1) {
         const t = currentLrc[activeIndex].text;
-        lrcBox.innerText = t;
-        miniLrc.innerText = "♪ " + t;
+        lrcBox.innerText = t; miniLrc.innerText = "♪ " + t;
       } else {
-        lrcBox.innerText = "♪ 享受音樂中 ♪";
-        miniLrc.innerText = "♪ 享受音樂中 ♪";
+        lrcBox.innerText = "♪ 享受音樂中 ♪"; miniLrc.innerText = "♪ 享受音樂中 ♪";
       }
     }
-  }
+  };
 
   audio.onloadedmetadata = () => {
     seekSlider.max = audio.duration;
     document.getElementById("time-duration").innerText = formatTime(audio.duration);
-    if (currentLrc.length > 0 && audio.duration) {
-      for (let i = 0; i < currentLrc.length; i++) {
-        currentLrc[i].endTime = (i < currentLrc.length - 1) ? currentLrc[i + 1].time : audio.duration;
-      }
-    }
   };
 
-  audio.onended = () => {
-    nextTrack();
-  };
-
-  seekSlider.oninput = () => {
-    audio.currentTime = seekSlider.value;
-  };
-
-  volumeSlider.oninput = () => {
-    audio.volume = volumeSlider.value;
-    lastVolume = volumeSlider.value;
-  };
+  audio.onended = () => { nextTrack(); };
+  seekSlider.oninput = () => { audio.currentTime = seekSlider.value; };
+  volumeSlider.oninput = () => { audio.volume = volumeSlider.value; lastVolume = volumeSlider.value; };
 
   function togglePlay() {
     if (currentIndex === -1) {
-      if (tracks.length > 0) {
-        playTrack(tracks[0].albumId, tracks[0].id);
-      } else {
-        alert("請先選擇或匯入篇章！");
-      }
+      if (tracks.length > 0) playTrack(tracks[0].albumId, tracks[0].id);
+      else alert("請先選擇篇章！");
       return;
     }
     if (audio.paused) {
@@ -893,13 +751,10 @@
 
   function toggleMute() {
     if (audio.volume > 0) {
-      lastVolume = audio.volume;
-      audio.volume = 0;
-      volumeSlider.value = 0;
+      lastVolume = audio.volume; audio.volume = 0; volumeSlider.value = 0;
       document.getElementById("btn-mute").innerText = "🔇";
     } else {
-      audio.volume = lastVolume || 1;
-      volumeSlider.value = audio.volume;
+      audio.volume = lastVolume || 1; volumeSlider.value = audio.volume;
       document.getElementById("btn-mute").innerText = "🔈";
     }
   }
@@ -909,137 +764,46 @@
     audio.currentTime = Math.min(Math.max(audio.currentTime + sec, 0), audio.duration);
   }
 
-  function prevTrack() {
-    if (currentIndex > 0) {
-      currentIndex--;
-      playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
-    }
-  }
+  function prevTrack() { if (currentIndex > 0) { currentIndex--; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
+  function nextTrack() { if (currentIndex < currentTrackList.length - 1) { currentIndex++; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
 
-  function nextTrack() {
-    if (currentIndex < currentTrackList.length - 1) {
-      currentIndex++;
-      playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
-    }
-  }
+  function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
+  function minimizePlayer() { playerCard.classList.add("minimized"); if (currentIndex !== -1) miniPlayer.classList.remove("hidden"); }
 
-  function expandPlayer() {
-    playerCard.classList.remove("minimized");
-    miniPlayer.classList.add("hidden");
-  }
-
-  function minimizePlayer() {
-    playerCard.classList.add("minimized");
-    if (currentIndex !== -1) {
-      miniPlayer.classList.remove("hidden");
-    }
-  }
-
-  // 完美支援 iOS Safari 懸浮畫中畫與字幕動態渲染
-  async function enablePiP() {
+  // 👑 零延遲同步啟動 PiP（符合 iOS 要求）
+  function enablePiP() {
     if (currentIndex === -1 || !currentTrackList[currentIndex]) {
       return alert("請先開始播放一個篇章才能啟動桌面懸浮！");
     }
 
     try {
-      if (!pipCanvas) {
-        pipCanvas = document.createElement('canvas');
-        pipCanvas.width = 512;
-        pipCanvas.height = 512;
-        pipCtx = pipCanvas.getContext('2d', { alpha: false });
-      }
-
-      if (pipDrawInterval) clearInterval(pipDrawInterval);
-
-      // 每秒繪製 15 次動態畫面到 Canvas，供影片串流
-      pipDrawInterval = setInterval(() => {
-        if (!pipCtx) return;
-        
-        // 1. 繪製精美背景
-        pipCtx.fillStyle = "#121218";
-        pipCtx.fillRect(0, 0, 512, 512);
-
-        // 2. 繪製專輯封面 (若有)
-        if (cachedCoverImage && cachedCoverImage.complete) {
-          pipCtx.drawImage(cachedCoverImage, 56, 40, 400, 400);
-        } else {
-          pipCtx.fillStyle = "#1a1a22";
-          pipCtx.fillRect(56, 40, 400, 400);
-          pipCtx.fillStyle = "#ff79c6";
-          pipCtx.font = "bold 24px sans-serif";
-          pipCtx.textAlign = "center";
-          pipCtx.fillText("ASMR 隨身庫", 256, 240);
-        }
-
-        // 3. 繪製當前動態字幕
-        const currentTime = audio.currentTime;
-        let currentText = "♪ 享受音樂中 ♪";
-        if (currentLrc.length > 0) {
-          for (let i = 0; i < currentLrc.length; i++) {
-            if (currentTime >= currentLrc[i].time) {
-              currentText = currentLrc[i].text;
-            } else {
-              break;
-            }
-          }
-        }
-
-        pipCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
-        pipCtx.fillRect(20, 430, 472, 65);
-
-        pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
-        pipCtx.textAlign = "center";
-        
-        // 自動換行支援
-        if (pipCtx.measureText(currentText).width > 440) {
-          const sub1 = currentText.substring(0, 20);
-          const sub2 = currentText.substring(20, 40);
-          pipCtx.fillText(sub1, 256, 455);
-          pipCtx.fillText(sub2, 256, 480);
-        } else {
-          pipCtx.fillText(currentText, 256, 470);
-        }
-      }, 1000 / 15);
-
-      // 將 Canvas 串流綁定至隱藏的 pipVideo
-      const stream = pipCanvas.captureStream(15);
-      pipVideo.srcObject = stream;
-      await pipVideo.play();
+      // 確保引擎就緒
+      initPiPEngine();
 
       if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
+        document.exitPictureInPicture();
       } else {
-        await pipVideo.requestPictureInPicture();
+        // 直接同步觸發，中間絕不使用 await，完美避開 iOS 的手勢限制！
+        pipVideo.requestPictureInPicture().catch(err => {
+          console.error(err);
+          alert("無法啟動懸浮：請確定您使用的是 Safari 瀏覽器，並且已在畫面上按過播放鍵。");
+        });
       }
     } catch (err) {
       console.error(err);
-      alert("啟動桌面懸浮失敗！請確認您使用的是 Safari 瀏覽器，並且該篇章已順利開始播放。");
+      alert("啟動桌面懸浮失敗，請確認已開始播放音訊。");
     }
   }
 
-  // 拖曳關閉播放面板控制
   let startY = 0;
   let isDragging = false;
   const handleArea = document.getElementById("drag-handle-area");
-
-  handleArea.addEventListener("touchstart", (e) => {
-    startY = e.touches[0].clientY;
-    isDragging = true;
-  });
-
+  handleArea.addEventListener("touchstart", (e) => { startY = e.touches[0].clientY; isDragging = true; });
   window.addEventListener("touchmove", (e) => {
     if (!isDragging) return;
-    const currentY = e.touches[0].clientY;
-    if (currentY - startY > 60) {
-      minimizePlayer();
-      isDragging = false;
-    }
+    if (e.touches[0].clientY - startY > 60) { minimizePlayer(); isDragging = false; }
   });
-
-  window.addEventListener("touchend", () => {
-    isDragging = false;
-  });
+  window.addEventListener("touchend", () => { isDragging = false; });
 </script>
 
 </body>
