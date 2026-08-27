@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極速長條字幕 PiP 穩定版)</title>
+  <title>ASMR 私人隨身庫 (音訊分離穩定版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -99,7 +99,6 @@
     .drag-handle-area { width: 100%; padding: 4px 0 16px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 56px; height: 6px; background: rgba(255, 255, 255, 0.4); border-radius: 10px; }
 
-    /* 完全捨棄大圖封面，改為圖2風格的長條粗體字幕專用預覽框 */
     .pip-preview-box {
       width: 100%; height: 130px; background: #121218; border: 2px solid rgba(255, 121, 198, 0.5);
       border-radius: 16px; display: flex; align-items: center; justify-content: center; text-align: center;
@@ -136,7 +135,7 @@
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 68px;
       background: rgba(18, 18, 24, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-top: 1px card-glass; display: flex; align-items: center; padding: 0 16px;
+      border-top: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; padding: 0 16px;
       z-index: 999; cursor: pointer; box-shadow: 0 -4px 20px rgba(0,0,0,0.5); transition: transform 0.3s ease;
     }
     .mini-player.hidden { transform: translateY(100%); }
@@ -218,7 +217,6 @@
 <div id="player-card" class="player-card minimized">
   <div class="drag-handle-area" id="drag-handle-area"><div class="drag-handle"></div></div>
 
-  <!-- 不再顯示大封面，改為純長條粗體字幕預覽框 -->
   <div class="pip-preview-box">
     <div id="pip-preview-text" class="pip-preview-text">♪ 選擇小篇章開始收聽 ♪</div>
   </div>
@@ -253,7 +251,10 @@
   </div>
 </div>
 
-<!-- 將帶有音訊與系統操控的標準影音元素結合 -->
+<!-- 核心改良：音訊改用獨立標準 <audio> 標籤，絕對不會被 Safari 阻擋 -->
+<audio id="main-audio" preload="auto"></audio>
+
+<!-- 專供 PiP 懸浮視窗顯示字幕串流的視訊物件 -->
 <video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 
 <script>
@@ -276,6 +277,7 @@
 
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
+  const mainAudio = document.getElementById("main-audio");
   const pipVideo = document.getElementById("pip-video");
 
   const playerCard = document.getElementById("player-card");
@@ -283,7 +285,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 初始化並產生一個穩定的黑底長條串流，專供 iOS PiP 呼叫
+  // 初始化 Canvas 字幕串流給 PiP 使用
   function initPiPVideoSource() {
     try {
       const canvas = document.createElement('canvas');
@@ -321,7 +323,6 @@
       pipVideo.srcObject = stream;
       pipVideo.play().catch(() => {});
 
-      // 定期更新 PiP 畫面中的字幕
       window.updatePiPCanvasText = (text) => {
         drawPiPFrame(text);
       };
@@ -330,7 +331,6 @@
     }
   }
 
-  // 註冊 MediaSession API 支援暫停、快轉、倒退
   function setupMediaSession(title, albumTitle) {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -340,8 +340,8 @@
         artwork: [{ src: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="100%" height="100%" fill="%23ff79c6"/></svg>', sizes: '512x512', type: 'image/svg+xml' }]
       });
 
-      navigator.mediaSession.setActionHandler('play', () => { pipVideo.play(); updatePlayButtonState(true); });
-      navigator.mediaSession.setActionHandler('pause', () => { pipVideo.pause(); updatePlayButtonState(false); });
+      navigator.mediaSession.setActionHandler('play', () => { mainAudio.play(); updatePlayButtonState(true); });
+      navigator.mediaSession.setActionHandler('pause', () => { mainAudio.pause(); updatePlayButtonState(false); });
       navigator.mediaSession.setActionHandler('seekbackward', () => { seekRelative(-5); });
       navigator.mediaSession.setActionHandler('seekforward', () => { seekRelative(30); });
       navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
@@ -354,7 +354,7 @@
     document.getElementById("mini-btn-play").innerText = isPlaying ? "⏸" : "▶";
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V15", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V16", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -496,7 +496,7 @@
         if (t) t.lrcText = lrcText;
         if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
           currentTrackList[currentIndex].lrcText = lrcText;
-          currentLrc = parseSubtitles(lrcText, pipVideo.duration);
+          currentLrc = parseSubtitles(lrcText, mainAudio.duration);
         }
         loadData(); resolve(true);
       };
@@ -614,7 +614,7 @@
     tx.objectStore("tracks").delete(trackId);
     tx.oncomplete = () => {
       if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
-        pipVideo.pause(); pipVideo.src = ""; currentIndex = -1; minimizePlayer();
+        mainAudio.pause(); mainAudio.src = ""; currentIndex = -1; minimizePlayer();
       }
       loadData();
     };
@@ -631,14 +631,14 @@
     document.getElementById("mini-title").innerText = track.title;
     document.getElementById("mini-thumb").src = album.coverBlob ? URL.createObjectURL(album.coverBlob) : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
 
-    pipVideo.src = URL.createObjectURL(track.audioBlob);
+    mainAudio.src = URL.createObjectURL(track.audioBlob);
     
     if (album.bgBlob) { isCustomAlbumPlaying = true; applyBackgroundBlob(album.bgBlob); }
     else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
 
-    currentLrc = parseSubtitles(track.lrcText, pipVideo.duration);
+    currentLrc = parseSubtitles(track.lrcText, mainAudio.duration);
     setupMediaSession(track.title, album.title);
-    pipVideo.play();
+    mainAudio.play();
     updatePlayButtonState(true);
     expandPlayer();
   }
@@ -696,8 +696,8 @@
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  pipVideo.ontimeupdate = () => {
-    const currentTime = pipVideo.currentTime;
+  mainAudio.ontimeupdate = () => {
+    const currentTime = mainAudio.currentTime;
     seekSlider.value = currentTime;
     document.getElementById("time-current").innerText = formatTime(currentTime);
 
@@ -722,14 +722,14 @@
     }
   };
 
-  pipVideo.onloadedmetadata = () => {
-    seekSlider.max = pipVideo.duration;
-    document.getElementById("time-duration").innerText = formatTime(pipVideo.duration);
+  mainAudio.onloadedmetadata = () => {
+    seekSlider.max = mainAudio.duration;
+    document.getElementById("time-duration").innerText = formatTime(mainAudio.duration);
   };
 
-  pipVideo.onended = () => { nextTrack(); };
-  seekSlider.oninput = () => { pipVideo.currentTime = seekSlider.value; };
-  volumeSlider.oninput = () => { pipVideo.volume = volumeSlider.value; lastVolume = volumeSlider.value; };
+  mainAudio.onended = () => { nextTrack(); };
+  seekSlider.oninput = () => { mainAudio.currentTime = seekSlider.value; };
+  volumeSlider.oninput = () => { mainAudio.volume = volumeSlider.value; lastVolume = volumeSlider.value; };
 
   function togglePlay() {
     if (currentIndex === -1) {
@@ -737,28 +737,28 @@
       else alert("請先選擇篇章！");
       return;
     }
-    if (pipVideo.paused) {
-      pipVideo.play();
+    if (mainAudio.paused) {
+      mainAudio.play();
       updatePlayButtonState(true);
     } else {
-      pipVideo.pause();
+      mainAudio.pause();
       updatePlayButtonState(false);
     }
   }
 
   function toggleMute() {
-    if (pipVideo.volume > 0) {
-      lastVolume = pipVideo.volume; pipVideo.volume = 0; volumeSlider.value = 0;
+    if (mainAudio.volume > 0) {
+      lastVolume = mainAudio.volume; mainAudio.volume = 0; volumeSlider.value = 0;
       document.getElementById("btn-mute").innerText = "🔇";
     } else {
-      pipVideo.volume = lastVolume || 1; volumeSlider.value = pipVideo.volume;
+      mainAudio.volume = lastVolume || 1; volumeSlider.value = mainAudio.volume;
       document.getElementById("btn-mute").innerText = "🔈";
     }
   }
 
   function seekRelative(sec) {
     if (currentIndex === -1) return;
-    pipVideo.currentTime = Math.min(Math.max(pipVideo.currentTime + sec, 0), pipVideo.duration);
+    mainAudio.currentTime = Math.min(Math.max(mainAudio.currentTime + sec, 0), mainAudio.duration);
   }
 
   function prevTrack() { if (currentIndex > 0) { currentIndex--; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
@@ -767,7 +767,7 @@
   function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
   function minimizePlayer() { playerCard.classList.add("minimized"); if (currentIndex !== -1) miniPlayer.classList.remove("hidden"); }
 
-  // 完美呼叫懸浮功能
+  // 完美呼叫 PiP 懸浮視窗
   function enablePiP() {
     if (currentIndex === -1 || !currentTrackList[currentIndex]) {
       return alert("請先開始播放一個篇章才能啟動桌面懸浮！");
