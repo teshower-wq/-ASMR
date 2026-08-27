@@ -296,7 +296,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 雙向同步懸浮視窗事件
+  // 雙向同步懸浮視窗播放狀態
   pipVideo.addEventListener('pause', () => {
     if (!audio.paused) {
       audio.pause();
@@ -315,10 +315,12 @@
     }
   });
 
-  // 嘗試接管小視窗上的 Seeking 時間躍遷
+  // 核心修復：當點擊小視窗上的 ↺10 / ↻10 時，iOS 會觸發 pipVideo 的 seeking 事件
   pipVideo.addEventListener('seeking', () => {
-    if (Math.abs(pipVideo.currentTime - audio.currentTime) > 1.5) {
-      audio.currentTime = pipVideo.currentTime;
+    if (!audio.duration) return;
+    const targetTime = pipVideo.currentTime;
+    if (Math.abs(targetTime - audio.currentTime) > 0.3) {
+      audio.currentTime = Math.max(0, Math.min(audio.duration, targetTime));
       updatePositionState();
     }
   });
@@ -329,6 +331,8 @@
       navigator.mediaSession.setActionHandler('pause', () => togglePlay());
       navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
       navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+
+      // 核心修復：綁定 iOS 小視窗與系統控制中心的 10 秒倒退 / 快轉事件
       navigator.mediaSession.setActionHandler('seekbackward', (details) => {
         const skipTime = details.seekOffset || 10;
         seekRelative(-skipTime);
@@ -337,14 +341,13 @@
         const skipTime = details.seekOffset || 10;
         seekRelative(skipTime);
       });
-      try {
-        navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.seekTime !== undefined && audio.duration) {
-            audio.currentTime = details.seekTime;
-            updatePositionState();
-          }
-        });
-      } catch (e) { console.log(e); }
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && !isNaN(details.seekTime)) {
+          audio.currentTime = details.seekTime;
+          try { pipVideo.currentTime = details.seekTime; } catch(e){}
+          updatePositionState();
+        }
+      });
     }
   }
 
@@ -361,12 +364,12 @@
 
   function updatePositionState() {
     if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
+      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
         try {
           navigator.mediaSession.setPositionState({
             duration: audio.duration,
             playbackRate: audio.playbackRate || 1,
-            position: audio.currentTime
+            position: Math.min(audio.currentTime, audio.duration)
           });
         } catch (e) {}
       }
@@ -852,6 +855,7 @@
   function seekRelative(seconds) {
     if (!audio.duration) return;
     audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
+    try { pipVideo.currentTime = audio.currentTime; } catch(e){}
     updatePositionState();
   }
 
@@ -920,6 +924,7 @@
   seekSlider.addEventListener("input", (e) => {
     if (!audio.duration) return;
     audio.currentTime = (e.target.value / 100) * audio.duration;
+    try { pipVideo.currentTime = audio.currentTime; } catch(e){}
     updatePositionState();
   });
 
