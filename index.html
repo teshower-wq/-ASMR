@@ -333,8 +333,8 @@
   </div>
 </div>
 
-<!-- iOS 專用 Canvas 串流影片懸浮標籤 (調整隱藏樣式以完美相容 Safari PiP 檢核) -->
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: absolute; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;"></video>
+<!-- iOS 專用 Canvas 串流影片懸浮標籤 (合規尺寸與透明度設置) -->
+<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -353,6 +353,9 @@
   let bgIntervalTimer = null;
   let isCustomAlbumPlaying = false;
   let pipDrawInterval = null;
+  let pipCanvas = null;
+  let pipCtx = null;
+  let cachedCoverImage = null;
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -362,13 +365,14 @@
   const bgImg = document.getElementById("bg-img");
   const coverImg = document.getElementById("cover-img");
   const coverVideo = document.getElementById("cover-video");
+  const pipVideo = document.getElementById("pip-video");
 
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V11", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V12", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -724,10 +728,14 @@
       const url = URL.createObjectURL(album.coverBlob);
       coverImg.src = url; document.getElementById("mini-thumb").src = url;
       coverImg.style.display = "block"; coverVideo.style.display = "none";
+      
+      cachedCoverImage = new Image();
+      cachedCoverImage.src = url;
     } else {
       const defaultImg = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231a1a22'/></svg>";
       coverImg.src = defaultImg; document.getElementById("mini-thumb").src = defaultImg;
       coverImg.style.display = "block"; coverVideo.style.display = "none";
+      cachedCoverImage = null;
     }
 
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
@@ -752,209 +760,223 @@
       if (!line || line.startsWith('WEBVTT') || line.startsWith('NOTE')) return;
       const srtMatch = line.match(srtVttReg);
       if (srtMatch) {
-        const h = parseInt(srtMatch[1] || 0), m = parseInt(srtMatch[2]), s = parseInt(srtMatch[3]), ms = parseInt(srtMatch[4]);
+        const h = parseInt(srtMatch[1] || 0);
+        const m = parseInt(srtMatch[2]);
+        const s = parseInt(srtMatch[3]);
+        const ms = parseInt(srtMatch[4]);
         pendingSrtTime = h * 3600 + m * 60 + s + ms / 1000;
         return;
-      } else if (pendingSrtTime !== null && !isNaN(line)) {
-        return;
-      } else if (pendingSrtTime !== null && line) {
+      }
+      if (pendingSrtTime !== null && !line.match(/^\d+$/)) {
         result.push({ time: pendingSrtTime, text: line });
         pendingSrtTime = null;
         return;
       }
-
-      lrcThreeReg.lastIndex = 0;
-      if (lrcThreeReg.test(line)) {
-        lrcThreeReg.lastIndex = 0;
-        let match;
-        const cleanText = line.replace(/\[\d{1,2}:\d{2}:\d{2}(?:[\.:]\d{1,3})?\]/g, "").trim();
-        while ((match = lrcThreeReg.exec(line)) !== null) {
-          const h = parseInt(match[1]), min = parseInt(match[2]), sec = parseInt(match[3]);
-          const ms = match[4] ? parseInt(match[4].padEnd(3, '0')) : 0;
-          result.push({ time: h * 3600 + min * 60 + sec + ms / 1000, text: cleanText || line });
-        }
-        return;
+      let match;
+      while ((match = lrcReg.exec(line)) !== null) {
+        const min = parseInt(match[1]);
+        const sec = parseInt(match[2]);
+        const ms = match[3] ? parseInt(match[3].padEnd(3, '0')) : 0;
+        const time = min * 60 + sec + ms / 1000;
+        const content = line.replace(lrcReg, '').trim();
+        if (content) result.push({ time, text: content });
       }
-
-      lrcReg.lastIndex = 0;
-      if (lrcReg.test(line)) {
-        lrcReg.lastIndex = 0;
-        let match;
-        const cleanText = line.replace(/\[\d{1,2}:\d{2}(?:[\.:]\d{1,3})?\]/g, "").trim();
-        while ((match = lrcReg.exec(line)) !== null) {
-          const min = parseInt(match[1]), sec = parseInt(match[2]);
-          const ms = match[3] ? parseInt(match[3].padEnd(3, '0')) : 0;
-          result.push({ time: min * 60 + sec + ms / 1000, text: cleanText || line });
-        }
-        return;
+      while ((match = lrcThreeReg.exec(line)) !== null) {
+        const hr = parseInt(match[1]);
+        const min = parseInt(match[2]);
+        const sec = parseInt(match[3]);
+        const ms = match[4] ? parseInt(match[4].padEnd(3, '0')) : 0;
+        const time = hr * 3600 + min * 60 + sec + ms / 1000;
+        const content = line.replace(lrcThreeReg, '').trim();
+        if (content) result.push({ time, text: content });
       }
-
       const plainMatch = line.match(plainTimeReg);
       if (plainMatch) {
-        const min = parseInt(plainMatch[1]), sec = parseInt(plainMatch[2]);
+        const min = parseInt(plainMatch[1]);
+        const sec = parseInt(plainMatch[2]);
         const ms = plainMatch[3] ? parseInt(plainMatch[3].padEnd(3, '0')) : 0;
-        const txt = plainMatch[4].trim();
-        if (txt) result.push({ time: min * 60 + sec + ms / 1000, text: txt });
-        return;
+        const time = min * 60 + sec + ms / 1000;
+        const content = plainMatch[4].trim();
+        if (content) result.push({ time, text: content });
       }
     });
 
-    if (result.length === 0) {
-      const validLines = lines.filter(l => l.trim() && !l.startsWith('[ti:') && !l.startsWith('[ar:') && !l.startsWith('[al:'));
-      if (validLines.length > 0) {
-        const totalSec = (duration && duration > 0) ? duration : 180;
-        const step = totalSec / validLines.length;
-        validLines.forEach((l, i) => { result.push({ time: i * step, text: l.trim() }); });
+    result.sort((a, b) => a.time - b.time);
+    if (duration && !isNaN(duration)) {
+      for (let i = 0; i < result.length; i++) {
+        result[i].endTime = (i < result.length - 1) ? result[i + 1].time : duration;
       }
     }
-    return result.sort((a, b) => a.time - b.time);
+    return result;
   }
 
-  audio.onloadedmetadata = () => {
-    if (currentIndex !== -1 && currentTrackList[currentIndex]) {
-      currentLrc = parseSubtitles(currentTrackList[currentIndex].lrcText, audio.duration);
-    }
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return "00:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  audio.ontimeupdate = () => {
+    updateSubtitleDisplay();
   };
 
-  audio.ontimeupdate = () => updateSubtitleDisplay();
-
   function updateSubtitleDisplay() {
-    document.getElementById("time-current").innerText = formatTime(audio.currentTime);
-    document.getElementById("time-duration").innerText = formatTime(audio.duration || 0);
-    if (audio.duration && !isNaN(audio.duration)) {
-      seekSlider.value = (audio.currentTime / audio.duration) * 100;
-    }
+    const currentTime = audio.currentTime;
+    seekSlider.value = currentTime;
+    document.getElementById("time-current").innerText = formatTime(currentTime);
 
-    const lrcBox = document.getElementById("lrc-box");
-    const miniLrc = document.getElementById("mini-lrc");
-    let currentText = "♪";
-
-    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
-      currentText = "♪ 選擇小篇章開始收聽 ♪";
-    } else if (!currentTrackList[currentIndex].lrcText) {
-      currentText = "♪ 無動態字幕 ♪";
-    } else if (currentLrc.length === 0) {
-      currentText = "♪ 字幕解析中 ♪";
-    } else {
+    if (currentLrc.length > 0) {
+      let activeIndex = -1;
       for (let i = 0; i < currentLrc.length; i++) {
-        if (audio.currentTime >= currentLrc[i].time) {
-          currentText = currentLrc[i].text;
+        if (currentTime >= currentLrc[i].time) {
+          activeIndex = i;
         } else {
           break;
         }
       }
+      const lrcBox = document.getElementById("lrc-box");
+      const miniLrc = document.getElementById("mini-lrc");
+      if (activeIndex !== -1) {
+        const t = currentLrc[activeIndex].text;
+        lrcBox.innerText = t;
+        miniLrc.innerText = "♪ " + t;
+      } else {
+        lrcBox.innerText = "♪ 享受音樂中 ♪";
+        miniLrc.innerText = "♪ 享受音樂中 ♪";
+      }
     }
-    lrcBox.innerText = currentText;
-    miniLrc.innerText = currentText;
   }
 
-  audio.onended = () => nextTrack();
-  
-  seekSlider.oninput = () => { 
-    if (audio.duration && !isNaN(audio.duration)) {
-      audio.currentTime = (seekSlider.value / 100) * audio.duration;
-      updateSubtitleDisplay();
-    } 
+  audio.onloadedmetadata = () => {
+    seekSlider.max = audio.duration;
+    document.getElementById("time-duration").innerText = formatTime(audio.duration);
+    if (currentLrc.length > 0 && audio.duration) {
+      for (let i = 0; i < currentLrc.length; i++) {
+        currentLrc[i].endTime = (i < currentLrc.length - 1) ? currentLrc[i + 1].time : audio.duration;
+      }
+    }
   };
 
-  volumeSlider.oninput = () => { audio.volume = volumeSlider.value; if (audio.volume > 0) lastVolume = audio.volume; updateMuteButtonIcon(); };
+  audio.onended = () => {
+    nextTrack();
+  };
 
-  function toggleMute() {
-    if (audio.volume > 0) { lastVolume = audio.volume; audio.volume = 0; volumeSlider.value = 0; }
-    else { audio.volume = lastVolume || 1; volumeSlider.value = audio.volume; }
-    updateMuteButtonIcon();
-  }
-  function updateMuteButtonIcon() { document.getElementById("btn-mute").innerText = (audio.volume === 0) ? "🔇" : "🔈"; }
+  seekSlider.oninput = () => {
+    audio.currentTime = seekSlider.value;
+  };
 
-  function formatTime(seconds) {
-    if (isNaN(seconds)) return "00:00";
-    const m = Math.floor(seconds / 60), s = Math.floor(seconds % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
+  volumeSlider.oninput = () => {
+    audio.volume = volumeSlider.value;
+    lastVolume = volumeSlider.value;
+  };
 
   function togglePlay() {
-    if (currentIndex === -1) return;
-    if (audio.paused) { 
-      audio.play(); 
-      document.getElementById("btn-play").innerText = "⏸"; 
-      document.getElementById("mini-btn-play").innerText = "⏸"; 
-    } else { 
-      audio.pause(); 
-      document.getElementById("btn-play").innerText = "▶"; 
-      document.getElementById("mini-btn-play").innerText = "▶"; 
-    }
-  }
-
-  function seekRelative(sec) { 
-    if (currentIndex !== -1) {
-      audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec));
-      updateSubtitleDisplay();
-    }
-  }
-  function prevTrack() { if (currentIndex > 0) { currentIndex--; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
-  function nextTrack() { if (currentIndex < currentTrackList.length - 1) { currentIndex++; playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id); } }
-  
-  function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
-  function minimizePlayer() { playerCard.classList.add("minimized"); miniPlayer.classList.remove("hidden"); }
-
-  // iOS 完美適配的 Canvas 動態字幕懸浮 (PiP) 啟動函式
-  async function enablePiP() {
-    try {
-      const pipVideo = document.getElementById("pip-video");
-      
-      if (currentIndex === -1 || !currentTrackList[currentIndex]) {
-        return alert("請先選擇並播放一個篇章，才能開啟桌面懸浮！");
-      }
-
-      if (!document.pictureInPictureEnabled && !pipVideo.webkitSupportsPresentationMode) {
-        return alert("你的瀏覽器或裝置不支援子母畫面 (PiP) 功能。");
-      }
-
-      // 建立動態繪製字幕的 Canvas
-      let canvas = document.getElementById("pip-canvas");
-      if (!canvas) {
-        canvas = document.createElement("canvas");
-        canvas.id = "pip-canvas";
-        canvas.width = 640;
-        canvas.height = 640;
-        canvas.style.display = "none";
-        document.body.appendChild(canvas);
-      }
-      const ctx = canvas.getContext("2d");
-
-      // 準備封面圖
-      let coverImgObj = new Image();
-      coverImgObj.crossOrigin = "anonymous";
-      const activeAlbum = albums.find(a => a.id === currentPlayingAlbumId);
-      if (activeAlbum && activeAlbum.coverBlob) {
-        coverImgObj.src = URL.createObjectURL(activeAlbum.coverBlob);
+    if (currentIndex === -1) {
+      if (tracks.length > 0) {
+        playTrack(tracks[0].albumId, tracks[0].id);
       } else {
-        coverImgObj.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='640'><rect width='100%' height='100%' fill='%231a1a22'/><text x='50%' y='50%' fill='%23ff79c6' font-size='40' text-anchor='middle' dominant-baseline='middle'>ASMR 隨身庫</text></svg>";
+        alert("請先選擇或匯入篇章！");
+      }
+      return;
+    }
+    if (audio.paused) {
+      audio.play();
+      document.getElementById("btn-play").innerText = "⏸";
+      document.getElementById("mini-btn-play").innerText = "⏸";
+    } else {
+      audio.pause();
+      document.getElementById("btn-play").innerText = "▶";
+      document.getElementById("mini-btn-play").innerText = "▶";
+    }
+  }
+
+  function toggleMute() {
+    if (audio.volume > 0) {
+      lastVolume = audio.volume;
+      audio.volume = 0;
+      volumeSlider.value = 0;
+      document.getElementById("btn-mute").innerText = "🔇";
+    } else {
+      audio.volume = lastVolume || 1;
+      volumeSlider.value = audio.volume;
+      document.getElementById("btn-mute").innerText = "🔈";
+    }
+  }
+
+  function seekRelative(sec) {
+    if (currentIndex === -1) return;
+    audio.currentTime = Math.min(Math.max(audio.currentTime + sec, 0), audio.duration);
+  }
+
+  function prevTrack() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
+    }
+  }
+
+  function nextTrack() {
+    if (currentIndex < currentTrackList.length - 1) {
+      currentIndex++;
+      playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
+    }
+  }
+
+  function expandPlayer() {
+    playerCard.classList.remove("minimized");
+    miniPlayer.classList.add("hidden");
+  }
+
+  function minimizePlayer() {
+    playerCard.classList.add("minimized");
+    if (currentIndex !== -1) {
+      miniPlayer.classList.remove("hidden");
+    }
+  }
+
+  // 完美支援 iOS Safari 懸浮畫中畫與字幕動態渲染
+  async function enablePiP() {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) {
+      return alert("請先開始播放一個篇章才能啟動桌面懸浮！");
+    }
+
+    try {
+      if (!pipCanvas) {
+        pipCanvas = document.createElement('canvas');
+        pipCanvas.width = 512;
+        pipCanvas.height = 512;
+        pipCtx = pipCanvas.getContext('2d', { alpha: false });
       }
 
-      await new Promise((resolve) => {
-        if (coverImgObj.complete) resolve();
-        else coverImgObj.onload = resolve;
-      });
-
-      // 將 Canvas 轉換成影片串流餵給隱藏的 video 標籤
-      const stream = canvas.captureStream(30);
-      pipVideo.srcObject = stream;
-      pipVideo.muted = true; // 強制靜音，解決回音問題
-      await pipVideo.play();
-
-      // 即時繪製迴圈：讓懸浮窗內的字幕隨音樂同步更新
       if (pipDrawInterval) clearInterval(pipDrawInterval);
-      pipDrawInterval = setInterval(() => {
-        ctx.drawImage(coverImgObj, 0, 0, canvas.width, canvas.height);
-        
-        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-        ctx.fillRect(0, canvas.height - 180, canvas.width, 180);
 
-        let currentText = currentTrackList[currentIndex].title;
-        if (currentLrc && currentLrc.length > 0) {
+      // 每秒繪製 15 次動態畫面到 Canvas，供影片串流
+      pipDrawInterval = setInterval(() => {
+        if (!pipCtx) return;
+        
+        // 1. 繪製精美背景
+        pipCtx.fillStyle = "#121218";
+        pipCtx.fillRect(0, 0, 512, 512);
+
+        // 2. 繪製專輯封面 (若有)
+        if (cachedCoverImage && cachedCoverImage.complete) {
+          pipCtx.drawImage(cachedCoverImage, 56, 40, 400, 400);
+        } else {
+          pipCtx.fillStyle = "#1a1a22";
+          pipCtx.fillRect(56, 40, 400, 400);
+          pipCtx.fillStyle = "#ff79c6";
+          pipCtx.font = "bold 24px sans-serif";
+          pipCtx.textAlign = "center";
+          pipCtx.fillText("ASMR 隨身庫", 256, 240);
+        }
+
+        // 3. 繪製當前動態字幕
+        const currentTime = audio.currentTime;
+        let currentText = "♪ 享受音樂中 ♪";
+        if (currentLrc.length > 0) {
           for (let i = 0; i < currentLrc.length; i++) {
-            if (audio.currentTime >= currentLrc[i].time) {
+            if (currentTime >= currentLrc[i].time) {
               currentText = currentLrc[i].text;
             } else {
               break;
@@ -962,102 +984,63 @@
           }
         }
 
-        ctx.fillStyle = "#ff79c6";
-        ctx.font = "bold 32px -apple-system, BlinkMacSystemFont, sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        pipCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        pipCtx.fillRect(20, 430, 472, 65);
+
+        pipCtx.fillStyle = "#ff79c6";
+        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
+        pipCtx.textAlign = "center";
         
-        wrapText(ctx, currentText, canvas.width / 2, canvas.height - 100, canvas.width - 80, 42);
-      }, 100);
+        // 自動換行支援
+        if (pipCtx.measureText(currentText).width > 440) {
+          const sub1 = currentText.substring(0, 20);
+          const sub2 = currentText.substring(20, 40);
+          pipCtx.fillText(sub1, 256, 455);
+          pipCtx.fillText(sub2, 256, 480);
+        } else {
+          pipCtx.fillText(currentText, 256, 470);
+        }
+      }, 1000 / 15);
 
-      // 喚起 iOS / 瀏覽器原生 PiP 視窗
-      if (pipVideo.webkitSetPresentationMode) {
-        if (pipVideo.webkitPresentationMode === "picture-in-picture") {
-          pipVideo.webkitSetPresentationMode("inline");
-        } else {
-          pipVideo.webkitSetPresentationMode("picture-in-picture");
-        }
-      } else if (document.pictureInPictureEnabled) {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else {
-          await pipVideo.requestPictureInPicture();
-        }
+      // 將 Canvas 串流綁定至隱藏的 pipVideo
+      const stream = pipCanvas.captureStream(15);
+      pipVideo.srcObject = stream;
+      await pipVideo.play();
+
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else {
+        await pipVideo.requestPictureInPicture();
       }
-
     } catch (err) {
       console.error(err);
-      alert("啟動桌面懸浮失敗，請確認您使用的是 Safari 瀏覽器並已開始播放！");
+      alert("啟動桌面懸浮失敗！請確認您使用的是 Safari 瀏覽器，並且該篇章已順利開始播放。");
     }
   }
 
-  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-    let words = text.split('');
-    let line = '';
-    let lines = [];
-
-    for(let n = 0; n < words.length; n++) {
-      let testLine = line + words[n];
-      let metrics = ctx.measureText(testLine);
-      let testWidth = metrics.width;
-      if (testWidth > maxWidth && n > 0) {
-        lines.push(line);
-        line = words[n];
-      } else {
-        line = testLine;
-      }
-    }
-    lines.push(line);
-    
-    if (lines.length > 2) {
-      lines = lines.slice(0, 2);
-      lines[1] += '...';
-    }
-
-    for(let k = 0; k < lines.length; k++) {
-      ctx.fillText(lines[k], x, y + (k * lineHeight));
-    }
-  }
-
-  // 手勢上下滑動控制面板
+  // 拖曳關閉播放面板控制
   let startY = 0;
-  let currentY = 0;
   let isDragging = false;
-  const dragArea = document.getElementById("drag-handle-area");
+  const handleArea = document.getElementById("drag-handle-area");
 
-  dragArea.addEventListener("touchstart", (e) => {
+  handleArea.addEventListener("touchstart", (e) => {
     startY = e.touches[0].clientY;
     isDragging = true;
   });
 
-  dragArea.addEventListener("touchmove", (e) => {
+  window.addEventListener("touchmove", (e) => {
     if (!isDragging) return;
-    currentY = e.touches[0].clientY;
-    let diff = currentY - startY;
-    if (diff > 40) {
+    const currentY = e.touches[0].clientY;
+    if (currentY - startY > 60) {
       minimizePlayer();
       isDragging = false;
     }
   });
 
-  dragArea.addEventListener("touchend", () => { isDragging = false; });
-
-  dragArea.addEventListener("mousedown", (e) => {
-    startY = e.clientY;
-    isDragging = true;
+  window.addEventListener("touchend", () => {
+    isDragging = false;
   });
-
-  window.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    let diff = e.clientY - startY;
-    if (diff > 50) {
-      minimizePlayer();
-      isDragging = false;
-    }
-  });
-
-  window.addEventListener("mouseup", () => { isDragging = false; });
-  miniPlayer.addEventListener("click", () => expandPlayer());
 </script>
+
 </body>
 </html>
