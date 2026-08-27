@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全功能加強版)</title>
+  <title>ASMR 私人隨身庫 (終極旗艦版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -281,6 +281,10 @@
   let cachedCoverImage = null;
   let isPiPInitialized = false;
 
+  let audioCtx = null;
+  let audioSource = null;
+  let streamDestination = null;
+
   let currentPage = 1;
   const itemsPerPage = 4;
 
@@ -296,58 +300,58 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 雙向同步懸浮視窗播放狀態
-  pipVideo.addEventListener('pause', () => {
-    if (!audio.paused) {
-      audio.pause();
-      document.getElementById("btn-play").innerText = "▶";
-      document.getElementById("mini-btn-play").innerText = "▶";
-      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+  // 1. 初始化 Web Audio API 與 PiP 雙軌流融合
+  function connectAudioToPip() {
+    try {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioCtx = new AudioContextClass();
+        audioSource = audioCtx.createMediaElementSource(audio);
+        streamDestination = audioCtx.createMediaStreamDestination();
+        
+        audioSource.connect(audioCtx.destination);
+        audioSource.connect(streamDestination);
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    } catch(e) {
+      console.warn("WebAudio 初始化警告:", e);
     }
-  });
+  }
 
-  pipVideo.addEventListener('play', () => {
-    if (audio.paused) {
-      audio.play();
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
-      if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
-    }
-  });
+  // 2. 核心 MediaSession 事件與 iOS 快轉/倒退綁定
+  function setupMediaSessionHandlers() {
+    if (!('mediaSession' in navigator)) return;
 
-  // 核心修復：當點擊小視窗上的 ↺10 / ↻10 時，iOS 會觸發 pipVideo 的 seeking 事件
-  pipVideo.addEventListener('seeking', () => {
-    if (!audio.duration) return;
-    const targetTime = pipVideo.currentTime;
-    if (Math.abs(targetTime - audio.currentTime) > 0.3) {
-      audio.currentTime = Math.max(0, Math.min(audio.duration, targetTime));
-      updatePositionState();
-    }
-  });
-
-  function initMediaSession() {
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => togglePlay());
-      navigator.mediaSession.setActionHandler('pause', () => togglePlay());
-      navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
-      navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
-
-      // 核心修復：綁定 iOS 小視窗與系統控制中心的 10 秒倒退 / 快轉事件
-      navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-        const skipTime = details.seekOffset || 10;
-        seekRelative(-skipTime);
-      });
-      navigator.mediaSession.setActionHandler('seekforward', (details) => {
-        const skipTime = details.seekOffset || 10;
-        seekRelative(skipTime);
-      });
-      navigator.mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime !== undefined && !isNaN(details.seekTime)) {
-          audio.currentTime = details.seekTime;
-          try { pipVideo.currentTime = details.seekTime; } catch(e){}
-          updatePositionState();
+    const actionMap = [
+      ['play', () => togglePlay()],
+      ['pause', () => togglePlay()],
+      ['previoustrack', () => prevTrack()],
+      ['nexttrack', () => nextTrack()],
+      ['seekbackward', (details) => {
+        const skip = (details && details.seekOffset) ? details.seekOffset : 10;
+        seekRelative(-skip);
+      }],
+      ['seekforward', (details) => {
+        const skip = (details && details.seekOffset) ? details.seekOffset : 10;
+        seekRelative(skip);
+      }],
+      ['seekto', (details) => {
+        if (details && details.seekTime !== undefined && !isNaN(details.seekTime)) {
+          if (audio && isFinite(audio.duration)) {
+            audio.currentTime = Math.max(0, Math.min(audio.duration, details.seekTime));
+            updatePositionState();
+          }
         }
-      });
+      }]
+    ];
+
+    for (const [action, handler] of actionMap) {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch (e) {}
     }
   }
 
@@ -359,33 +363,45 @@
         album: albumTitle || 'ASMR 隨身庫',
         artwork: coverUrl ? [{ src: coverUrl, sizes: '512x512', type: 'image/png' }] : []
       });
+      setupMediaSessionHandlers();
     }
   }
 
+  // 3. 高頻率心跳回報：向 iOS 系統層推送總時長與當前進度，徹底解鎖小視窗按鈕
   function updatePositionState() {
-    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
-      if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
-        try {
+    if ('mediaSession' in navigator && typeof navigator.mediaSession.setPositionState === 'function') {
+      try {
+        if (audio && !isNaN(audio.duration) && isFinite(audio.duration) && audio.duration > 0) {
+          const pos = Math.max(0, Math.min(audio.currentTime || 0, audio.duration));
+          const rate = Math.max(0.1, audio.playbackRate || 1);
           navigator.mediaSession.setPositionState({
             duration: audio.duration,
-            playbackRate: audio.playbackRate || 1,
-            position: Math.min(audio.currentTime, audio.duration)
+            playbackRate: rate,
+            position: pos
           });
-        } catch (e) {}
-      }
+        }
+      } catch (e) {}
     }
   }
+
+  // 自動心跳計時器：每 500ms 刷新一次進度，防止 iOS 暫停心跳導致小視窗按鈕變灰
+  setInterval(() => {
+    if (audio && !audio.paused && audio.duration) {
+      updatePositionState();
+    }
+  }, 500);
 
   function togglePlaybackSpeed() {
     let nextIdx = (speeds.indexOf(currentSpeed) + 1) % speeds.length;
     currentSpeed = speeds[nextIdx];
     audio.playbackRate = currentSpeed;
-    pipVideo.playbackRate = currentSpeed;
     document.getElementById("btn-speed").innerText = `⚡ ${currentSpeed.toFixed(1)}x`;
     updatePositionState();
   }
 
+  // 4. 建立支援畫布 + 聲音的終極 PiP 引擎
   function initPiPEngine() {
+    connectAudioToPip();
     if (isPiPInitialized) return;
     try {
       pipCanvas = document.createElement('canvas');
@@ -393,57 +409,92 @@
       pipCanvas.height = 512;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
+      let waveOffset = 0;
+
       setInterval(() => {
         if (!pipCtx) return;
+        waveOffset += 0.15;
+
+        // 背景
         pipCtx.fillStyle = "#121218";
         pipCtx.fillRect(0, 0, 512, 512);
 
+        // 封面
         if (cachedCoverImage && cachedCoverImage.complete) {
-          pipCtx.drawImage(cachedCoverImage, 56, 40, 400, 400);
+          pipCtx.drawImage(cachedCoverImage, 56, 30, 400, 360);
         } else {
           pipCtx.fillStyle = "#1a1a22";
-          pipCtx.fillRect(56, 40, 400, 400);
+          pipCtx.fillRect(56, 30, 400, 360);
           pipCtx.fillStyle = "#ff79c6";
           pipCtx.font = "bold 24px sans-serif";
           pipCtx.textAlign = "center";
-          pipCtx.fillText("ASMR 隨身庫", 256, 240);
+          pipCtx.fillText("🌸 ASMR 隨身庫", 256, 200);
         }
 
+        // 畫布下方的動態進度條
+        if (audio.duration) {
+          const progress = audio.currentTime / audio.duration;
+          pipCtx.fillStyle = "rgba(255, 255, 255, 0.2)";
+          pipCtx.fillRect(56, 395, 400, 6);
+          pipCtx.fillStyle = "#ff79c6";
+          pipCtx.fillRect(56, 395, 400 * progress, 6);
+        }
+
+        // 播放時顯示聲波跳動
+        if (!audio.paused) {
+          pipCtx.fillStyle = "rgba(255, 121, 198, 0.6)";
+          for (let i = 0; i < 9; i++) {
+            const barHeight = Math.sin(waveOffset + i * 0.8) * 10 + 14;
+            pipCtx.fillRect(180 + i * 18, 385 - barHeight, 10, barHeight);
+          }
+        }
+
+        // 字幕底框
         const currentTime = audio.currentTime;
         let currentText = getActiveSubtitleText(currentTime);
 
-        pipCtx.fillStyle = "rgba(0, 0, 0, 0.85)";
-        pipCtx.fillRect(20, 420, 472, 75);
+        pipCtx.fillStyle = "rgba(0, 0, 0, 0.88)";
+        pipCtx.fillRect(20, 410, 472, 85);
 
         pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
+        pipCtx.font = "bold 21px -apple-system, BlinkMacSystemFont, sans-serif";
         pipCtx.textAlign = "center";
         
         if (pipCtx.measureText(currentText).width > 440) {
-          pipCtx.fillText(currentText.substring(0, 20), 256, 450);
-          pipCtx.fillText(currentText.substring(20, 40), 256, 478);
+          pipCtx.fillText(currentText.substring(0, 20), 256, 442);
+          pipCtx.fillText(currentText.substring(20, 40), 256, 472);
         } else {
-          pipCtx.fillText(currentText, 256, 465);
+          pipCtx.fillText(currentText, 256, 458);
         }
       }, 1000 / 15);
 
-      const stream = pipCanvas.captureStream(15);
-      pipVideo.srcObject = stream;
-      pipVideo.play();
+      const canvasStream = pipCanvas.captureStream(15);
+      const combinedStream = new MediaStream();
+
+      // 加入畫面軌道
+      canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
+
+      // 若有聲音軌道則將 WebAudio 音訊流融入，使 iOS 認定其為完整的 AV 播放視窗
+      if (streamDestination && streamDestination.stream.getAudioTracks().length > 0) {
+        streamDestination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+      }
+
+      pipVideo.srcObject = combinedStream;
+      pipVideo.play().catch(()=>{});
       isPiPInitialized = true;
     } catch(e) {
       console.error(e);
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V13", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V14", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); setupMediaSessionHandlers(); };
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
@@ -733,8 +784,13 @@
     updateMediaSessionMetadata(track.title, album.title, coverUrl);
 
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
-    audio.play();
-    pipVideo.play();
+    
+    audio.play().then(() => {
+      setupMediaSessionHandlers();
+      updatePositionState();
+    });
+
+    pipVideo.play().catch(()=>{});
     document.getElementById("btn-play").innerText = "⏸";
     document.getElementById("mini-btn-play").innerText = "⏸";
     if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
@@ -825,9 +881,10 @@
 
   function togglePlay() {
     if (!audio.src) return;
+    connectAudioToPip();
     if (audio.paused) {
       audio.play();
-      pipVideo.play();
+      pipVideo.play().catch(()=>{});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
@@ -852,10 +909,12 @@
     playTrack(currentPlayingAlbumId, currentTrackList[currentIndex].id);
   }
 
+  // 5. 核心修復：精確安全地改變音訊時間，絕不會觸發 pipVideo 崩潰
   function seekRelative(seconds) {
-    if (!audio.duration) return;
-    audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
-    try { pipVideo.currentTime = audio.currentTime; } catch(e){}
+    if (!audio || isNaN(audio.duration) || audio.duration <= 0) return;
+    let target = audio.currentTime + seconds;
+    target = Math.max(0, Math.min(audio.duration, target));
+    audio.currentTime = target;
     updatePositionState();
   }
 
@@ -924,7 +983,6 @@
   seekSlider.addEventListener("input", (e) => {
     if (!audio.duration) return;
     audio.currentTime = (e.target.value / 100) * audio.duration;
-    try { pipVideo.currentTime = audio.currentTime; } catch(e){}
     updatePositionState();
   });
 
