@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景記憶與背景修復版)</title>
+  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -649,16 +649,44 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V29", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V30", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); };
+  request.onsuccess = (e) => { 
+    db = e.target.result; 
+    loadData(); 
+    initMediaSession(); 
+  };
+
+  // 立即套用 LocalStorage 暫存背景，避免打開網頁時瞬間空白或閃爍
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
+      if (cachedBgData) {
+        const bgObj = JSON.parse(cachedBgData);
+        if (bgObj && bgObj.url) {
+          if (bgObj.type.startsWith("video")) {
+            bgImg.style.display = "none";
+            bgVideo.style.display = "block";
+            bgVideo.src = bgObj.url;
+            bgVideo.muted = true;
+            bgVideo.play().catch(()=>{});
+          } else {
+            bgVideo.style.display = "none";
+            bgImg.style.display = "block";
+            bgImg.src = bgObj.url;
+          }
+        }
+      }
+    } catch(err) { console.error(err); }
+  });
 
   function loadData() {
+    if (!db) return;
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
     tx.objectStore("albums").getAll().onsuccess = (e) => {
       albums = e.target.result;
@@ -670,10 +698,10 @@
       if (currentActiveAlbumId) renderDetailView(currentActiveAlbumId);
     };
     tx.objectStore("settings").get("globalBackgrounds").onsuccess = (e) => {
-      if (e.target.result && e.target.result.blobs) {
+      if (e.target.result && e.target.result.blobs && e.target.result.blobs.length > 0) {
         globalBackgrounds = e.target.result.blobs;
         bgIndex = 0;
-        startGlobalBgRotation(); // 確保每次開啟/重新整理網頁時，能自動載入並輪播全域背景
+        startGlobalBgRotation();
       }
     };
   }
@@ -712,6 +740,20 @@
     let blobs = [];
     for (let f of input.files) blobs.push(f);
     
+    // 同步儲存至 LocalStorage 備用快取 (轉成 Base64 以供下次開網頁秒載)
+    if (blobs.length > 0) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          localStorage.setItem("asmr_quick_global_bg", JSON.stringify({
+            url: e.target.result,
+            type: blobs[0].type
+          }));
+        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖，將僅依賴資料庫"); }
+      };
+      reader.readAsDataURL(blobs[0]);
+    }
+
     const tx = db.transaction("settings", "readwrite");
     tx.objectStore("settings").put({ key: "globalBackgrounds", blobs: blobs });
     tx.oncomplete = () => {
