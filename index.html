@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全格式文檔點擊解鎖與背景輪播版)</title>
+  <title>ASMR 私人隨身庫 (字幕修復與背景自動輪播版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -314,7 +314,7 @@
       </div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (iOS 全文檔點擊解鎖版)</div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (字幕解鎖版)</div>
         <div class="form-group">
           <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
           <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
@@ -989,6 +989,8 @@
         let text = await readFileTextSmart(lrcFile);
         if (text) {
           lrcContentMap.set(cleanKey, text);
+          // 同時存入副檔名全名作為備用對應鍵
+          lrcContentMap.set(lrcFile.name.toLowerCase().trim(), text);
         }
       }
 
@@ -998,12 +1000,25 @@
 
       for (let audioFile of audioFiles) {
         let audioCleanKey = getCleanBaseName(audioFile.name);
+        let audioFullNameKey = audioFile.name.toLowerCase().trim();
         let displayTitle = audioFile.name.replace(/\.[^/.]+$/, "");
         
         let matchedLrcText = "";
         if (lrcContentMap.has(audioCleanKey)) {
           matchedLrcText = lrcContentMap.get(audioCleanKey);
           pairedCount++;
+        } else if (lrcContentMap.has(audioFullNameKey + ".lrc")) {
+          matchedLrcText = lrcContentMap.get(audioFullNameKey + ".lrc");
+          pairedCount++;
+        } else {
+          // 如果沒有透過檔名自動配對成功，試著找找看有沒有對應名稱相似的
+          for (let [key, textVal] of lrcContentMap.entries()) {
+            if (audioCleanKey.includes(key) || key.includes(audioCleanKey)) {
+              matchedLrcText = textVal;
+              pairedCount++;
+              break;
+            }
+          }
         }
 
         store.add({
@@ -1267,6 +1282,8 @@
     document.getElementById("mini-thumb").src = firstCoverUrl || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
 
     updateMediaSessionMetadata(track.title, album ? album.title : "ASMR 隨身庫", firstCoverUrl);
+    
+    // 關鍵修復：確保切換篇章時能正確解析與載入字幕
     currentLrc = parseSubtitles(track.lrcText, audio.duration);
 
     miniPlayer.classList.remove("hidden");
