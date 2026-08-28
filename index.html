@@ -190,10 +190,8 @@
       display: flex; align-items: center; justify-content: center;
     }
     .cover-box img { 
-      max-width: 85%; max-height: 85%; width: auto; height: auto; 
-      object-fit: contain; display: none; position: absolute; 
-      top: 50%; left: 50%; transform: translate(-50%, -50%); 
-      border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      width: 100%; height: 100%; object-fit: cover; display: none; 
+      position: absolute; top: 0; left: 0; border-radius: 12px;
     }
     .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; 
@@ -259,7 +257,7 @@
       z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .mini-player.hidden { transform: translateY(100%); }
-    .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: contain; margin-right: 10px; flex-shrink: 0; }
+    .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
     .mini-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .mini-title { font-size: 0.88rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
     .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
@@ -434,7 +432,7 @@
   let coverElements = [];
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
-  let isPowerSavingCover = false; // 省電開關狀態：true 為強制靜態圖片模式
+  let isPowerSavingCover = false;
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -526,7 +524,6 @@
     }
   });
 
-  // 切換省電模式：關閉動態封面影片、改為靜態封面圖片 (且 PiP 懸浮時影片不動但字幕持續運作)
   function togglePowerSavingCover() {
     isPowerSavingCover = !isPowerSavingCover;
     const btn = document.getElementById("btn-power-saving");
@@ -558,7 +555,6 @@
           pipCtx.fillRect(0, 0, 1080, 1080);
 
           if (cachedCoverElement) {
-            // 省電模式開啟時，如果封面是影片，則不讓其自動撥放 (維持靜態畫面)，但字幕依然正常繪製更新
             if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
               cachedCoverElement.play().catch(() => {});
             }
@@ -618,22 +614,12 @@
     ctx.fillStyle = "#050508";
     ctx.fillRect(0, 0, size, size);
 
-    if (isVideo) {
-      let hRatio = size / imgWidth;
-      let vRatio = size / imgHeight;
-      let ratio = Math.max(hRatio, vRatio);
-      let centerShiftX = (size - imgWidth * ratio) / 2;
-      let centerShiftY = (size - imgHeight * ratio) / 2;
-      ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    } else {
-      let maxDrawSize = size * 0.85;
-      let hRatio = maxDrawSize / imgWidth;
-      let vRatio = maxDrawSize / imgHeight;
-      let ratio = Math.min(hRatio, vRatio);
-      let centerShiftX = (size - imgWidth * ratio) / 2;
-      let centerShiftY = (size - imgHeight * ratio) / 2;
-      ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    }
+    let hRatio = size / imgWidth;
+    let vRatio = size / imgHeight;
+    let ratio = Math.max(hRatio, vRatio);
+    let centerShiftX = (size - imgWidth * ratio) / 2;
+    let centerShiftY = (size - imgHeight * ratio) / 2;
+    ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
     ctx.restore();
   }
 
@@ -1206,12 +1192,9 @@
 
   function changePage(page) { currentPage = page; renderAlbumList(); }
 
-  // 智慧自然排序演算法：自動將篇章集數排序，支援 1 開頭從小到大排序 (例如 1, 2, 10 或 01, 02... 混合字串皆能完美辨識)
   function naturalSortTracks(trackA, trackB) {
     const aText = trackA.title || "";
     const bText = trackB.title || "";
-    
-    // 萃取字串中的數字群組進行比較
     return aText.localeCompare(bText, 'zh-TW', { numeric: true, sensitivity: 'base' });
   }
 
@@ -1224,8 +1207,6 @@
     container.innerHTML = "";
     
     let albumTracks = tracks.filter(t => Number(t.albumId) === targetAlbumId);
-    
-    // 依據需求：作品集裡面的篇章自動排版集數，1開頭從小往數字大的排列
     albumTracks.sort(naturalSortTracks);
 
     if (albumTracks.length === 0) {
@@ -1260,7 +1241,6 @@
     const album = albums.find(a => Number(a.id) === targetAlbumId);
     
     currentTrackList = tracks.filter(t => Number(t.albumId) === targetAlbumId);
-    // 確保點擊播放時的順序與列表畫面排版一致
     currentTrackList.sort(naturalSortTracks);
 
     currentIndex = currentTrackList.findIndex(t => Number(t.id) === targetTrackId);
@@ -1340,7 +1320,7 @@
         if (isCoverVideoActive && !isPowerSavingCover) {
           el.play().catch(() => {});
         } else if (isCoverVideoActive && isPowerSavingCover) {
-          el.pause(); // 省電模式：封面的影片保持靜態暫停
+          el.pause();
         }
       } else {
         el.style.display = "none";
@@ -1442,7 +1422,7 @@
       line = line.trim();
       if (!line) continue;
       const lrcMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
-      if (lrcMatch) {
+      if, lrcMatch) {
         const m = parseInt(lrcMatch[1], 10);
         const s = parseInt(lrcMatch[2], 10);
         const msStr = lrcMatch[3];
@@ -1502,4 +1482,3 @@
 
 </body>
 </html>
-```[cite: 3]
