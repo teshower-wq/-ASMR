@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (手機端互動與懸浮窗究極修復版)</title>
+  <title>ASMR 私人隨身庫 (極致影音與懸浮窗究極滿版版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -18,7 +18,7 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0; padding: 16px; padding-bottom: 130px;
+      margin: 0; padding: 16px; padding-bottom: 120px;
       background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
@@ -50,28 +50,27 @@
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-glass); border-radius: 24px; padding: 26px; margin-bottom: 20px;
+      border: 1px solid var(--border-glass); border-radius: 24px; padding: 24px; margin-bottom: 20px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.5); transition: border-color 0.3s ease, background 0.3s ease;
     }
-    .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; color: var(--primary-pink); display: flex; align-items: center; gap: 10px; letter-spacing: 0.3px; }
-    .form-group { margin-bottom: 16px; }
-    label { font-size: 0.88rem; color: var(--text-sub); display: block; margin-bottom: 8px; font-weight: 500; }
+    .card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; color: var(--primary-pink); display: flex; align-items: center; gap: 10px; }
+    .form-group { margin-bottom: 14px; }
+    label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 6px; font-weight: 500; }
     input, select {
-      width: 100%; padding: 13px 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+      width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.25s ease;
     }
     input:focus, select:focus { border-color: var(--primary-pink); box-shadow: 0 0 12px rgba(255, 121, 198, 0.25); background: rgba(0,0,0,0.6); }
     
-    input[type="file"] { padding: 10px; color: var(--text-sub); font-size: 0.88rem; cursor: pointer; }
+    input[type="file"] { padding: 10px; color: var(--text-sub); font-size: 0.85rem; cursor: pointer; }
     input[type="file"]::file-selector-button {
       background: rgba(255, 121, 198, 0.15); border: 1px solid rgba(255, 121, 198, 0.3);
-      color: var(--primary-pink); padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-right: 12px; transition: background 0.2s;
+      color: var(--primary-pink); padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-right: 12px;
     }
-    input[type="file"]::file-selector-button:hover { background: rgba(255, 121, 198, 0.3); }
 
     .btn-pink {
       width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); color: #07070a; border: none;
-      padding: 15px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 10px; font-size: 1rem;
+      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 8px; font-size: 1rem;
       box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
@@ -82,7 +81,7 @@
 
     .album-grid-card {
       background: var(--card-glass); backdrop-filter: blur(16px);
-      border: 1px solid var(--border-glass); border-radius: 20px; padding: 18px; margin-bottom: 16px;
+      border: 1px solid var(--border-glass); border-radius: 20px; padding: 16px; margin-bottom: 14px;
       display: flex; align-items: center; cursor: pointer; transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
       box-shadow: 0 8px 24px rgba(0,0,0,0.3); position: relative; overflow: hidden;
     }
@@ -90,124 +89,118 @@
       background: var(--card-glass-hover); border-color: var(--border-glass-hover);
       transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255, 121, 198, 0.15);
     }
-    .album-grid-thumb { width: 92px; height: 92px; border-radius: 14px; object-fit: cover; margin-right: 18px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-    .album-grid-info { flex: 1; overflow: hidden; margin-right: 12px; }
-    .album-grid-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-    .album-grid-count { font-size: 0.9rem; color: var(--primary-pink); font-weight: 600; }
+    .album-grid-thumb { width: 84px; height: 84px; border-radius: 14px; object-fit: cover; margin-right: 16px; flex-shrink: 0; background: #121218; }
+    .album-grid-info { flex: 1; overflow: hidden; margin-right: 10px; }
+    .album-grid-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+    .album-grid-count { font-size: 0.88rem; color: var(--primary-pink); font-weight: 600; }
     
     .btn-album-del {
       background: rgba(255, 85, 85, 0.1); border: 1px solid rgba(255, 85, 85, 0.25);
-      color: #ff6b6b; padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+      color: #ff6b6b; padding: 7px 12px; border-radius: 12px; font-size: 0.82rem; font-weight: 600;
       cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; z-index: 2;
     }
-    .btn-album-del:hover { background: rgba(255, 85, 85, 0.25); border-color: #ff5555; }
 
     .breadcrumb-bar {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 18px; font-size: 1.05rem; font-weight: 700;
-      color: var(--primary-pink); cursor: pointer; padding: 4px 0; transition: opacity 0.2s;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px; font-size: 1rem; font-weight: 700;
+      color: var(--primary-pink); cursor: pointer; padding: 2px 0;
     }
-    .breadcrumb-bar:hover { opacity: 0.8; }
 
-    .chapter-file-list { display: flex; flex-direction: column; gap: 12px; }
+    .chapter-file-list { display: flex; flex-direction: column; gap: 10px; }
     .chapter-file-item {
-      display: flex; justify-content: space-between; align-items: center; padding: 14px 18px;
+      display: flex; justify-content: space-between; align-items: center; padding: 12px 16px;
       background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 16px;
       cursor: pointer; transition: all 0.2s ease;
     }
-    .chapter-file-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255, 121, 198, 0.25); transform: translateX(2px); }
-    .chapter-info-left { display: flex; align-items: center; gap: 14px; overflow: hidden; flex: 1; margin-right: 12px; }
+    .chapter-file-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255, 121, 198, 0.25); }
+    .chapter-info-left { display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1; margin-right: 10px; }
     .play-icon-circle {
-      width: 42px; height: 42px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%;
-      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem; flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      width: 38px; height: 38px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1rem; flex-shrink: 0;
     }
     .chapter-meta-text { overflow: hidden; }
-    .chapter-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; margin-bottom: 4px; color: #fff; font-size: 1rem; }
-    .chapter-duration-sub { font-size: 0.82rem; color: var(--text-sub); }
+    .chapter-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; margin-bottom: 3px; color: #fff; font-size: 0.95rem; }
+    .chapter-duration-sub { font-size: 0.8rem; color: var(--text-sub); }
 
     .btn-action-group { display: flex; gap: 6px; flex-shrink: 0; }
-    .btn-sm { padding: 7px 12px; border-radius: 10px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-sm { padding: 6px 10px; border-radius: 10px; border: none; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
     .btn-sm-edit { background: rgba(255, 121, 198, 0.15); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.3); }
     .btn-sm-del { background: rgba(255,255,255,0.06); color: #ff6b6b; border: 1px solid rgba(255,85,85,0.15); }
 
-    .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding: 0 4px; }
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
     .btn-page {
       background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3); color: var(--primary-pink);
-      padding: 10px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 0.9rem;
     }
     .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
-    .page-info { font-size: 0.9rem; color: var(--text-sub); font-weight: 500; }
+    .page-info { font-size: 0.88rem; color: var(--text-sub); }
 
-    /* 播放器卡片 (支援絲滑手勢滑動與拖曳隱藏) */
+    /* 播放器面板精簡優化 (讓整體更緊湊、小橫桿清晰易見) */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
-      max-height: 92vh; height: auto; overflow-y: auto; overflow-x: hidden;
-      background: rgba(16, 16, 22, 0.95); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-      border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 28px 28px 0 0;
-      padding: 8px 24px 36px 24px; box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
+      max-height: 88vh; height: auto; overflow-y: auto; overflow-x: hidden;
+      background: rgba(16, 16, 22, 0.96); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
+      padding: 4px 20px 28px 20px; box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
       z-index: 1000; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
       touch-action: pan-y;
     }
     .player-card.minimized { transform: translateY(105%); }
 
-    .drag-handle-area { width: 100%; padding: 12px 0 16px 0; display: flex; justify-content: center; cursor: grab; }
-    .drag-handle { width: 48px; height: 5px; background: rgba(255, 255, 255, 0.35); border-radius: 10px; transition: background 0.2s; }
-    .drag-handle-area:hover .drag-handle { background: var(--primary-pink); }
+    /* 放大把手觸控區但外觀更精緻，確保絕對醒目好點 */
+    .drag-handle-area { width: 100%; padding: 10px 0 12px 0; display: flex; justify-content: center; cursor: grab; }
+    .drag-handle { width: 56px; height: 6px; background: rgba(255, 255, 255, 0.5); border-radius: 12px; transition: background 0.2s, transform 0.2s; }
+    .drag-handle-area:hover .drag-handle { background: var(--primary-pink); transform: scaleX(1.1); }
 
-    .cover-box { width: 100%; max-height: 28vh; aspect-ratio: 1 / 1; border-radius: 20px; overflow: hidden; background: #121218; margin: 0 auto 12px auto; position: relative; box-shadow: 0 8px 25px rgba(0,0,0,0.6); }
+    .cover-box { width: 100%; max-height: 24vh; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; background: #121218; margin: 0 auto 10px auto; position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.6); }
     .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; }
-    .album-tag { font-size: 0.88rem; color: var(--text-sub); text-align: center; margin-bottom: 8px; font-weight: 500; }
+    .album-tag { font-size: 0.85rem; color: var(--text-sub); text-align: center; margin-bottom: 6px; font-weight: 500; }
     
     .lrc-box {
-      min-height: 65px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.25rem; font-weight: 800; color: var(--primary-pink);
-      text-shadow: 0 0 25px var(--pink-glow), 0 2px 6px rgba(0,0,0,0.9); padding: 4px 12px; line-height: 1.4; margin-bottom: 12px;
+      min-height: 52px; display: flex; align-items: center; justify-content: center;
+      text-align: center; font-size: 1.15rem; font-weight: 800; color: var(--primary-pink);
+      text-shadow: 0 0 25px var(--pink-glow), 0 2px 6px rgba(0,0,0,0.9); padding: 2px 10px; line-height: 1.35; margin-bottom: 10px;
     }
 
-    .sub-quick-tools { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .sub-quick-tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
     .btn-sub-quick {
-      padding: 7px 14px; background: rgba(255, 121, 198, 0.1); border: 1px solid rgba(255, 121, 198, 0.25);
-      color: var(--primary-pink); border-radius: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      padding: 6px 12px; background: rgba(255, 121, 198, 0.1); border: 1px solid rgba(255, 121, 198, 0.25);
+      color: var(--primary-pink); border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
     }
-    .btn-sub-quick:hover { background: rgba(255, 121, 198, 0.25); }
 
     .seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.1); }
-    .time-box { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-sub); margin-top: 6px; margin-bottom: 14px; font-weight: 500; }
+    .time-box { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 5px; margin-bottom: 12px; font-weight: 500; }
     
-    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 0 10px; }
-    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.4rem; cursor: pointer; padding: 6px; transition: transform 0.15s, color 0.2s; }
+    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 0 6px; }
+    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 6px; transition: transform 0.15s, color 0.2s; }
     .btn-ctrl:hover { color: var(--primary-pink); transform: scale(1.1); }
     .btn-play-main {
-      width: 56px; height: 56px; background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #07070a; border-radius: 50%;
-      font-size: 1.5rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(255,255,255,0.3);
-      transition: transform 0.15s, box-shadow 0.2s;
+      width: 52px; height: 52px; background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #07070a; border-radius: 50%;
+      font-size: 1.4rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 18px rgba(255,255,255,0.3);
     }
-    .btn-play-main:hover { transform: scale(1.06); }
 
-    .volume-box { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 14px; padding: 0 6px; }
+    .volume-box { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; color: var(--text-sub); margin-bottom: 12px; padding: 0 4px; }
     .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); cursor: pointer; }
-    .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.2rem; cursor: pointer; }
+    .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.1rem; cursor: pointer; }
 
-    .bottom-tools { display: flex; gap: 12px; }
+    .bottom-tools { display: flex; gap: 10px; }
     .btn-pip {
       flex: 1; background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
-      color: var(--primary-pink); padding: 13px; border-radius: 14px; font-weight: 700; font-size: 0.88rem; cursor: pointer; text-align: center;
-      transition: all 0.2s; box-shadow: 0 4px 15px rgba(255, 121, 198, 0.15);
+      color: var(--primary-pink); padding: 12px; border-radius: 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center;
+      box-shadow: 0 4px 15px rgba(255, 121, 198, 0.15);
     }
-    .btn-pip:hover { background: rgba(255, 121, 198, 0.25); box-shadow: 0 6px 20px var(--pink-glow); }
 
     .mini-player {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 72px;
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 68px;
       background: rgba(16, 16, 22, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 16px;
       z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .mini-player.hidden { transform: translateY(100%); }
-    .mini-thumb { width: 50px; height: 50px; border-radius: 12px; background: #121218; object-fit: cover; margin-right: 14px; flex-shrink: 0; }
-    .mini-info { flex: 1; overflow: hidden; margin-right: 14px; }
-    .mini-title { font-size: 0.92rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
-    .mini-subtitle { font-size: 0.8rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-    .mini-btn { background: none; border: none; color: #fff; font-size: 1.3rem; padding: 8px; cursor: pointer; }
+    .mini-thumb { width: 46px; height: 46px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 12px; flex-shrink: 0; }
+    .mini-info { flex: 1; overflow: hidden; margin-right: 12px; }
+    .mini-title { font-size: 0.9rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .mini-subtitle { font-size: 0.78rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+    .mini-btn { background: none; border: none; color: #fff; font-size: 1.2rem; padding: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -229,9 +222,9 @@
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存並啟動背景輪播</button>
     </div>
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區</div>
+      <div class="card-title">📁 建立作品分區 (支援圖片或 MP4 封面)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：系列名稱"></div>
-      <div class="form-group"><label>封面/圖片素材</label><input type="file" id="album-cover" accept="image/*,video/*"></div>
+      <div class="form-group"><label>封面素材 (支援 圖片 或 MP4 影片)</label><input type="file" id="album-cover" accept="image/*,video/*"></div>
       <div class="form-group"><label>此分區專屬背景 (選填)</label><input type="file" id="album-bg" accept="image/*,video/*"></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
@@ -274,14 +267,14 @@
 </div>
 
 <div id="player-card" class="player-card minimized">
-  <!-- 整合點擊連點隱藏與手勢向下滑動隱藏 -->
+  <!-- 絕對好點的小橫桿與全面滑動區 -->
   <div class="drag-handle-area" id="drag-handle-area" title="點擊或向下滑動關閉面板">
     <div class="drag-handle"></div>
   </div>
 
   <div class="cover-box">
-    <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>' style="display:block;">
-    <video id="cover-video" autoplay loop muted playsinline style="display:none;"></video>
+    <img id="cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>">
+    <video id="cover-video" autoplay loop muted playsinline></video>
   </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
@@ -337,6 +330,8 @@
   let pipCanvas = null;
   let pipCtx = null;
   let cachedCoverImage = null;
+  let cachedCoverVideo = null;
+  let isCoverVideoActive = false;
   let isPiPInitialized = false;
 
   let currentPage = 1;
@@ -354,30 +349,20 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // ================= 觸控手勢滑動向下隱藏與連點優化 =================
+  // ================= 播放器整體滑動與把手點擊隱藏 =================
   let touchStartY = 0;
   let touchCurrentY = 0;
   let isDragging = false;
 
   const dragHandleArea = document.getElementById("drag-handle-area");
 
-  // 支援點擊（或快速連點）把手直接隱藏面板
-  let lastClickTime = 0;
-  dragHandleArea.addEventListener("click", (e) => {
-    const currentTime = new Date().getTime();
-    if (currentTime - lastClickTime < 350) {
-      // 偵測到雙擊/連點直接隱藏
-      minimizePlayer();
-    } else {
-      minimizePlayer();
-    }
-    lastClickTime = currentTime;
+  dragHandleArea.addEventListener("click", () => {
+    minimizePlayer();
   });
 
-  // 觸控拖曳滑動向下隱藏
   playerCard.addEventListener("touchstart", (e) => {
-    // 只有在把手區域或封面區域才允許整張卡片下拉
-    if (e.target.closest('.drag-handle-area') || e.target.closest('.cover-box') || e.target.closest('.lrc-box')) {
+    // 允許從卡片上方任何地方（排除表單或滑桿）向下滑動關閉
+    if (!e.target.closest('input') && !e.target.closest('button') && !e.target.closest('.controls')) {
       touchStartY = e.touches[0].clientY;
       isDragging = true;
       playerCard.style.transition = 'none';
@@ -393,12 +378,12 @@
     }
   }, { passive: true });
 
-  playerCard.addEventListener("touchend", (e) => {
+  playerCard.addEventListener("touchend", () => {
     if (!isDragging) return;
     isDragging = false;
     playerCard.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
-    if (diff > 90) {
+    if (diff > 70) {
       minimizePlayer();
     } else {
       playerCard.style.transform = 'translateY(0)';
@@ -407,7 +392,7 @@
     touchCurrentY = 0;
   });
 
-  // ================= 桌面懸浮窗 (PiP) 核心修復 =================
+  // ================= 桌面懸浮窗高畫質無黑框與秒開引擎 =================
   pipVideo.addEventListener('pause', () => {
     if (!audio.paused) {
       audio.pause();
@@ -428,45 +413,50 @@
     if (isPiPInitialized) return;
     try {
       pipCanvas = document.createElement('canvas');
-      pipCanvas.width = 512;
-      pipCanvas.height = 512;
+      // 提升至 1080p 等級超高畫質畫布
+      pipCanvas.width = 1080;
+      pipCanvas.height = 1080;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
       setInterval(() => {
         if (!pipCtx) return;
-        pipCtx.fillStyle = "#121218";
-        pipCtx.fillRect(0, 0, 512, 512);
+        pipCtx.fillStyle = "#07070a";
+        pipCtx.fillRect(0, 0, 1080, 1080);
 
-        if (cachedCoverImage && cachedCoverImage.complete) {
-          pipCtx.drawImage(cachedCoverImage, 56, 40, 400, 400);
+        // 智慧 Cover 裁切填滿演算法（完美刪除黑框、畫質拉滿）
+        if (isCoverVideoActive && cachedCoverVideo && cachedCoverVideo.readyState >= 2) {
+          drawCoverToCanvas(pipCtx, cachedCoverVideo, 1080);
+        } else if (cachedCoverImage && cachedCoverImage.complete) {
+          drawCoverToCanvas(pipCtx, cachedCoverImage, 1080);
         } else {
-          pipCtx.fillStyle = "#1a1a22";
-          pipCtx.fillRect(56, 40, 400, 400);
+          pipCtx.fillStyle = "#121218";
+          pipCtx.fillRect(0, 0, 1080, 1080);
           pipCtx.fillStyle = "#ff79c6";
-          pipCtx.font = "bold 24px sans-serif";
+          pipCtx.font = "bold 48px sans-serif";
           pipCtx.textAlign = "center";
-          pipCtx.fillText("ASMR 隨身庫", 256, 240);
+          pipCtx.fillText("ASMR 隨身庫", 540, 540);
         }
 
         const currentTime = audio.currentTime;
         let currentText = getActiveSubtitleText(currentTime);
 
-        pipCtx.fillStyle = "rgba(0, 0, 0, 0.85)";
-        pipCtx.fillRect(20, 420, 472, 75);
+        // 半透明字幕背景條
+        pipCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        pipCtx.fillRect(40, 880, 1000, 150);
 
         pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
+        pipCtx.font = "bold 44px -apple-system, BlinkMacSystemFont, sans-serif";
         pipCtx.textAlign = "center";
         
-        if (pipCtx.measureText(currentText).width > 440) {
-          pipCtx.fillText(currentText.substring(0, 20), 256, 450);
-          pipCtx.fillText(currentText.substring(20, 40), 256, 478);
+        if (pipCtx.measureText(currentText).width > 940) {
+          pipCtx.fillText(currentText.substring(0, 22), 540, 945);
+          pipCtx.fillText(currentText.substring(22, 45), 540, 1000);
         } else {
-          pipCtx.fillText(currentText, 256, 465);
+          pipCtx.fillText(currentText, 540, 975);
         }
-      }, 1000 / 15);
+      }, 1000 / 30); // 30fps 極致流暢
 
-      const stream = pipCanvas.captureStream(15);
+      const stream = pipCanvas.captureStream(30);
       pipVideo.srcObject = stream;
       pipVideo.play();
       isPiPInitialized = true;
@@ -475,16 +465,34 @@
     }
   }
 
-  // 立即在使用者點擊按鈕的第一時間觸發 PiP，繞過瀏覽器非同步限制
+  function drawCoverToCanvas(ctx, source, size) {
+    let imgWidth = source.videoWidth || source.width;
+    let imgHeight = source.videoHeight || source.height;
+    if (!imgWidth || !imgHeight) return;
+
+    let hRatio = size / imgWidth;
+    let vRatio = size / imgHeight;
+    let ratio = Math.max(hRatio, vRatio);
+    let centerShiftX = (size - imgWidth * ratio) / 2;
+    let centerShiftY = (size - imgHeight * ratio) / 2;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, size, size);
+    ctx.clip();
+    ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
+    ctx.restore();
+  }
+
+  // 確保第一次點擊就能 100% 成功開啟 PiP
   async function enablePiP() {
     if (currentIndex === -1) {
       alert("請先播放一個篇章才能開啟桌面懸浮窗！");
       return;
     }
     
-    // 確保音訊已經在播放狀態（若未播放，主動觸發 play 以符合瀏覽器互動安全條例）
     if (audio.paused) {
-      await audio.play().catch(e => console.log(e));
+      await audio.play().catch(() => {});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
@@ -499,12 +507,15 @@
       }
     } catch (err) {
       console.error("PiP Error:", err);
-      alert("無法啟用懸浮視窗，請確認您的手機瀏覽器（如 Chrome / Safari）支援影片子母畫面 PiP 功能。");
+      // 備用機制：若第一次受限，再強制請求一次
+      setTimeout(async () => {
+        try { await pipVideo.requestPictureInPicture(); } catch(e) { alert("無法啟用懸浮視窗，請確認您的手機瀏覽器支援 PiP 子母畫面。"); }
+      }, 200);
     }
   }
 
-  // ================= 資料庫與介面初始化 =================
-  const request = indexedDB.open("ASMR_Categorized_DB_V14", 1);
+  // ================= 資料庫與介面核心邏輯 =================
+  const request = indexedDB.open("ASMR_Categorized_DB_V16", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -601,7 +612,7 @@
     event.stopPropagation();
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
-    if (!confirm(`確定要刪除作品集「${album.title}」嗎？\n注意：這將會一併刪除該分區底下的所有篇章！`)) return;
+    if (!confirm(`確定要刪除作品集「${album.title}」嗎？`)) return;
 
     const tx = db.transaction(["albums", "tracks"], "readwrite");
     tx.objectStore("albums").delete(albumId);
@@ -611,7 +622,7 @@
     tx.oncomplete = () => {
       if (currentActiveAlbumId === albumId) switchPage('home');
       loadData();
-      alert("作品集已成功刪除！");
+      alert("作品集已刪除！");
     };
   }
 
@@ -712,7 +723,7 @@
     const paginationEl = document.getElementById("pagination-container");
     listEl.innerHTML = ""; paginationEl.innerHTML = "";
     if (albums.length === 0) {
-      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:0.95rem; padding:12px 0; text-align:center;'>目前沒有作品分區，請從右上角管理選單新增。</div>";
+      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0; text-align:center;'>目前沒有作品分區，請從右上角管理選單新增。</div>";
       return;
     }
     const totalPages = Math.ceil(albums.length / itemsPerPage);
@@ -730,14 +741,24 @@
         else { isCustomAlbumPlaying = false; if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]); }
         switchPage('detail', album.id);
       };
-      let thumbUrl = album.coverBlob ? URL.createObjectURL(album.coverBlob) : "";
+      
+      let thumbHtml = '<div class="album-grid-thumb" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:1.4rem;">📁</div>';
+      if (album.coverBlob) {
+        let thumbUrl = URL.createObjectURL(album.coverBlob);
+        if (album.coverBlob.type && album.coverBlob.type.startsWith('video/')) {
+          thumbHtml = `<video src="${thumbUrl}" class="album-grid-thumb" autoplay loop muted playsinline></video>`;
+        } else {
+          thumbHtml = `<img src="${thumbUrl}" class="album-grid-thumb">`;
+        }
+      }
+
       card.innerHTML = `
-        ${thumbUrl ? `<img src="${thumbUrl}" class="album-grid-thumb">` : '<div class="album-grid-thumb" style="background:#1a1a22; display:flex; align-items:center; justify-content:center; color:#555; font-size:1.5rem;">📁</div>'}
+        ${thumbHtml}
         <div class="album-grid-info">
           <div class="album-grid-title">${album.title}</div>
           <div class="album-grid-count">包含 ${albumTracks.length} 個篇章 ▶</div>
         </div>
-        <button class="btn-album-del" onclick="deleteAlbum(${album.id}, event)" title="刪除作品集">🗑️ 刪除</button>
+        <button class="btn-album-del" onclick="deleteAlbum(${album.id}, event)">🗑️ 刪除</button>
       `;
       listEl.appendChild(card);
     });
@@ -763,7 +784,7 @@
     container.innerHTML = "";
     const albumTracks = tracks.filter(t => t.albumId === albumId);
     if (albumTracks.length === 0) {
-      container.innerHTML = "<div style='color:var(--text-sub); font-size:0.95rem; padding:12px 0; text-align:center;'>此分區目前沒有篇章。</div>";
+      container.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0; text-align:center;'>此分區目前沒有篇章。</div>";
       return;
     }
     albumTracks.forEach(track => {
@@ -809,16 +830,32 @@
     let coverUrl = "";
     if (album && album.coverBlob) {
       coverUrl = URL.createObjectURL(album.coverBlob);
-      coverImg.src = coverUrl;
-      coverImg.style.display = "block";
-      coverVideo.style.display = "none";
-      cachedCoverImage = new Image();
-      cachedCoverImage.src = coverUrl;
-      document.getElementById("mini-thumb").src = coverUrl;
+      if (album.coverBlob.type && album.coverBlob.type.startsWith('video/')) {
+        coverVideo.src = coverUrl;
+        coverVideo.style.display = "block";
+        coverImg.style.display = "none";
+        coverVideo.play();
+        cachedCoverVideo = coverVideo;
+        isCoverVideoActive = true;
+        cachedCoverImage = null;
+        document.getElementById("mini-thumb").src = coverUrl; // 可在瀏覽器支援時顯示預覽
+      } else {
+        coverImg.src = coverUrl;
+        coverImg.style.display = "block";
+        coverVideo.style.display = "none";
+        coverVideo.pause();
+        cachedCoverImage = new Image();
+        cachedCoverImage.src = coverUrl;
+        isCoverVideoActive = false;
+        cachedCoverVideo = null;
+        document.getElementById("mini-thumb").src = coverUrl;
+      }
     } else {
       coverImg.style.display = "none";
       coverVideo.style.display = "none";
       cachedCoverImage = null;
+      cachedCoverVideo = null;
+      isCoverVideoActive = false;
     }
 
     updateMediaSessionMetadata(track.title, album ? album.title : "ASMR 隨身庫", coverUrl);
@@ -832,10 +869,12 @@
     if (currentIndex === -1) return;
     if (audio.paused) {
       audio.play();
+      if (isCoverVideoActive && coverVideo) coverVideo.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     } else {
       audio.pause();
+      if (isCoverVideoActive && coverVideo) coverVideo.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
     }
