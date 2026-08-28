@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (內建啊嘿顏高潮互動解鎖)</title>
+  <title>ASMR 私人隨身庫 (極致全方位超級大升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
       --pink-glow: rgba(255, 121, 198, 0.45);
       --bg-dark: #07070a;
-      --card-glass: rgba(16, 16, 22, 0.85);
-      --card-glass-hover: rgba(24, 24, 34, 0.94);
+      --card-glass: rgba(16, 16, 22, 0.88);
+      --card-glass-hover: rgba(24, 24, 34, 0.96);
       --text-main: #ffffff;
       --text-sub: #9494ab;
       --border-glass: rgba(255, 255, 255, 0.08);
@@ -49,13 +49,15 @@
     .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
     .top-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
     .app-logo { font-size: 1.4rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 20px var(--pink-glow); cursor: pointer; letter-spacing: 0.5px; }
-    .top-actions { display: flex; gap: 8px; }
+    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    
     .btn-clean-mem {
       background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4);
       color: #50fa7b; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
       transition: all 0.25s ease; backdrop-filter: blur(10px);
     }
     .btn-clean-mem:hover { background: rgba(80, 250, 123, 0.3); box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
+
     .btn-toggle-admin {
       background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
       color: var(--primary-pink); padding: 10px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
@@ -64,7 +66,7 @@
     .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
     .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
-    .admin-drawer.open { max-height: 3800px; }
+    .admin-drawer.open { max-height: 4500px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -108,6 +110,13 @@
     .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
     .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
 
+    /* 搜尋列樣式優化 */
+    .search-box-wrapper {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
     .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -138,8 +147,14 @@
     }
 
     .breadcrumb-bar {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700;
-      color: var(--primary-pink); cursor: pointer; padding: 2px 0;
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700;
+      color: var(--primary-pink); padding: 2px 0;
+    }
+    .breadcrumb-left { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .btn-play-all {
+      background: linear-gradient(135deg, #ff79c6 0%, #ff3366 100%); color: #07070a; border: none;
+      padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      box-shadow: 0 2px 10px rgba(255,51,102,0.3);
     }
 
     .chapter-file-list { display: flex; flex-direction: column; gap: 8px; }
@@ -211,13 +226,9 @@
       animation: mediumShake 0.35s infinite ease-in-out;
     }
 
-    .cover-box img { 
+    .cover-box img, .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
-    }
-    .cover-box video { 
-      width: 100%; height: 100%; object-fit: cover; display: none; 
-      position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
     .orgasm-overlay-img {
@@ -237,79 +248,38 @@
     }
 
     .heart-toy {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 88px;
-      height: 88px;
-      background: rgba(10, 10, 15, 0.55);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 121, 198, 0.3);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-      cursor: pointer;
-      transition: transform 0.2s ease, border-color 0.2s ease;
+      position: absolute; top: 16px; right: 16px; width: 88px; height: 88px;
+      background: rgba(10, 10, 15, 0.55); backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 121, 198, 0.3); border-radius: 50%;
+      display: flex; justify-content: center; align-items: center; z-index: 10;
+      cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease;
     }
+    .heart-toy:hover { transform: scale(1.08); border-color: var(--primary-pink); }
 
-    .heart-toy:hover {
-      transform: scale(1.08);
-      border-color: var(--primary-pink);
-    }
-
-    .heart-svg {
-      width: 54px;
-      height: 54px;
-      overflow: visible;
-    }
-
-    .heart-outline {
-      fill: none;
-      stroke: #ff79c6;
-      stroke-width: 1.8;
-      transition: stroke 0.2s ease;
-    }
-
-    .heart-fill {
-      fill: url(#heartGradient);
-      filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.8));
-    }
+    .heart-svg { width: 54px; height: 54px; overflow: visible; }
+    .heart-outline { fill: none; stroke: #ff79c6; stroke-width: 1.8; transition: stroke 0.2s ease; }
+    .heart-fill { fill: url(#heartGradient); filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.8)); }
 
     @keyframes pinkFlash {
-      0%, 100% {
-        filter: drop-shadow(0 0 6px #ff3366) drop-shadow(0 0 16px #ff6699);
-        transform: scale(1);
-      }
-      50% {
-        filter: drop-shadow(0 0 14px #ff3366) drop-shadow(0 0 30px #ff99bb);
-        transform: scale(1.10);
-      }
+      0%, 100% { filter: drop-shadow(0 0 6px #ff3366) drop-shadow(0 0 16px #ff6699); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 14px #ff3366) drop-shadow(0 0 30px #ff99bb); transform: scale(1.10); }
     }
-
     @keyframes heartBeatPulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.18); }
     }
 
     .heart-toy.is-flashing {
-      border-color: #ff3366;
-      box-shadow: 0 0 25px rgba(255, 51, 102, 0.8);
+      border-color: #ff3366; box-shadow: 0 0 25px rgba(255, 51, 102, 0.8);
       animation: heartBeatPulse 0.4s infinite ease-in-out;
     }
-    .heart-toy.is-flashing .heart-svg {
-      animation: pinkFlash 0.4s infinite alternate;
-    }
+    .heart-toy.is-flashing .heart-svg { animation: pinkFlash 0.4s infinite alternate; }
 
     .heart-toy.is-orgasm-lock {
-      border-color: #ff0055;
-      box-shadow: 0 0 35px rgba(255, 0, 85, 0.95), inset 0 0 15px rgba(255, 121, 198, 0.8);
+      border-color: #ff0055; box-shadow: 0 0 35px rgba(255, 0, 85, 0.95), inset 0 0 15px rgba(255, 121, 198, 0.8);
       animation: heartBeatPulse 0.3s infinite ease-in-out;
     }
-    .heart-toy.is-orgasm-lock .heart-svg {
-      animation: pinkFlash 0.3s infinite alternate;
-    }
+    .heart-toy.is-orgasm-lock .heart-svg { animation: pinkFlash 0.3s infinite alternate; }
 
     .btn-cover-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
@@ -476,6 +446,9 @@
   <div id="view-home" class="page-view active">
     <div class="glass-card">
       <div class="card-title">📚 選擇作品集</div>
+      <div class="search-box-wrapper">
+        <input type="text" id="home-search-input" placeholder="🔍 搜尋作品名稱..." oninput="handleHomeSearch(event)">
+      </div>
       <div id="album-list">載入中...</div>
       <div id="pagination-container"></div>
     </div>
@@ -483,8 +456,14 @@
 
   <div id="view-detail" class="page-view">
     <div class="glass-card">
-      <div class="breadcrumb-bar" onclick="switchPage('home')">
-        <span>⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
+      <div class="breadcrumb-bar">
+        <div class="breadcrumb-left" onclick="switchPage('home')">
+          <span>⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
+        </div>
+        <button class="btn-play-all" onclick="playAllAlbumTracks()">▶ 全部播放</button>
+      </div>
+      <div class="search-box-wrapper">
+        <input type="text" id="detail-search-input" placeholder="🔍 搜尋篇章名稱..." oninput="handleDetailSearch(event)">
       </div>
       <div id="chapter-list-container" class="chapter-file-list"></div>
     </div>
@@ -598,6 +577,9 @@
   let currentPage = 1;
   const itemsPerPage = 4;
   let activeCreatedUrls = [];
+
+  let homeSearchKeyword = "";
+  let detailSearchKeyword = "";
 
   const audio = document.getElementById("main-audio");
   const orgasmAudio = document.getElementById("orgasm-audio");
@@ -915,7 +897,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V36", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V37", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1294,23 +1276,34 @@
     };
   }
 
+  function handleHomeSearch(e) {
+    homeSearchKeyword = e.target.value.trim().toLowerCase();
+    currentPage = 1;
+    renderHomeAlbums();
+  }
+
   function renderHomeAlbums() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
     listEl.innerHTML = "";
     paginationEl.innerHTML = "";
 
-    if (!albums.length) {
-      listEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">尚無作品分區，請從上方「管理選單」建立。</div>';
+    let filteredAlbums = albums;
+    if (homeSearchKeyword) {
+      filteredAlbums = albums.filter(a => a.title.toLowerCase().includes(homeSearchKeyword));
+    }
+
+    if (!filteredAlbums.length) {
+      listEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">找不到符合的作品分區。</div>';
       return;
     }
 
-    const totalPages = Math.ceil(albums.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredAlbums.length / itemsPerPage);
     if (currentPage > totalPages) currentPage = totalPages || 1;
 
     let start = (currentPage - 1) * itemsPerPage;
     let end = start + itemsPerPage;
-    let paginatedAlbums = albums.slice(start, end);
+    let paginatedAlbums = filteredAlbums.slice(start, end);
 
     paginatedAlbums.forEach(album => {
       let albumTracks = tracks.filter(t => t.albumId === album.id);
@@ -1365,6 +1358,13 @@
     tx.oncomplete = () => { loadData(); alert("已刪除！"); };
   }
 
+  function handleDetailSearch(e) {
+    detailSearchKeyword = e.target.value.trim().toLowerCase();
+    if (currentActiveAlbumId) {
+      renderDetailView(currentActiveAlbumId);
+    }
+  }
+
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
@@ -1374,18 +1374,23 @@
     container.innerHTML = "";
     let albumTracks = tracks.filter(t => t.albumId === albumId);
 
+    if (detailSearchKeyword) {
+      albumTracks = albumTracks.filter(t => t.title.toLowerCase().includes(detailSearchKeyword));
+    }
+
     if (!albumTracks.length) {
-      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">此分區尚無篇章，請從管理選單新增。</div>';
+      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">找不到符合的篇章。</div>';
       return;
     }
 
-    albumTracks.forEach((track, idx) => {
+    albumTracks.forEach((track) => {
+      let originalIdx = tracks.filter(t => t.albumId === albumId).findIndex(t => t.id === track.id);
       let item = document.createElement("div");
       item.className = "chapter-file-item";
       let isPlayingThis = (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === track.id);
       
       item.innerHTML = `
-        <div class="chapter-info-left" onclick="playTrackFromAlbum(${albumId}, ${idx})">
+        <div class="chapter-info-left" onclick="playTrackFromAlbum(${albumId}, ${originalIdx})">
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
@@ -1631,6 +1636,13 @@
     expandPlayer();
   }
 
+  function playAllAlbumTracks() {
+    if (!currentActiveAlbumId) return;
+    const albumTracks = tracks.filter(t => t.albumId === currentActiveAlbumId);
+    if (!albumTracks.length) return alert("此分區沒有篇章可播放！");
+    playTrackFromAlbum(currentActiveAlbumId, 0);
+  }
+
   function setupActiveAlbumCovers(album) {
     activeAlbumCoverBlobs = (album && album.covers && album.covers.length > 0) ? album.covers : [];
     activeCoverIndex = 0;
@@ -1769,6 +1781,10 @@
         album: "ASMR 私人隨身庫",
         artwork: (album && album.covers && album.covers.length > 0) ? [{ src: createTrackedObjectURL(album.covers[0]) }] : []
       });
+    }
+
+    if (currentActiveAlbumId) {
+      renderDetailView(currentActiveAlbumId);
     }
   }
 
@@ -2011,4 +2027,3 @@
 </script>
 </body>
 </html>
-```[cite: 8]
