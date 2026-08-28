@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>軟軟騷穴專屬肉棒</title>
+  <title>軟軟騷穴的專屬者</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -198,57 +198,65 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 右上角小玩具：互動愛心能量槽 */
+    /* 右上角愛心能量槽造型強化 */
     .heart-toy {
       position: absolute;
       top: 16px;
       right: 16px;
-      width: 40px;
-      height: 40px;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(8px);
+      width: 44px;
+      height: 44px;
+      background: rgba(10, 10, 15, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 121, 198, 0.3);
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 10;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
     .heart-toy:hover {
       transform: scale(1.1);
+      border-color: var(--primary-pink);
     }
 
     .heart-svg {
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
       overflow: visible;
     }
 
     .heart-outline {
-      fill: rgba(255, 255, 255, 0.3);
-      stroke: #ffffff;
-      stroke-width: 1.5;
+      fill: rgba(255, 255, 255, 0.12);
+      stroke: #ff79c6;
+      stroke-width: 1.8;
       transition: fill 0.1s ease;
     }
 
     .heart-fill {
-      fill: #ff3366;
+      fill: url(#heartGradient);
+      filter: drop-shadow(0 0 4px rgba(255, 51, 102, 0.8));
       transition: y 0.1s ease, height 0.1s ease;
     }
 
     @keyframes pinkFlash {
       0%, 100% {
-        filter: drop-shadow(0 0 2px #ff3366) drop-shadow(0 0 8px #ff6699);
+        filter: drop-shadow(0 0 3px #ff3366) drop-shadow(0 0 10px #ff6699);
       }
       50% {
-        filter: drop-shadow(0 0 6px #ff3366) drop-shadow(0 0 16px #ff99bb);
+        filter: drop-shadow(0 0 8px #ff3366) drop-shadow(0 0 20px #ff99bb);
       }
     }
 
+    .heart-toy.is-full {
+      border-color: #ff3366;
+      box-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+    }
+    
     .heart-toy.is-full .heart-svg {
-      animation: pinkFlash 1s infinite alternate;
+      animation: pinkFlash 0.8s infinite alternate;
     }
 
     .btn-cover-nav {
@@ -423,10 +431,15 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <!-- 右上角小玩具：互動愛心能量槽[cite: 5] -->
+    <!-- 互動愛心能量槽（含漸層定義） -->
     <div class="heart-toy" id="heartToy" title="音樂心跳能量槽">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
+          <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#ff2a6d" />
+            <stop offset="50%" stop-color="#ff5e99" />
+            <stop offset="100%" stop-color="#ff99cc" />
+          </linearGradient>
           <clipPath id="heartClip">
             <rect id="clipRect" x="0" y="30" width="32" height="32" />
           </clipPath>
@@ -517,7 +530,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 愛心能量槽變數[cite: 5]
+  // 愛心能量槽變數
   const clipRect = document.getElementById('clipRect');
   const heartToy = document.getElementById('heartToy');
   let heartEnergy = 0;
@@ -660,6 +673,9 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
+          // 在 PiP 桌面懸浮窗右上角繪製動態心跳能量槽
+          drawPiPHeartToy(pipCtx, heartEnergy);
+
           const currentTime = audio.currentTime;
           let currentText = getActiveSubtitleText(currentTime);
 
@@ -695,6 +711,49 @@
       pipVideo.play();
       isPiPInitialized = true;
     } catch(e) { console.error(e); }
+  }
+
+  // 繪製 PiP 懸浮窗中的心跳愛心
+  function drawPiPHeartToy(ctx, energy) {
+    ctx.save();
+    // 繪製右上角背景圓圈
+    ctx.translate(940, 80);
+    ctx.beginPath();
+    ctx.arc(0, 0, 42, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(10, 10, 15, 0.7)";
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = energy >= 29.5 ? "#ff3366" : "rgba(255, 121, 198, 0.4)";
+    ctx.stroke();
+
+    // 繪製心型路徑 (縮放至適合大小)
+    ctx.translate(-26, -26);
+    ctx.scale(1.62, 1.62);
+
+    const heartPath = new Path2D("M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z");
+
+    // 外框
+    ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.fill(heartPath);
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = "#ff79c6";
+    ctx.stroke(heartPath);
+
+    // 填滿高度計算 (energy 0~30)
+    ctx.save();
+    ctx.clip(heartPath);
+    let fillHeight = (energy / 30) * 32;
+    let fillY = 32 - fillHeight;
+    
+    let grad = ctx.createLinearGradient(0, 32, 0, 0);
+    grad.addColorStop(0, "#ff2a6d");
+    grad.addColorStop(0.5, "#ff5e99");
+    grad.addColorStop(1, "#ff99cc");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, fillY, 32, fillHeight);
+    ctx.restore();
+
+    ctx.restore();
   }
 
   function drawCoverToCanvas(ctx, source, size, isVideo) {
@@ -771,11 +830,10 @@
       }
     } catch(err) { console.error(err); }
 
-    // 啟動愛心能量槽動畫迴圈[cite: 5]
     requestAnimationFrame(updateHeartToy);
   });
 
-  // 愛心能量槽核心邏輯[cite: 5]
+  // 愛心能量槽頻段驅動迴圈
   function updateHeartToy() {
     if (!audio.paused && analyser) {
       analyser.getByteFrequencyData(dataArray);
@@ -784,10 +842,10 @@
         sum += dataArray[i];
       }
       let average = sum / dataArray.length;
-      let intensityFactor = average / 40; 
-      heartEnergy += intensityFactor * 0.4;
+      let intensityFactor = average / 35; 
+      heartEnergy += intensityFactor * 0.5;
     } else {
-      heartEnergy -= 0.3;
+      heartEnergy -= 0.35;
     }
 
     if (heartEnergy < 0) heartEnergy = 0;
@@ -1302,11 +1360,15 @@
 
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
-    // 保留原本的 heartToy 結構與按鈕
     box.innerHTML = `
       <div class="heart-toy" id="heartToy" title="音樂心跳能量槽">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
+            <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stop-color="#ff2a6d" />
+              <stop offset="50%" stop-color="#ff5e99" />
+              <stop offset="100%" stop-color="#ff99cc" />
+            </linearGradient>
             <clipPath id="heartClip">
               <rect id="clipRect" x="0" y="30" width="32" height="32" />
             </clipPath>
@@ -1320,7 +1382,6 @@
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     `;
     
-    // 重新取得全域變數引用
     clipRect.id = 'clipRect';
     heartToy.id = 'heartToy';
 
