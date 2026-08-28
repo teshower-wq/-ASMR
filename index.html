@@ -191,6 +191,7 @@
       transition: box-shadow 0.3s ease;
     }
     
+    /* 封面完全填滿時的粉紅色特效 */
     .cover-box.is-full-pink-effect {
       box-shadow: 0 0 30px rgba(255, 51, 102, 0.8), inset 0 0 25px rgba(255, 121, 198, 0.6);
       border: 2px solid #ff3366;
@@ -205,6 +206,7 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
+    /* 放大一倍的動態小愛心能量槽（88px） */
     .heart-toy {
       position: absolute;
       top: 16px;
@@ -445,7 +447,7 @@
 
   <div class="cover-box" id="player-cover-box">
     <!-- 放大一倍的動態小愛心能量槽 -->
-    <div class="heart-toy" id="heartToy" title="女性呻吟起伏動態心跳能量槽">
+    <div class="heart-toy" id="heartToy" title="女性激烈聲音起伏動態心跳能量槽">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
           <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -558,7 +560,7 @@
       source = audioCtx.createMediaElementSource(audio);
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
-      analyser.fftSize = 256;
+      analyser.fftSize = 256; // 提供足夠的頻率解析度以過濾普通說話聲與激烈高亢聲
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       isAudioContextInitialized = true;
     } catch (e) {
@@ -686,6 +688,7 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
+          // 在 PiP 桌面懸浮窗同步繪製與封面完全一致的動態心跳能量槽特效（含粉紅色滿載閃光特效）
           drawPiPHeartToy(pipCtx, heartEnergy);
 
           const currentTime = audio.currentTime;
@@ -725,10 +728,12 @@
     } catch(e) { console.error(e); }
   }
 
+  // 完美同步 PiP 懸浮窗中的動態心跳愛心與激烈震動閃爍特效
   function drawPiPHeartToy(ctx, energy) {
     ctx.save();
     ctx.translate(920, 100);
     
+    // 如果滿載，在 PiP 懸浮窗畫出外框粉紅色強烈閃光效果
     if (energy >= 29.5) {
       let flashAlpha = 0.6 + 0.4 * Math.sin(Date.now() / 150);
       ctx.shadowColor = "#ff3366";
@@ -795,6 +800,7 @@
     let centerShiftY = (size - imgHeight * ratio) / 2;
     ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
     
+    // 如果愛心滿載，在 PiP 畫布上也加上外框粉紅色強光邊框特效
     if (heartEnergy >= 29.5) {
       ctx.lineWidth = 16;
       ctx.strokeStyle = "#ff3366";
@@ -862,7 +868,7 @@
     requestAnimationFrame(updateHeartToy);
   });
 
-  // 修改後的愛心能量槽判定：只要有呻吟或聲音就能緩慢提升，越舒服提升越快（速度整體保持很慢）
+  // 更新動態愛心能量槽：填滿速度極慢，且只有女性激烈聲音才提升，普通說話聲音不提升
   function updateHeartToy() {
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
@@ -871,31 +877,48 @@
     if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
       
-      let sum = 0;
+      // 精準鎖定女性高頻、高亢與激烈喘息聲音的專屬頻段區間（避開中低頻的普通說話聲）
+      let lowSum = 0, lowCount = 0;
+      let highSum = 0, highCount = 0;
+      
       const len = dataArray.length;
       for (let i = 0; i < len; i++) {
-        sum += dataArray[i];
+        // 低頻/中頻（普通說話聲、背景音樂低音區）
+        if (i < len * 0.35) {
+          lowSum += dataArray[i];
+          lowCount++;
+        } 
+        // 中高頻至高頻（女性高亢激烈的聲音、尖銳喘息與高音區）
+        else if (i >= len * 0.35 && i < len * 0.85) {
+          highSum += dataArray[i];
+          highCount++;
+        }
       }
-      let avgVolume = sum / len; // 計算整體的音訊音量與聲音強度
 
-      // 只要有聲音（大於基本雜音門檻 4），就會啟動提升機制
-      if (avgVolume > 4) {
-        // 聲音越舒服/音量越大（avgVolume 越高），提升速度越快；
-        // 基礎係數設得很小（0.0015），確保平時提升速度通常都很慢。
-        let increment = (avgVolume / 128) * 0.0035;
+      let avgLow = lowCount > 0 ? (lowSum / lowCount) : 0;
+      let avgHigh = highCount > 0 ? (highSum / highCount) : 0;
+
+      // 嚴格判定條件：
+      // 1. 高頻能量必須顯著高於低頻（過濾一般普通說話聲與低沉男聲/背景音）
+      // 2. 且整體激烈高頻能量大於設定門檻
+      let isIntenseFemaleSound = (avgHigh > 38) && (avgHigh > avgLow * 1.35);
+
+      if (isIntenseFemaleSound) {
+        // 速度調整：填滿速度變得非常慢（系數由原本大幅調降至 0.008）
+        let increment = (avgHigh / 128) * 0.008;
         heartEnergy += increment;
         if (heartEnergy > 30) heartEnergy = 30;
-        silentTimer = 0; 
+        silentTimer = 0; // 有激烈聲音重置無聲冷卻計時
       } else {
-        // 安靜或無聲音時，緩慢下降
+        // 普通說話聲音或安靜時，不提升並開始緩慢往下掉
         silentTimer++;
-        if (silentTimer > 20) {
-          heartEnergy -= 0.03;
+        if (silentTimer > 15) { // 約 0.25 秒無激烈聲音即開始下降
+          heartEnergy -= 0.04;
         }
       }
     } else {
       if (heartEnergy > 0) {
-        heartEnergy -= 0.06;
+        heartEnergy -= 0.08;
       }
     }
 
@@ -911,7 +934,7 @@
     if (heartToy) {
       if (heartEnergy >= 29.5) {
         heartToy.classList.add('is-full');
-        if (coverBox) coverBox.classList.add('is-full-pink-effect');
+        if (coverBox) coverBox.classList.add('is-full-pink-effect'); // 完美同步封面粉紅色特效
       } else {
         heartToy.classList.remove('is-full');
         if (coverBox) coverBox.classList.remove('is-full-pink-effect');
@@ -1414,7 +1437,7 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <div class="heart-toy" id="heartToy" title="女性呻吟起伏動態心跳能量槽">
+      <div class="heart-toy" id="heartToy" title="女性激烈聲音起伏動態心跳能量槽">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
             <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
