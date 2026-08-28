@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (字幕修復與背景自動輪播版)</title>
+  <title>ASMR 私人隨身庫 (手機面板觸控與滑動修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -18,7 +18,7 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0; padding: 16px; padding-bottom: 130px;
+      margin: 0; padding: 16px; padding-bottom: 140px;
       background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
@@ -169,29 +169,30 @@
     .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
     .page-info { font-size: 0.85rem; color: var(--text-sub); }
 
+    /* 播放器主面板樣式優化，允許內部控制項正常點擊 */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
-      max-height: 90vh; height: auto; overflow-y: auto; overflow-x: hidden;
-      background: rgba(16, 16, 22, 0.97); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+      max-height: 92vh; height: auto; overflow-y: auto; overflow-x: hidden;
+      background: rgba(16, 16, 22, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       padding: 4px 18px 24px 18px; box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
       z-index: 1000; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      touch-action: pan-y; will-change: transform;
+      will-change: transform;
     }
-    .player-card.minimized { transform: translateY(105%); }
+    .player-card.minimized { transform: translateY(110%); pointer-events: none; }
 
-    .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
+    .drag-handle-area { width: 100%; padding: 12px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
     .cover-box { 
-      width: 100%; height: 260px; border-radius: 16px; 
+      width: 100%; height: 240px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
     }
     .cover-box img { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
-      top: 0; left: 0; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      top: 0; left: 0; border-radius: 12px;
     }
     .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; 
@@ -218,7 +219,7 @@
     
     .lrc-box {
       min-height: 48px; display: flex; align-items: center; justify-content: center;
-      text-align: center; font-size: 1.1rem; font-weight: 800; color: var(--primary-pink);
+      text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink);
       text-shadow: 0 0 20px var(--pink-glow), 0 2px 4px rgba(0,0,0,0.8); padding: 2px 8px; line-height: 1.3; margin-bottom: 8px;
     }
 
@@ -256,7 +257,7 @@
       border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 14px;
       z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .mini-player.hidden { transform: translateY(100%); }
+    .mini-player.hidden { transform: translateY(100%); pointer-events: none; }
     .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
     .mini-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .mini-title { font-size: 0.88rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
@@ -364,8 +365,9 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
+<!-- 完整播放面板 (支援手指滑動縮放、下拉隱藏) -->
 <div id="player-card" class="player-card minimized">
-  <div class="drag-handle-area" id="drag-handle-area" title="點擊或向下滑動關閉面板">
+  <div class="drag-handle-area" id="drag-handle-area" title="向下滑動關閉面板">
     <div class="drag-handle"></div>
   </div>
 
@@ -452,6 +454,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
+  // 手勢滑動隱藏與展開控制變數
   let touchStartY = 0;
   let touchCurrentY = 0;
   let isDragging = false;
@@ -484,30 +487,34 @@
     }
   });
 
-  dragHandleArea.addEventListener("click", () => { minimizePlayer(); });
-  playerCard.addEventListener("touchstart", (e) => {
-    if (!e.target.closest('input') && !e.target.closest('button') && !e.target.closest('.controls')) {
-      touchStartY = e.touches[0].clientY;
-      isDragging = true;
-      playerCard.style.transition = 'none';
-    }
+  // 強化播放面板的手勢滑動邏輯 (支援下拉隱藏與上拉縮放)
+  dragHandleArea.addEventListener("touchstart", (e) => {
+    touchStartY = e.touches[0].clientY;
+    isDragging = true;
+    playerCard.style.transition = 'none';
   }, { passive: true });
 
-  playerCard.addEventListener("touchmove", (e) => {
+  dragHandleArea.addEventListener("touchmove", (e) => {
     if (!isDragging) return;
     touchCurrentY = e.touches[0].clientY;
     let diff = touchCurrentY - touchStartY;
-    if (diff > 0) playerCard.style.transform = `translateY(${diff}px)`;
+    if (diff > 0) {
+      playerCard.style.transform = `translateY(${diff}px)`;
+    }
   }, { passive: true });
 
-  playerCard.addEventListener("touchend", () => {
+  dragHandleArea.addEventListener("touchend", () => {
     if (!isDragging) return;
     isDragging = false;
     playerCard.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
-    if (diff > 70) minimizePlayer();
-    else playerCard.style.transform = 'translateY(0)';
-    touchStartY = 0; touchCurrentY = 0;
+    if (diff > 80) {
+      minimizePlayer(); // 下拉超過 80px 隱藏面板並顯示迷你播放器
+    } else {
+      playerCard.style.transform = 'translateY(0)';
+    }
+    touchStartY = 0; 
+    touchCurrentY = 0;
   });
 
   pipVideo.addEventListener('pause', () => {
@@ -646,7 +653,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V28", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V29", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1320,10 +1327,13 @@
 
   function expandPlayer() {
     playerCard.classList.remove("minimized");
+    miniPlayer.classList.add("hidden");
   }
 
   function minimizePlayer() {
     playerCard.classList.add("minimized");
+    playerCard.style.transform = '';
+    miniPlayer.classList.remove("hidden");
   }
 
   function formatTime(seconds) {
