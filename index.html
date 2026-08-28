@@ -168,7 +168,6 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 封面展示區塊（支援手動切換按鈕） */
     .cover-box { 
       width: 100%; height: 260px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
@@ -186,7 +185,6 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 手動切換封面按鈕樣式 */
     .btn-cover-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
       background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -269,7 +267,7 @@
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置（手機或電腦），再點擊下方「匯入備份檔案」即可完整同步所有作品、音訊、封面與字幕！
+        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置（手機或電腦），再點擊下方「匯入備份檔案」即可完整同步！
       </div>
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
@@ -333,7 +331,6 @@
     <div class="drag-handle"></div>
   </div>
 
-  <!-- 封面顯示區塊（內建左右手動切換按鈕） -->
   <div class="cover-box" id="player-cover-box">
     <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
     <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
@@ -594,69 +591,84 @@
     };
   }
 
+  /* 優化後的備份匯出函式：包含記憶體過載保護與條件分流 */
   async function exportDataBackup() {
-    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    let exportAlbums = await new Promise(res => tx.objectStore("albums").getAll().onsuccess = e => res(e.target.result));
-    let exportTracks = await new Promise(res => tx.objectStore("tracks").getAll().onsuccess = e => res(e.target.result));
-    let exportSettings = await new Promise(res => tx.objectStore("settings").getAll().onsuccess = e => res(e.target.result));
+    try {
+      const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+      let exportAlbums = await new Promise(res => tx.objectStore("albums").getAll().onsuccess = e => res(e.target.result));
+      let exportTracks = await new Promise(res => tx.objectStore("tracks").getAll().onsuccess = e => res(e.target.result));
+      let exportSettings = await new Promise(res => tx.objectStore("settings").getAll().onsuccess = e => res(e.target.result));
 
-    async function blobToBase64(blob) {
-      if (!blob) return null;
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(blob);
+      let totalBytes = 0;
+      exportTracks.forEach(t => { if(t.audioBlob) totalBytes += t.audioBlob.size; });
+      exportAlbums.forEach(a => { 
+        if(a.coverBlobs) a.coverBlobs.forEach(b => totalBytes += b.size);
+        if(a.bgBlobs) a.bgBlobs.forEach(b => totalBytes += b.size);
       });
-    }
 
-    let cleanAlbums = [];
-    for (let alb of exportAlbums) {
-      let cBlobs = [];
-      if (alb.coverBlobs) {
-        for (let b of alb.coverBlobs) cBlobs.push(await blobToBase64(b));
-      } else if (alb.coverBlob) {
-        cBlobs.push(await blobToBase64(alb.coverBlob));
+      const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+
+      if (totalBytes > 100 * 1024 * 1024) {
+        const includeMedia = confirm(`當前資料庫容量較大（約 ${totalMB} MB），完整打包可能導致瀏覽器記憶體不足而崩潰。\n\n【確定】：嘗試匯出完整影音檔案\n【取消】：僅匯出「作品結構與字幕」（檔案極小，傳輸最穩定）`);
+        if (!includeMedia) {
+          let cleanAlbums = exportAlbums.map(a => ({ id: a.id, title: a.title }));
+          let cleanTracks = exportTracks.map(t => ({ id: t.id, albumId: t.albumId, title: t.title, lrcText: t.lrcText }));
+          downloadJson({ albums: cleanAlbums, tracks: cleanTracks, settings: [] }, `ASMR_Structure_Backup.json`);
+          return;
+        }
       }
-      let bBlobs = [];
-      if (alb.bgBlobs) {
-        for (let b of alb.bgBlobs) bBlobs.push(await blobToBase64(b));
+
+      async function blobToBase64(blob) {
+        if (!blob) return null;
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
       }
-      cleanAlbums.push({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
-    }
 
-    let cleanTracks = [];
-    for (let trk of exportTracks) {
-      cleanTracks.push({
-        id: trk.id,
-        albumId: trk.albumId,
-        title: trk.title,
-        audioBase64: await blobToBase64(trk.audioBlob),
-        lrcText: trk.lrcText
-      });
-    }
-
-    let cleanSettings = [];
-    for (let st of exportSettings) {
-      if (st.key === 'globalBgs' && st.blobs) {
-        let gBlobs = [];
-        for (let b of st.blobs) gBlobs.push(await blobToBase64(b));
-        cleanSettings.push({ key: 'globalBgs', blobs: gBlobs });
-      } else {
-        cleanSettings.push(st);
+      let cleanAlbums = [];
+      for (let alb of exportAlbums) {
+        let cBlobs = [];
+        if (alb.coverBlobs) {
+          for (let b of alb.coverBlobs) cBlobs.push(await blobToBase64(b));
+        }
+        let bBlobs = [];
+        if (alb.bgBlobs) {
+          for (let b of alb.bgBlobs) bBlobs.push(await blobToBase64(b));
+        }
+        cleanAlbums.push({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
       }
-    }
 
-    const backupData = { version: 1, albums: cleanAlbums, tracks: cleanTracks, settings: cleanSettings };
-    const jsonStr = JSON.stringify(backupData);
+      let cleanTracks = [];
+      for (let trk of exportTracks) {
+        cleanTracks.push({
+          id: trk.id,
+          albumId: trk.albumId,
+          title: trk.title,
+          audioBase64: await blobToBase64(trk.audioBlob),
+          lrcText: trk.lrcText
+        });
+      }
+
+      downloadJson({ version: 1, albums: cleanAlbums, tracks: cleanTracks, settings: exportSettings }, `ASMR_Full_Backup_${new Date().toISOString().slice(0,10)}.json`);
+      alert("備份檔案已成功匯出！");
+
+    } catch (err) {
+      console.error(err);
+      alert("匯出失敗：檔案容量過大造成記憶體不足，請重試並選擇「僅備份作品結構與字幕」。");
+    }
+  }
+
+  function downloadJson(dataObj, filename) {
+    const jsonStr = JSON.stringify(dataObj);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    alert("備份檔案已成功匯出！");
   }
 
   async function importDataBackup(event) {
@@ -1068,7 +1080,6 @@
 
   function setupPlayerCovers() {
     const coverBox = document.getElementById("player-cover-box");
-    // 保留導覽按鈕與指示器，移除舊的媒體元素
     const navButtons = coverBox.querySelectorAll('.btn-cover-nav, .cover-indicator');
     coverBox.innerHTML = "";
     navButtons.forEach(btn => coverBox.appendChild(btn));
