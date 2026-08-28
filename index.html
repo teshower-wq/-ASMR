@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極速效能優化版)</title>
+  <title>ASMR 私人隨身庫 (iOS 多選完美修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -295,14 +295,14 @@
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
-    <!-- 一鍵批次匯入配對 -->
+    <!-- 一鍵批次匯入配對 (解鎖 iOS 限制，可全選所有檔案) -->
     <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5);">
       <div class="card-title">⚡ 2. 智慧一鍵批次配對匯入</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        可一次選取多個音檔與字幕檔（.lrc/.srt/.vtt），系統會自動比對主檔名完成配對省時省力！
+        已全面解鎖 iOS 檔案選擇器！您現在可以全選資料夾內的所有音檔與字幕檔（.lrc/.srt/.vtt），系統會在背景自動完成精準配對！
       </div>
       <div class="form-group"><label>選擇作品分區</label><select id="batch-select-album"><option value="">-- 請選擇分區 --</option></select></div>
-      <div class="form-group"><label>多選音檔與字幕檔</label><input type="file" id="batch-files" accept="audio/*,.lrc,.srt,.vtt,.txt" multiple></div>
+      <div class="form-group"><label>選取所有檔案 (不限副檔名，可全選)</label><input type="file" id="batch-files" multiple></div>
       <button class="btn-pink" onclick="batchAddTracks()">⚡ 一鍵配對並自動匯入</button>
     </div>
 
@@ -312,7 +312,7 @@
       <div class="form-group"><label>選擇作品分區</label><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
       <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_耳語安慰"></div>
       <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*"></div>
-      <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.srt,.vtt,.txt"></div>
+      <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc"></div>
       <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
     </div>
 
@@ -730,24 +730,39 @@
     reader.readAsText(file);
   }
 
-  /* 智慧一鍵批次自動配對 */
+  /* 智慧一鍵批次自動配對 (針對 iOS Safari 多選強效優化版) */
   async function batchAddTracks() {
     const albumId = parseInt(document.getElementById("batch-select-album").value);
     const files = Array.from(document.getElementById("batch-files").files);
     if (!albumId) return alert("請選擇作品分區！");
-    if (files.length === 0) return alert("請選取多個音檔與字幕檔！");
+    if (files.length === 0) return alert("請選取檔案！");
 
     const audioMap = new Map();
     const lrcMap = new Map();
 
     files.forEach(f => {
-      const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
-      const baseName = f.name.substring(0, f.name.lastIndexOf('.')).trim();
-      if (['.mp3', '.wav', '.m4a', '.flac', '.ogg', '.aac'].includes(ext)) audioMap.set(baseName, f);
-      else if (['.lrc', '.srt', '.vtt', '.txt'].includes(ext)) lrcMap.set(baseName, f);
+      const fileName = f.name;
+      const lastDotIndex = fileName.lastIndexOf('.');
+      if (lastDotIndex === -1) return;
+
+      const ext = fileName.substring(lastDotIndex).toLowerCase();
+      let baseName = fileName.substring(0, lastDotIndex).trim();
+
+      const audioExtensions = ['.mp3', '.wav', '.m4a', '.flac', '.ogg', '.aac', '.mp4'];
+      const lrcExtensions = ['.lrc', '.srt', '.vtt', '.txt'];
+
+      // 特殊處理：例如 "0-1.序章.mp3.lrc" 或以 .mp3 為主檔名一部分的字幕
+      if (lrcExtensions.includes(ext)) {
+        if (baseName.toLowerCase().endsWith('.mp3')) {
+          baseName = baseName.substring(0, baseName.length - 4).trim();
+        }
+        lrcMap.set(baseName, f);
+      } else if (audioExtensions.includes(ext) || f.type.startsWith('audio/')) {
+        audioMap.set(baseName, f);
+      }
     });
 
-    if (audioMap.size === 0) return alert("未發現有效的音訊檔案！");
+    if (audioMap.size === 0) return alert("未在您選取的檔案中發現有效音訊！請確保有包含音樂檔。");
 
     let count = 0;
     const tx = db.transaction(["tracks"], "readwrite");
