@@ -190,8 +190,8 @@
       display: flex; align-items: center; justify-content: center;
     }
     .cover-box img { 
-      width: 100%; height: 100%; object-fit: cover; display: none; 
-      position: absolute; top: 0; left: 0; border-radius: 12px;
+      width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
+      top: 0; left: 0; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
     }
     .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; 
@@ -432,7 +432,7 @@
   let coverElements = [];
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
-  let isPowerSavingCover = false;
+  let isPowerSavingCover = false; // 省電開關狀態：true 為強制靜態圖片模式
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -524,6 +524,7 @@
     }
   });
 
+  // 切換省電模式：關閉動態封面影片、改為靜態封面圖片 (且 PiP 懸浮時影片不動但字幕持續運作)
   function togglePowerSavingCover() {
     isPowerSavingCover = !isPowerSavingCover;
     const btn = document.getElementById("btn-power-saving");
@@ -555,6 +556,7 @@
           pipCtx.fillRect(0, 0, 1080, 1080);
 
           if (cachedCoverElement) {
+            // 省電模式開啟時，如果封面是影片，則不讓其自動撥放 (維持靜態畫面)，但字幕依然正常繪製更新
             if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
               cachedCoverElement.play().catch(() => {});
             }
@@ -1422,7 +1424,7 @@
       line = line.trim();
       if (!line) continue;
       const lrcMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
-      if, lrcMatch) {
+      if (lrcMatch) {
         const m = parseInt(lrcMatch[1], 10);
         const s = parseInt(lrcMatch[2], 10);
         const msStr = lrcMatch[3];
@@ -1435,7 +1437,7 @@
         parsed.push({ time: parseInt(srtMatch[1])*3600 + parseInt(srtMatch[2])*60 + parseInt(srtMatch[3]) + parseInt(srtMatch[4])/1000, text: "" });
         continue;
       }
-      if (parsed.length > 0 && !line.match(/^\d+$/) && !line.includes('-->')) {
+      if (parsed.length > 0 && !line.includes('-->')) {
         if (!parsed[parsed.length - 1].text) parsed[parsed.length - 1].text = line;
         else parsed[parsed.length - 1].text += " " + line;
       }
@@ -1482,3 +1484,4 @@
 
 </body>
 </html>
+```[cite: 3]
