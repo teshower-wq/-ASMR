@@ -19,7 +19,6 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; padding: 16px; padding-bottom: 140px;
-      /* 改良：背景色調從柔和的粉紅漸漸轉為熱情的魅紅 (柔和粉 #1a0d16 漸層至魅紅/深黑基調) */
       background: linear-gradient(135deg, #1a0d16 0%, #330b20 50%, #07070a 100%);
       background-attachment: fixed;
       color: var(--text-main);
@@ -43,7 +42,6 @@
 
     #bg-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      /* 改良：融合柔和粉紅與熱情魅紅的動態漸層遮罩 */
       background: radial-gradient(circle, rgba(255,121,198,0.08) 0%, rgba(51,11,32,0.6) 50%, rgba(7,7,10,0.92) 100%);
       z-index: -1; pointer-events: none;
     }
@@ -448,7 +446,6 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <!-- 放大一倍的動態小愛心能量槽 -->
     <div class="heart-toy" id="heartToy" title="女性呻吟起伏動態心跳能量槽">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
@@ -547,10 +544,9 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 愛心能量槽變數與延遲計時器
   let clipRect, heartToy;
   let heartEnergy = 0;
-  let silentTimer = 0; // 持續無聲音的計時（frame 單位）
+  let silentTimer = 0; 
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
 
@@ -881,7 +877,6 @@
       }
       let avgVolume = sum / len;
 
-      // [調整處] 將係數從 0.0035 提高到 0.008，使愛心累積判定更輕鬆
       if (avgVolume > 3) {
         let increment = (avgVolume / 128) * 0.008;
         heartEnergy += increment;
@@ -890,7 +885,7 @@
       } else {
         silentTimer++;
         if (silentTimer > 30) {
-          heartEnergy -= 0.02; // 放慢沒聲音時的消退速度
+          heartEnergy -= 0.02; 
         }
       }
     } else {
