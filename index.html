@@ -437,7 +437,7 @@
   </div>
 </div>
 
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -468,6 +468,7 @@
   let pipCanvas = null;
   let pipCtx = null;
   let isPiPInitialized = false;
+  let pipAudioDestination = null;
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -573,9 +574,14 @@
       audioCtx = new AudioContext();
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 512;
+      
+      pipAudioDestination = audioCtx.createMediaStreamDestination();
       audioSourceNode = audioCtx.createMediaElementSource(audio);
+      
       audioSourceNode.connect(analyser);
       analyser.connect(audioCtx.destination);
+      analyser.connect(pipAudioDestination);
+      
       requestAnimationFrame(analyzeAudioFrame);
     } catch(e) {
       console.error("AudioContext 初始化失敗:", e);
@@ -590,7 +596,6 @@
     const dataArray = new Uint8Array(bufferLength);
     analyser.getByteFrequencyData(dataArray);
 
-    // 頻率分析：基頻 170~600Hz (女性語音) 與 800~3000Hz (高音/呻吟浪叫)
     let baseVoiceSum = 0;
     let moanVoiceSum = 0;
 
@@ -600,13 +605,12 @@
     let baseAvg = baseVoiceSum / 6;
     let moanAvg = moanVoiceSum / 27;
 
+    /* 愛心成長速度調降 200%（即除以 3） */
     if (baseAvg > 30) {
-      // 普通女性聲音：緩慢累積
-      heartFillPercent += 0.08 * (baseAvg / 100);
+      heartFillPercent += (0.08 / 3.0) * (baseAvg / 100);
     }
     if (moanAvg > 40) {
-      // 交配高潮/呻吟浪叫頻段：快速暴增填滿
-      heartFillPercent += 0.45 * (moanAvg / 100);
+      heartFillPercent += (0.45 / 3.0) * (moanAvg / 100);
     }
 
     if (heartFillPercent >= 100) {
@@ -646,7 +650,7 @@
       if (heartEl) heartEl.classList.remove("heart-full-beat");
       if (coverBox) coverBox.classList.remove("cover-climax-pink");
       isClimaxState = false;
-    }, 10000); // 10秒重新歸零開始計算
+    }, 10000);
   }
 
   function triggerInstantOrgasm() {
@@ -702,11 +706,15 @@
           const currentTime = audio.currentTime;
           let currentText = getActiveSubtitleText(currentTime);
 
+          /* 繪製底層黑底光暈底框以防字幕看不清 */
+          pipCtx.fillStyle = "rgba(7, 7, 10, 0.65)";
+          pipCtx.fillRect(40, 840, 1000, 200);
+
           pipCtx.textAlign = "center";
-          pipCtx.font = "bold 64px -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif";
+          pipCtx.font = "bold 58px -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif";
           
           let lines = [];
-          if (pipCtx.measureText(currentText).width > 940) {
+          if (pipCtx.measureText(currentText).width > 920) {
             let mid = Math.floor(currentText.length / 2);
             lines.push(currentText.substring(0, mid));
             lines.push(currentText.substring(mid));
@@ -714,10 +722,10 @@
             lines.push(currentText);
           }
 
-          let startY = lines.length > 1 ? 920 : 960;
+          let startY = lines.length > 1 ? 900 : 950;
           lines.forEach((lineText, idx) => {
-            let curY = startY + (idx * 72);
-            pipCtx.lineWidth = 9;
+            let curY = startY + (idx * 68);
+            pipCtx.lineWidth = 10;
             pipCtx.strokeStyle = "rgba(0, 0, 0, 0.95)";
             pipCtx.strokeText(lineText, 540, curY);
 
@@ -729,29 +737,18 @@
       }
       requestAnimationFrame(renderPiPFrame);
 
-      const stream = pipCanvas.captureStream(30);
-      pipVideo.srcObject = stream;
+      const canvasStream = pipCanvas.captureStream(30);
+      let tracksToCombine = [...canvasStream.getVideoTracks()];
+      
+      if (pipAudioDestination && pipAudioDestination.stream.getAudioTracks().length > 0) {
+        tracksToCombine.push(pipAudioDestination.stream.getAudioTracks()[0]);
+      }
+
+      const combinedStream = new MediaStream(tracksToCombine);
+      pipVideo.srcObject = combinedStream;
       pipVideo.play();
       isPiPInitialized = true;
-    } catch(e) { console.error(e); }
-  }
-
-  function drawCoverToCanvas(ctx, source, size, isVideo) {
-    let imgWidth = source.videoWidth || source.width;
-    let imgHeight = source.videoHeight || source.height;
-    if (!imgWidth || !imgHeight) return;
-
-    ctx.save();
-    ctx.fillStyle = "#050508";
-    ctx.fillRect(0, 0, size, size);
-
-    let hRatio = size / imgWidth;
-    let vRatio = size / imgHeight;
-    let ratio = Math.max(hRatio, vRatio);
-    let centerShiftX = (size - imgWidth * ratio) / 2;
-    let centerShiftY = (size - imgHeight * ratio) / 2;
-    ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    ctx.restore();
+    } catch(e) { console.error("PiP 初始化失敗:", e); }
   }
 
   async function enablePiP() {
