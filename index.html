@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
+  <title>軟軟的騷穴好緊</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -662,7 +662,6 @@
     initMediaSession(); 
   };
 
-  // 立即套用 LocalStorage 暫存背景，避免打開網頁時瞬間空白或閃爍
   window.addEventListener('DOMContentLoaded', () => {
     try {
       const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
@@ -740,7 +739,6 @@
     let blobs = [];
     for (let f of input.files) blobs.push(f);
     
-    // 同步儲存至 LocalStorage 備用快取 (轉成 Base64 以供下次開網頁秒載)
     if (blobs.length > 0) {
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -749,7 +747,7 @@
             url: e.target.result,
             type: blobs[0].type
           }));
-        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖，將僅依賴資料庫"); }
+        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖"); }
       };
       reader.readAsDataURL(blobs[0]);
     }
@@ -1528,3 +1526,4 @@
 </script>
 </body>
 </html>
+```[cite: 4]
