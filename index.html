@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (手機批量配對與觸控修復版)</title>
+  <title>軟軟的騷逼</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -169,7 +169,6 @@
     .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
     .page-info { font-size: 0.85rem; color: var(--text-sub); }
 
-    /* 播放器主面板樣式優化，允許內部控制項正常點擊 */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
       max-height: 92vh; height: auto; overflow-y: auto; overflow-x: hidden;
@@ -365,7 +364,6 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
-<!-- 完整播放面板 (支援手指滑動縮放、下拉隱藏) -->
 <div id="player-card" class="player-card minimized">
   <div class="drag-handle-area" id="drag-handle-area" title="向下滑動關閉面板">
     <div class="drag-handle"></div>
@@ -454,7 +452,6 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 手勢滑動隱藏與展開控制變數
   let touchStartY = 0;
   let touchCurrentY = 0;
   let isDragging = false;
@@ -487,7 +484,6 @@
     }
   });
 
-  // 強化播放面板的手勢滑動邏輯 (支援下拉隱藏與上拉縮放)
   dragHandleArea.addEventListener("touchstart", (e) => {
     touchStartY = e.touches[0].clientY;
     isDragging = true;
@@ -509,7 +505,7 @@
     playerCard.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
     if (diff > 80) {
-      minimizePlayer(); // 下拉超過 80px 隱藏面板並顯示迷你播放器
+      minimizePlayer();
     } else {
       playerCard.style.transform = 'translateY(0)';
     }
@@ -660,7 +656,7 @@
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); startGlobalBgRotation(); };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); };
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
@@ -676,6 +672,8 @@
     tx.objectStore("settings").get("globalBackgrounds").onsuccess = (e) => {
       if (e.target.result && e.target.result.blobs) {
         globalBackgrounds = e.target.result.blobs;
+        bgIndex = 0;
+        startGlobalBgRotation(); // 確保每次開啟/重新整理網頁時，能自動載入並輪播全域背景
       }
     };
   }
@@ -1006,7 +1004,6 @@
     };
   }
 
-  // 封裝非同步讀取文字檔案的函式，避免在行動端 Promise 迴圈中卡死
   function readFileAsTextAsync(file) {
     return new Promise((resolve) => {
       if (!file) {
@@ -1035,7 +1032,6 @@
     let audios = Array.from(audioInput.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
     let lrcs = Array.from(lrcInput.files);
 
-    // 先把所有字幕檔案內容在記憶體中讀取完畢，避免 DOM 互動與 File 讀取在迴圈卡住
     let lrcMapData = [];
     for (let l of lrcs) {
       let text = await readFileAsTextAsync(l);
