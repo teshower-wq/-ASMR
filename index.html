@@ -447,7 +447,7 @@
 
   <div class="cover-box" id="player-cover-box">
     <!-- 放大一倍的動態小愛心能量槽 -->
-    <div class="heart-toy" id="heartToy" title="女性激烈聲音起伏動態心跳能量槽">
+    <div class="heart-toy" id="heartToy" title="女性聲音起伏動態心跳能量槽">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
           <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -560,7 +560,7 @@
       source = audioCtx.createMediaElementSource(audio);
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
-      analyser.fftSize = 256; // 提供足夠的頻率解析度以過濾普通說話聲與激烈高亢聲
+      analyser.fftSize = 128;
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       isAudioContextInitialized = true;
     } catch (e) {
@@ -688,7 +688,7 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
-          // 在 PiP 桌面懸浮窗同步繪製與封面完全一致的動態心跳能量槽特效（含粉紅色滿載閃光特效）
+          // 在 PiP 桌面懸浮窗同步繪製與封面完全一致的動態心跳能量槽特效
           drawPiPHeartToy(pipCtx, heartEnergy);
 
           const currentTime = audio.currentTime;
@@ -732,18 +732,6 @@
   function drawPiPHeartToy(ctx, energy) {
     ctx.save();
     ctx.translate(920, 100);
-    
-    // 如果滿載，在 PiP 懸浮窗畫出外框粉紅色強烈閃光效果
-    if (energy >= 29.5) {
-      let flashAlpha = 0.6 + 0.4 * Math.sin(Date.now() / 150);
-      ctx.shadowColor = "#ff3366";
-      ctx.shadowBlur = 25;
-      ctx.beginPath();
-      ctx.arc(0, 0, 58, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 51, 102, ${flashAlpha * 0.3})`;
-      ctx.fill();
-    }
-
     ctx.beginPath();
     ctx.arc(0, 0, 54, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(10, 10, 15, 0.7)";
@@ -754,6 +742,7 @@
 
     ctx.translate(-32, -32);
     
+    // 當滿載時在 PiP 內模擬心跳 Pulse 放大與發光效果
     let scaleFactor = 2.0;
     if (energy >= 29.5) {
       let pulse = 1 + 0.08 * Math.sin(Date.now() / 120);
@@ -799,13 +788,6 @@
     let centerShiftX = (size - imgWidth * ratio) / 2;
     let centerShiftY = (size - imgHeight * ratio) / 2;
     ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    
-    // 如果愛心滿載，在 PiP 畫布上也加上外框粉紅色強光邊框特效
-    if (heartEnergy >= 29.5) {
-      ctx.lineWidth = 16;
-      ctx.strokeStyle = "#ff3366";
-      ctx.strokeRect(0, 0, size, size);
-    }
     ctx.restore();
   }
 
@@ -831,7 +813,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V33", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V32", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -868,7 +850,7 @@
     requestAnimationFrame(updateHeartToy);
   });
 
-  // 更新動態愛心能量槽：填滿速度極慢，且只有女性激烈聲音才提升，普通說話聲音不提升
+  // 更新動態愛心能量槽：填滿與變化的速度大幅放慢，且滿載時聲音減弱後才往下掉
   function updateHeartToy() {
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
@@ -877,48 +859,47 @@
     if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
       
-      // 精準鎖定女性高頻、高亢與激烈喘息聲音的專屬頻段區間（避開中低頻的普通說話聲）
-      let lowSum = 0, lowCount = 0;
-      let highSum = 0, highCount = 0;
+      let startBin = Math.floor(dataArray.length * 0.1); 
+      let endBin = Math.floor(dataArray.length * 0.65);
       
-      const len = dataArray.length;
-      for (let i = 0; i < len; i++) {
-        // 低頻/中頻（普通說話聲、背景音樂低音區）
-        if (i < len * 0.35) {
-          lowSum += dataArray[i];
-          lowCount++;
-        } 
-        // 中高頻至高頻（女性高亢激烈的聲音、尖銳喘息與高音區）
-        else if (i >= len * 0.35 && i < len * 0.85) {
-          highSum += dataArray[i];
-          highCount++;
-        }
+      let sum = 0;
+      let count = 0;
+      for (let i = startBin; i <= endBin; i++) {
+        sum += dataArray[i];
+        count++;
       }
-
-      let avgLow = lowCount > 0 ? (lowSum / lowCount) : 0;
-      let avgHigh = highCount > 0 ? (highSum / highCount) : 0;
-
-      // 嚴格判定條件：
-      // 1. 高頻能量必須顯著高於低頻（過濾一般普通說話聲與低沉男聲/背景音）
-      // 2. 且整體激烈高頻能量大於設定門檻
-      let isIntenseFemaleSound = (avgHigh > 38) && (avgHigh > avgLow * 1.35);
-
-      if (isIntenseFemaleSound) {
-        // 速度調整：填滿速度變得非常慢（系數由原本大幅調降至 0.008）
-        let increment = (avgHigh / 128) * 0.008;
-        heartEnergy += increment;
-        if (heartEnergy > 30) heartEnergy = 30;
-        silentTimer = 0; // 有激烈聲音重置無聲冷卻計時
+      let femaleVoiceAvg = count > 0 ? (sum / count) : 0;
+      
+      // 優化調整：讓填滿速度與變化速度慢很多（係數大幅調降至 0.02）
+      let voiceIntensity = femaleVoiceAvg / 32; 
+      
+      if (heartEnergy < 30) {
+        if (femaleVoiceAvg > 12) {
+          heartEnergy += voiceIntensity * 0.02; 
+          silentTimer = 0; // 有聲音重置無聲緩衝計時
+        } else {
+          silentTimer++;
+          // 聲音減弱或無聲需持續一段較長時間（約 5 秒 = 300 個 frame）才開始緩慢往下掉
+          if (silentTimer > 300) {
+            heartEnergy -= 0.08;
+          }
+        }
       } else {
-        // 普通說話聲音或安靜時，不提升並開始緩慢往下掉
-        silentTimer++;
-        if (silentTimer > 15) { // 約 0.25 秒無激烈聲音即開始下降
-          heartEnergy -= 0.04;
+        // 達到 100% 填滿後，即使還有激烈的聲音，心跳一樣維持滿載狀態
+        // 必須直到聲音明顯減弱衰退（持續大段無聲或音量降低）後，計時器達標才往下掉
+        if (femaleVoiceAvg < 14) {
+          silentTimer++;
+          if (silentTimer > 350) { // 延長等待聲音減弱的時間
+            heartEnergy -= 0.08;
+          }
+        } else {
+          silentTimer = 0;
+          heartEnergy = 30; // 聲音激烈時保持 100% 滿載
         }
       }
     } else {
       if (heartEnergy > 0) {
-        heartEnergy -= 0.08;
+        heartEnergy -= 0.1;
       }
     }
 
@@ -1437,7 +1418,7 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <div class="heart-toy" id="heartToy" title="女性激烈聲音起伏動態心跳能量槽">
+      <div class="heart-toy" id="heartToy" title="女性聲音起伏動態心跳能量槽">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
             <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
