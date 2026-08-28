@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極致效能升級版)</title>
+  <title>ASMR 私人隨身庫 (終極強效版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -182,7 +182,6 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 封面展示區塊（支援手動切換按鈕） */
     .cover-box { 
       width: 100%; height: 260px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
@@ -200,7 +199,6 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 手動切換封面按鈕樣式 */
     .btn-cover-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
       background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -286,46 +284,46 @@
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置（手機或電腦），再點擊下方「匯入備份檔案」即可完整同步所有作品、音訊、封面與字幕！
+        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
       </div>
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
         <label>📥 2. 匯入備份檔案 (接收端裝置)</label>
-        <input type="file" id="import-backup-input" accept=".json" onchange="importDataBackup(event)">
+        <input type="file" id="import-backup-input" accept="*/*" onchange="importDataBackup(event)">
       </div>
     </div>
 
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景</div>
-      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="*/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
 
     <div class="glass-card">
       <div class="card-title">📁 建立作品分區 (支援多張封面圖/影片手動切換)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：系列名稱"></div>
-      <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
-      <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
+      <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="*/*" multiple></div>
+      <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="*/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
-    <!-- 升級：單集手動匯入與一鍵智慧批量配對匯入 -->
+    <!-- 全面放寬 accept 限制，相容 iOS Safari 所有副檔名與檔案選取 -->
     <div class="glass-card">
       <div class="card-title">⚡ 一鍵自動配對音檔與字幕</div>
       <div class="form-group"><label>選擇目標作品分區</label><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (最省時)</div>
-        <div class="form-group"><label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label><input type="file" id="batch-audios" accept="audio/*" multiple></div>
-        <div class="form-group"><label>複選所有字幕檔 (可一次選多個 .lrc/.srt/.txt)</label><input type="file" id="batch-lrcs" accept=".lrc,.srt,.vtt,.txt" multiple></div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (iOS Safari 解鎖版)</div>
+        <div class="form-group"><label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label><input type="file" id="batch-audios" accept="*/*" multiple></div>
+        <div class="form-group"><label>複選所有字幕檔 (可一次選多個 .lrc/.srt/.txt)</label><input type="file" id="batch-lrcs" accept="*/*" multiple></div>
         <button class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
       </div>
 
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
-        <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*"></div>
-        <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.srt,.vtt,.txt"></div>
+        <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="*/*"></div>
+        <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept="*/*"></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
       </div>
     </div>
@@ -364,7 +362,6 @@
     <div class="drag-handle"></div>
   </div>
 
-  <!-- 封面顯示區塊（內建左右手動切換按鈕） -->
   <div class="cover-box" id="player-cover-box">
     <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
     <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
@@ -375,7 +372,7 @@
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
-    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
+    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept="*/*" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
   </div>
@@ -434,8 +431,6 @@
 
   let currentPage = 1;
   const itemsPerPage = 4;
-
-  // 記憶體與 Blob URL 追蹤清理陣列
   let activeCreatedUrls = [];
 
   const audio = document.getElementById("main-audio");
@@ -452,7 +447,6 @@
   let isDragging = false;
   const dragHandleArea = document.getElementById("drag-handle-area");
 
-  // 輔助函式：建立安全且可註銷的 ObjectURL
   function createTrackedObjectURL(blob) {
     if (!blob) return "";
     const url = URL.createObjectURL(blob);
@@ -460,23 +454,18 @@
     return url;
   }
 
-  // 手機降溫與一鍵清理快取記憶體
   function cleanMemoryAndGC() {
     activeCreatedUrls.forEach(url => {
       try { URL.revokeObjectURL(url); } catch(e){}
     });
     activeCreatedUrls = [];
-    
-    // 清理圖片快取
     if (bgVideo.paused) {
       bgVideo.removeAttribute('src');
       bgVideo.load();
     }
-    
     alert("⚡ 已完成快取釋放與記憶體清理！手機負載與熱量已降低。");
   }
 
-  // 智慧監聽背景視窗分頁：切換背景時暫停背景影片渲染，節省手機 CPU/GPU 資源
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       if (bgVideo && !bgVideo.paused) bgVideo.pause();
@@ -871,7 +860,7 @@
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = 'image/*,video/*';
+    fileInput.accept = '*/*';
     fileInput.multiple = true;
     fileInput.onchange = (e) => {
       const newCovers = Array.from(e.target.files);
@@ -921,26 +910,30 @@
     });
   }
 
-  // 取出純檔名 (去掉副檔名) 用於智慧配對
-  function getFileNameWithoutExtension(filename) {
-    return filename.substring(0, filename.lastIndexOf('.')) || filename;
+  // 深度洗淨檔名：移除多重副檔名（如 .mp3.lrc、.mp3）乾淨配對
+  function getCleanBaseName(filename) {
+    let clean = filename.trim();
+    while (clean.includes('.')) {
+      clean = clean.substring(0, clean.lastIndexOf('.'));
+    }
+    return clean.toLowerCase().trim();
   }
 
-  // 升級：一鍵批量上傳與智慧檔名自動配對
+  // 解鎖版：強效批量上傳與智慧檔名比對
   async function batchUploadAndPair() {
     const albumId = parseInt(document.getElementById("select-album").value);
     if (!albumId) return alert("請先選擇目標作品分區！");
 
     const audioFiles = Array.from(document.getElementById("batch-audios").files);
-    if (audioFiles.length === 0) return alert("請至少選取一個音訊檔案！");
+    if (audioFiles.length === 0) return alert("請選取要上傳的音訊檔案！");
 
     const lrcFiles = Array.from(document.getElementById("batch-lrcs").files);
     
-    // 建立字幕檔 Mapping: Key為無副檔名檔名(全小寫)
+    // 建立字幕檔對照地圖
     const lrcMap = new Map();
     for (let lrcFile of lrcFiles) {
-      let baseName = getFileNameWithoutExtension(lrcFile.name).toLowerCase().trim();
-      lrcMap.set(baseName, lrcFile);
+      let cleanKey = getCleanBaseName(lrcFile.name);
+      lrcMap.set(cleanKey, lrcFile);
     }
 
     let pairedCount = 0;
@@ -948,26 +941,26 @@
     const store = tx.objectStore("tracks");
 
     for (let audioFile of audioFiles) {
-      let audioBaseName = getFileNameWithoutExtension(audioFile.name);
-      let lookupName = audioBaseName.toLowerCase().trim();
+      let audioCleanKey = getCleanBaseName(audioFile.name);
+      let displayTitle = audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) || audioFile.name;
       
       let lrcText = "";
-      if (lrcMap.has(lookupName)) {
-        let matchedLrcFile = lrcMap.get(lookupName);
+      if (lrcMap.has(audioCleanKey)) {
+        let matchedLrcFile = lrcMap.get(audioCleanKey);
         lrcText = await readFileTextSmart(matchedLrcFile);
         pairedCount++;
       }
 
       store.add({
         albumId: albumId,
-        title: audioBaseName,
+        title: displayTitle,
         audioBlob: audioFile,
         lrcText: lrcText
       });
     }
 
     tx.oncomplete = () => {
-      alert(`✨ 批量上傳完成！\n共匯入 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個成功自動配對對應字幕！`);
+      alert(`✨ 批量上傳成功！\n共匯入 ${audioFiles.length} 個音訊，並自動精準配對了 ${pairedCount} 個對應字幕！`);
       document.getElementById("batch-audios").value = "";
       document.getElementById("batch-lrcs").value = "";
       loadData();
@@ -979,7 +972,9 @@
     if (!albumId) return alert("請先選擇作品分區！");
     const audioFile = document.getElementById("track-audio").files[0];
     if (!audioFile) return alert("請選擇音訊檔案！");
-    const title = document.getElementById("track-title-input").value.trim() || getFileNameWithoutExtension(audioFile.name);
+    
+    let defaultTitle = audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) || audioFile.name;
+    const title = document.getElementById("track-title-input").value.trim() || defaultTitle;
     const lrcFile = document.getElementById("track-lrc").files[0];
     let lrcText = lrcFile ? await readFileTextSmart(lrcFile) : "";
 
