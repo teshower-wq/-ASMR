@@ -717,10 +717,11 @@
       container.innerHTML = "<div style='color:var(--text-sub); font-size:0.95rem; padding:12px 0; text-align:center;'>此分區目前沒有篇章。</div>";
       return;
     }
-    albumTracks.forEach((track, idx) => {
+    albumTracks.forEach((track) => {
       const isPlaying = (currentPlayingAlbumId === albumId && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === track.id);
       const item = document.createElement("div");
       item.className = `chapter-file-item ${isPlaying ? 'playing' : ''}`;
+      // [修正] 這裡直接綁定明確的 albumId 與 track.id
       item.onclick = () => playTrack(album.id, track.id);
       item.innerHTML = `
         <div class="chapter-info-left">
@@ -791,7 +792,7 @@
     if (!text || !text.trim()) return [];
     let lines = text.split(/\r?\n/);
     let lrc = [];
-    let isSrtVtt = text.includes('-->') || text.includes('-->');
+    let isSrtVtt = text.includes('-->');
 
     if (isSrtVtt) {
       let timeRegex = /(\d{2}):(\d{2}):(\d{2})[.,](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[.,](\d{3})/;
