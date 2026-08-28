@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極致流暢與完美封面修復版)</title>
+  <title>ASMR 私人隨身庫 (圖片正常、影片填滿無黑邊版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -24,7 +24,7 @@
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
 
-    /* 背景優化：縮小 20% 視覺感（透過 transform scale(0.8) 達成） */
+    /* 背景：縮小 20% 視覺感 */
     #bg-video, #bg-img {
       position: fixed; top: -10vh; left: -10vw; width: 120vw; height: 120vh;
       object-fit: cover; background-color: var(--bg-dark);
@@ -156,19 +156,22 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 完美修正封面尺寸：取消強制 1:1 填滿，改用彈性高度與 max-height，讓圖片以正常原始比例完整呈現 */
+    /* 封面與影片區塊調整：
+       - 圖片維持正常大小比例 (contain)，不會被過度放大塞滿。
+       - 影片採用 cover 填滿整個框，絕不留黑邊。
+    */
     .cover-box { 
-      width: 100%; max-height: 32vh; border-radius: 16px; 
+      width: 100%; height: 260px; border-radius: 16px; 
       overflow: hidden; background: #0c0c10; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
     }
     .cover-box img { 
-      max-width: 100%; max-height: 32vh; width: auto; height: auto; 
+      max-width: 100%; max-height: 260px; width: auto; height: auto; 
       object-fit: contain; display: none; position: relative; border-radius: 12px;
     }
     .cover-box video { 
-      width: 100%; max-height: 32vh; object-fit: cover; display: none; position: relative; border-radius: 12px;
+      width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; left: 0; border-radius: 12px;
     }
     
     .album-tag { font-size: 0.82rem; color: var(--text-sub); text-align: center; margin-bottom: 4px; font-weight: 500; }
@@ -481,17 +484,29 @@
     let imgHeight = source.videoHeight || source.height;
     if (!imgWidth || !imgHeight) return;
 
-    let hRatio = size / imgWidth;
-    let vRatio = size / imgHeight;
-    let ratio = Math.min(hRatio, vRatio);
-    let centerShiftX = (size - imgWidth * ratio) / 2;
-    let centerShiftY = (size - imgHeight * ratio) / 2;
-
-    ctx.save();
-    ctx.fillStyle = "#0c0c10";
-    ctx.fillRect(0, 0, size, size);
-    ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    ctx.restore();
+    if (source.tagName === 'VIDEO') {
+      let hRatio = size / imgWidth;
+      let vRatio = size / imgHeight;
+      let ratio = Math.max(hRatio, vRatio);
+      let centerShiftX = (size - imgWidth * ratio) / 2;
+      let centerShiftY = (size - imgHeight * ratio) / 2;
+      ctx.save();
+      ctx.fillStyle = "#0c0c10";
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
+      ctx.restore();
+    } else {
+      let hRatio = size / imgWidth;
+      let vRatio = size / imgHeight;
+      let ratio = Math.min(hRatio, vRatio);
+      let centerShiftX = (size - imgWidth * ratio) / 2;
+      let centerShiftY = (size - imgHeight * ratio) / 2;
+      ctx.save();
+      ctx.fillStyle = "#0c0c10";
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
+      ctx.restore();
+    }
   }
 
   async function enablePiP() {
@@ -514,7 +529,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V21", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V22", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
