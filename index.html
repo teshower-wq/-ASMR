@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>軟軟騷穴專用肉棒</title>
+  <title>ASMR 私人隨身庫 (內建啊嘿顏高潮互動解鎖)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -198,7 +198,6 @@
       border: 2px solid #ff3366;
     }
 
-    /* 滿載時封面與啊嘿顏圖片的中型晃動效果 */
     @keyframes mediumShake {
       0% { transform: translate(0, 0) rotate(0deg); }
       20% { transform: translate(-4px, 3px) rotate(-1.5deg); }
@@ -221,7 +220,6 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 特殊動畫與啊嘿顏彈出圖層 */
     .orgasm-overlay-img {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -396,7 +394,6 @@
 
   <div id="admin-drawer" class="admin-drawer">
     
-    <!-- 新增：啊嘿顏高潮互動設定專區 -->
     <div class="glass-card" style="border: 1px solid rgba(255, 51, 102, 0.4); background: rgba(30, 10, 20, 0.85);">
       <div class="card-title" style="color: #ff3366;">🔥 🌸 啊嘿顏高潮互動設定 (特殊動畫與高潮音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
@@ -510,7 +507,6 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <!-- 滿載啊嘿顏彈出特寫圖層 -->
     <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
 
     <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
@@ -619,7 +615,6 @@
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
 
-  // 啊嘿顏高潮互動設定變數
   let orgasmToggle = "on";
   let customOrgasmImgBlob = null;
   let customOrgasmAudioBlob = null;
@@ -629,7 +624,7 @@
   let fillCycleCount = 0;         
   let flashEndTime = 0;           
   let isPermanentlyFull = false;  
-  let lastTriggeredCycle = -1;    // 用於記錄哪一次循環已經觸發過動畫/音效
+  let lastTriggeredCycle = -1;
 
   function initAudioContextForHeart() {
     if (isAudioContextInitialized) return;
@@ -951,19 +946,16 @@
   function triggerOrgasmEffects() {
     if (orgasmToggle === "off") return;
 
-    // 1. 播放高潮音效
     if (customOrgasmAudioBlob) {
       orgasmAudio.src = customOrgasmAudioUrl;
       orgasmAudio.currentTime = 0;
       orgasmAudio.play().catch(e => console.log("高潮音效播放受阻:", e));
     }
 
-    // 2. 顯示自定義啊嘿顏 / 特殊高潮動畫圖層
     const overlayImg = document.getElementById("orgasm-overlay-img");
     if (customOrgasmImgBlob && customOrgasmImgUrl) {
       overlayImg.src = customOrgasmImgUrl;
       overlayImg.style.display = "block";
-      // 5秒後自動隱藏特寫圖層
       setTimeout(() => {
         if (overlayImg) overlayImg.style.display = "none";
       }, 5000);
@@ -1034,7 +1026,6 @@
           heartEnergy = 30;
           fillCycleCount++; 
 
-          // 每次填滿時觸發啊嘿顏特效與音效
           if (fillCycleCount !== lastTriggeredCycle) {
             lastTriggeredCycle = fillCycleCount;
             triggerOrgasmEffects();
@@ -1978,7 +1969,6 @@
         
         if (data.albums) {
           let store = tx.objectStore("albums");
-          data.albums.exports = true;
           data.albums.forEach(item => store.put(item));
         }
         if (data.tracks) {
