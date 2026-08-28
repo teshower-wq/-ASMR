@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
+  <title>ASMR 私人隨身庫 (動態影音與MP3雙專區極速優化版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -124,6 +124,9 @@
     .album-grid-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .album-grid-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .album-grid-count { font-size: 0.85rem; color: var(--primary-pink); font-weight: 600; }
+    .album-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; margin-top: 4px; font-weight: 700; }
+    .badge-mp3 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .badge-mp4 { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.4); }
     
     .btn-action-col { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; z-index: 2; }
     .btn-album-action {
@@ -282,6 +285,11 @@
       color: var(--primary-pink); padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; text-align: center;
       box-shadow: 0 4px 15px rgba(255, 121, 198, 0.15);
     }
+    .btn-fullscreen {
+      flex: 1; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; text-align: center;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+    }
 
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 64px;
@@ -326,9 +334,9 @@
     </div>
 
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
-      <div class="card-title" style="color: #ff1493;">🎀 自訂高潮特效 (圖片 + 音效)</div>
+      <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        設定後，觸發高潮時將自動暫停主音樂，顯示專屬特效圖片並播放此音效。結束後自動恢復原本的播放進度！
+        設定後，在「動態影音專區」觸發高潮時將自動暫停主音樂，顯示專屬特效圖片並播放此音效。結束後自動恢復！
       </div>
       <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
       <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
@@ -342,9 +350,16 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (封面手動切換)</div>
-      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女"></div>
-      <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
+      <div class="card-title">📁 建立作品分區 (支援 MP3 輕量專區與 MP4 動態影音專區)</div>
+      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
+      <div class="form-group">
+        <label>分區類型選擇</label>
+        <select id="album-type">
+          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、無愛心特效與卡頓)</option>
+          <option value="mp4">🌸 動態影音 MP4 專區 (影片封面來回循環 + 粉紅字幕 + 愛心小遊戲)</option>
+        </select>
+      </div>
+      <div class="form-group"><label>封面素材 (MP4 專區請放入影片，將自動進行來回循環播放)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
@@ -448,11 +463,11 @@
 
   <div class="bottom-tools">
     <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP)</button>
+    <button class="btn-fullscreen" onclick="toggleFullScreen()">🔲 全螢幕模式</button>
   </div>
 </div>
 
 <video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
-<!-- 關鍵修復：加入 playsinline 保證 iOS 不會強制全螢幕或阻擋背景音訊 -->
 <audio id="main-audio" crossorigin="anonymous" playsinline preload="auto"></audio>
 <audio id="climax-audio-el" crossorigin="anonymous" playsinline preload="auto"></audio>
 
@@ -480,6 +495,7 @@
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
   let isPowerSavingCover = false;
+  let currentAlbumType = 'mp3'; // 'mp3' or 'mp4'
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -489,21 +505,19 @@
   const itemsPerPage = 4;
   let activeCreatedUrls = [];
 
-  // Web Audio 愛心頻譜監測變數
+  // Web Audio 變數 (僅在 MP4 動態影音專區啟用，保護 MP3 專區輕量不卡死)
   let audioCtx = null;
   let analyser = null;
   let audioSourceNode = null;
-  let climaxAudioSourceNode = null; // 關鍵修復：統一音訊引擎
+  let climaxAudioSourceNode = null;
   let heartFillPercent = 0;
   let isClimaxState = false;
   let climaxResetTimer = null;
   
-  // 自訂高潮特效資料
   window.customClimaxData = null;
 
-  // 降頻與節流變數
   let lastPiPRenderTime = 0;
-  const PIP_FPS = 30; // 關鍵修復：從 20 升級到 30 FPS，確保 iOS 懸浮視窗渲染更穩定
+  const PIP_FPS = 30;
   const PIP_INTERVAL = 1000 / PIP_FPS;
 
   let lastAudioAnalyzeTime = 0;
@@ -581,7 +595,6 @@
     touchCurrentY = 0;
   });
 
-  // 懸浮窗暫停事件攔截
   pipVideo.addEventListener('pause', () => {
     if (!audio.paused && !isClimaxState) {
       audio.pause();
@@ -597,8 +610,8 @@
     }
   });
 
-  // 關鍵修復：確保兩個音訊都在同一個 AudioContext 下運作
   function initAudioAnalysis() {
+    if (currentAlbumType !== 'mp4') return; // MP3 專區不啟用頻譜分析，徹底杜絕懸浮無聲與卡死
     if (audioCtx) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       return;
@@ -609,12 +622,10 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
       
-      // 連接主音訊
       audioSourceNode = audioCtx.createMediaElementSource(audio);
       audioSourceNode.connect(analyser);
       analyser.connect(audioCtx.destination);
 
-      // 連接高潮音訊，使其納入相同的系統音訊通道中
       climaxAudioSourceNode = audioCtx.createMediaElementSource(climaxAudioEl);
       climaxAudioSourceNode.connect(audioCtx.destination);
       
@@ -626,6 +637,7 @@
 
   function analyzeAudioFrame(timestamp) {
     requestAnimationFrame(analyzeAudioFrame);
+    if (currentAlbumType !== 'mp4') return;
     if (timestamp - lastAudioAnalyzeTime < AUDIO_INTERVAL) return;
     lastAudioAnalyzeTime = timestamp;
 
@@ -669,9 +681,8 @@
     }
   }
 
-  // ★ 升級版高潮觸發邏輯 (徹底解決懸浮窗當機、聲音消失的問題) ★
   async function triggerClimaxEffect() {
-    if (isClimaxState) return;
+    if (currentAlbumType !== 'mp4' || isClimaxState) return;
     isClimaxState = true;
     heartFillPercent = 100;
     updateHeartDisplay();
@@ -684,27 +695,19 @@
     if (coverBox) coverBox.classList.add("cover-climax-shake-pink");
 
     if (window.customClimaxData && window.customClimaxData.audioBlob && window.customClimaxData.imgBlob) {
-      
-      // 確保素材已綁定 (作為最後防線)
       if (!climaxAudioEl.src) climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
 
-      // 1. 顯示高潮特效圖片
       climaxOverlay.src = URL.createObjectURL(window.customClimaxData.imgBlob);
       climaxOverlay.style.display = "block";
 
       try {
-        // 關鍵修復：先強制從頭開始播放特效音效
         climaxAudioEl.currentTime = 0;
         await climaxAudioEl.play();
-
-        // 關鍵修復：等新音效成功播放後，再暫停主音樂。這樣 iOS 會認為是「音訊無縫切換」，就不會強制把懸浮桌面關閉或靜音！
         if (!audio.paused) {
           audio.pause();
           document.getElementById("btn-play").innerText = "▶";
         }
       } catch (e) {
-        console.warn("iOS 阻擋了自動播放特效音：", e);
-        // 若遭系統極端阻擋，優雅結束狀態，保住原本音樂
         endClimax(climaxOverlay, heartEl, coverBox);
         return;
       }
@@ -713,7 +716,6 @@
         endClimax(climaxOverlay, heartEl, coverBox);
       };
     } else {
-      // 若無自訂素材，使用預設 10 秒動畫
       if (climaxResetTimer) clearTimeout(climaxResetTimer);
       climaxResetTimer = setTimeout(() => {
         endClimax(null, heartEl, coverBox);
@@ -734,7 +736,6 @@
       climaxOverlay.src = "";
     }
 
-    // 恢復播放主音樂
     if (currentIndex !== -1 && audio.paused) {
       let playPromise = audio.play();
       if(playPromise !== undefined) {
@@ -747,12 +748,12 @@
   }
 
   function triggerInstantOrgasm() {
+    if (currentAlbumType !== 'mp4') return;
     if (climaxResetTimer) clearTimeout(climaxResetTimer);
     isClimaxState = false;
     triggerClimaxEffect();
   }
 
-  // 自訂高潮特效儲存
   async function saveClimaxSettings() {
     const imgInput = document.getElementById("climax-img-input");
     const audioInput = document.getElementById("climax-audio-input");
@@ -768,10 +769,9 @@
     
     tx.oncomplete = () => {
       window.customClimaxData = climaxData;
-      // 重置並預載音效
       climaxAudioEl.src = URL.createObjectURL(audioBlob);
       climaxAudioEl.load();
-      alert("✅ 自訂高潮特效素材儲存成功！");
+      alert("✅ 動態影音專區自訂高潮特效素材儲存成功！");
       imgInput.value = "";
       audioInput.value = "";
     };
@@ -799,21 +799,14 @@
     try {
       let sw = isVideo ? element.videoWidth : element.naturalWidth;
       let sh = isVideo ? element.videoHeight : element.naturalHeight;
-      if (!sw || !sh) {
-        sw = size;
-        sh = size;
-      }
+      if (!sw || !sh) { sw = size; sh = size; }
       let aspect = sw / sh;
       let dw = size, dh = size;
       let dx = 0, dy = 0;
       if (aspect > 1) {
-        dw = size * aspect;
-        dh = size;
-        dx = (size - dw) / 2;
+        dw = size * aspect; dh = size; dx = (size - dw) / 2;
       } else {
-        dw = size;
-        dh = size / aspect;
-        dy = (size - dh) / 2;
+        dw = size; dh = size / aspect; dy = (size - dh) / 2;
       }
       ctx.drawImage(element, dx, dy, dw, dh);
     } catch(e) {}
@@ -838,10 +831,8 @@
 
           const climaxOverlay = document.getElementById("climax-overlay-img");
           if (isClimaxState && climaxOverlay && climaxOverlay.style.display === "block") {
-            // 高潮狀態下繪製特效圖
             drawCoverToCanvas(pipCtx, climaxOverlay, 1080, false);
           } else if (cachedCoverElement) {
-            // 一般狀態下繪製封面
             if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
               cachedCoverElement.play().catch(() => {});
             }
@@ -901,17 +892,19 @@
   async function enablePiP() {
     if (currentIndex === -1) return alert("請先播放一個篇章才能開啟桌面懸浮窗！");
     
-    // 關鍵修復：在開啟懸浮窗的同時，靜默喚醒特效音頻，突破 iOS 阻擋
     unlockAutoplayConstraints();
-    initAudioAnalysis();
+    if (currentAlbumType === 'mp4') {
+      initAudioAnalysis();
+      initPiPEngine();
+    }
 
     if (audio.paused && !isClimaxState) {
       await audio.play().catch(() => {});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
-    initPiPEngine();
-    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) {
+
+    if (currentAlbumType === 'mp4' && cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) {
       cachedCoverElement.play().catch(() => {});
     }
     
@@ -920,12 +913,22 @@
       else await document.exitPictureInPicture();
     } catch (err) {
       setTimeout(async () => {
-        try { await pipVideo.requestPictureInPicture(); } catch(e) { alert("無法啟用懸浮視窗，請確認手機瀏覽器支援 PiP。"); }
+        try { await pipVideo.requestPictureInPicture(); } catch(e) { alert("無法啟用懸浮視窗，請確認瀏覽器支援 PiP。"); }
       }, 200);
     }
   }
 
-  // 靜默喚醒機制 (Silent Unlock)：強制向 iOS 宣告這段音效是由使用者親自點擊的
+  function toggleFullScreen() {
+    const elem = document.documentElement;
+    if (!document.fullscreenElement) {
+      elem.requestFullscreen().catch(err => {
+        alert("無法進入全螢幕模式： " + err.message);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
   function unlockAutoplayConstraints() {
     if (window.customClimaxData && window.customClimaxData.audioBlob && climaxAudioEl.paused) {
       if (!climaxAudioEl.src) climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
@@ -938,7 +941,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V30", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V31", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -995,7 +998,6 @@
     tx.objectStore("settings").get("climaxCustomData").onsuccess = (e) => {
       if (e.target.result) {
         window.customClimaxData = e.target.result;
-        // 開局就預載，幫助 iOS 放行
         if (!climaxAudioEl.src && window.customClimaxData.audioBlob) {
            climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
         }
@@ -1026,7 +1028,7 @@
     albums.forEach(a => {
       let opt = document.createElement("option");
       opt.value = a.id;
-      opt.innerText = a.title;
+      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? '動態影音MP4' : '純音訊MP3'}]`;
       sel.appendChild(opt);
     });
   }
@@ -1109,6 +1111,7 @@
 
   async function createAlbum() {
     const title = document.getElementById("album-title").value.trim();
+    const albumType = document.getElementById("album-type").value;
     const coverInput = document.getElementById("album-covers");
     const bgInput = document.getElementById("album-bgs");
     if (!title) return alert("請填寫分區名稱！");
@@ -1119,13 +1122,13 @@
     for (let f of bgInput.files) bgBlobs.push(f);
 
     const tx = db.transaction("albums", "readwrite");
-    tx.objectStore("albums").add({ title, covers: coverBlobs, backgrounds: bgBlobs });
+    tx.objectStore("albums").add({ title, albumType, covers: coverBlobs, backgrounds: bgBlobs });
     tx.oncomplete = () => {
       document.getElementById("album-title").value = "";
       coverInput.value = "";
       bgInput.value = "";
       loadData();
-      alert("✅ 作品分區建立成功！");
+      alert(`✅ ${albumType === 'mp4' ? '動態影音 MP4 專區' : '純音訊 MP3 專區'} 建立成功！`);
     };
   }
 
@@ -1154,6 +1157,10 @@
         thumbUrl = createTrackedObjectURL(album.covers[0]);
       }
 
+      let typeBadge = album.albumType === 'mp4' 
+        ? '<span class="album-badge badge-mp4">🌸 動態影音 MP4 專區</span>' 
+        : '<span class="album-badge badge-mp3">🎵 純音訊 MP3 專區</span>';
+
       let card = document.createElement("div");
       card.className = "album-grid-card";
       card.innerHTML = `
@@ -1161,6 +1168,7 @@
         <div class="album-grid-info">
           <div class="album-grid-title">${escapeHTML(album.title)}</div>
           <div class="album-grid-count">📁 篇章數量：${albumTracks.length} 則</div>
+          ${typeBadge}
         </div>
         <div class="btn-action-col">
           <button class="btn-album-action" onclick="event.stopPropagation(); switchPage('detail', ${album.id})">開啟</button>
@@ -1203,7 +1211,7 @@
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
-    document.getElementById("detail-album-title").innerText = album.title;
+    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? '動態影音MP4' : '純音訊MP3'}]`;
 
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
@@ -1244,10 +1252,7 @@
     let isLrcFormat = false;
 
     for (let line of lines) {
-      if (lrcTimeReg.test(line)) {
-        isLrcFormat = true;
-        break;
-      }
+      if (lrcTimeReg.test(line)) { isLrcFormat = true; break; }
     }
 
     if (isLrcFormat) {
@@ -1322,17 +1327,10 @@
     let title = titleInput || audioFile.name.replace(/\.[^/.]+$/, "");
     let lrcText = "";
 
-    if (lrcFile) {
-      lrcText = await lrcFile.text();
-    }
+    if (lrcFile) lrcText = await lrcFile.text();
 
     const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").add({
-      albumId,
-      title,
-      audioBlob: audioFile,
-      lrcText
-    });
+    tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
     tx.oncomplete = () => {
       document.getElementById("track-title-input").value = "";
       audioInput.value = "";
@@ -1344,10 +1342,7 @@
 
   function readFileAsTextAsync(file) {
     return new Promise((resolve) => {
-      if (!file) {
-        resolve("");
-        return;
-      }
+      if (!file) { resolve(""); return; }
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result || "");
       reader.onerror = () => resolve("");
@@ -1390,16 +1385,9 @@
           return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
         });
 
-        if (found) {
-          matchedLrcText = found.text;
-        }
+        if (found) matchedLrcText = found.text;
 
-        store.add({
-          albumId,
-          title: baseName,
-          audioBlob: audioFile,
-          lrcText: matchedLrcText
-        });
+        store.add({ albumId, title: baseName, audioBlob: audioFile, lrcText: matchedLrcText });
       }
 
       tx.oncomplete = () => {
@@ -1411,15 +1399,15 @@
         alert(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對字幕！`);
       };
 
-      tx.onerror = (err) => {
+      tx.onerror = () => {
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        alert("❌ 批量匯入寫入資料庫失敗，可能是檔案過大或容量不足。");
+        alert("❌ 批量匯入寫入資料庫失敗。");
       };
     } catch(e) {
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      alert("❌ 發生未預期的錯誤，請重新整理頁面後再試。");
+      alert("❌ 發生未預期的錯誤。");
     }
   }
 
@@ -1444,6 +1432,11 @@
 
   function playTrackFromAlbum(albumId, index) {
     unlockAutoplayConstraints();
+    const album = albums.find(a => a.id === albumId);
+    if (!album) return;
+
+    currentAlbumType = album.albumType || 'mp3';
+
     const albumTracks = tracks.filter(t => t.albumId === albumId);
     if (!albumTracks.length) return;
     currentTrackList = albumTracks;
@@ -1451,10 +1444,9 @@
     currentPlayingAlbumId = albumId;
 
     const track = currentTrackList[currentIndex];
-    const album = albums.find(a => a.id === albumId);
 
     isCustomAlbumPlaying = true;
-    if (album && album.backgrounds && album.backgrounds.length > 0) {
+    if (album.backgrounds && album.backgrounds.length > 0) {
       currentAlbumBgBlobs = album.backgrounds;
       albumBgIndex = 0;
       applyAlbumBackground(currentAlbumBgBlobs, albumBgIndex);
@@ -1474,34 +1466,41 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     let overlay = document.getElementById("climax-overlay-img");
+    
+    // 依據專區動態顯示或隱藏愛心互動小遊戲容器
+    let heartHtml = '';
+    if (currentAlbumType === 'mp4') {
+      heartHtml = `
+        <div class="heart-toy-container ${isClimaxState ? 'heart-full-beat' : ''}" id="heart-toy" onclick="triggerInstantOrgasm()" title="點擊一鍵高潮">
+          <svg class="heart-svg" viewBox="0 0 32 32">
+            <defs>
+              <linearGradient id="heart-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#ff1493" />
+                <stop offset="100%" stop-color="#ff79c6" />
+              </linearGradient>
+              <clipPath id="heart-clip">
+                <rect id="heart-clip-rect" x="0" y="32" width="32" height="0" />
+              </clipPath>
+            </defs>
+            <path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+            <path class="heart-fill" clip-path="url(#heart-clip)" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+          </svg>
+        </div>
+      `;
+    }
+
     box.innerHTML = `
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
-      <div class="heart-toy-container ${isClimaxState ? 'heart-full-beat' : ''}" id="heart-toy" onclick="triggerInstantOrgasm()" title="點擊一鍵高潮">
-        <svg class="heart-svg" viewBox="0 0 32 32">
-          <defs>
-            <linearGradient id="heart-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#ff1493" />
-              <stop offset="100%" stop-color="#ff79c6" />
-            </linearGradient>
-            <clipPath id="heart-clip">
-              <rect id="heart-clip-rect" x="0" y="32" width="32" height="0" />
-            </clipPath>
-          </defs>
-          <path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
-          <path class="heart-fill" clip-path="url(#heart-clip)" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
-        </svg>
-      </div>
+      ${heartHtml}
     `;
     box.appendChild(overlay);
 
     coverElements = [];
     cachedCoverElement = null;
 
-    if (isClimaxState) {
-      box.classList.add("cover-climax-shake-pink");
-    }
+    if (isClimaxState) box.classList.add("cover-climax-shake-pink");
 
     if (!activeAlbumCoverBlobs.length) {
       let img = document.createElement("img");
@@ -1512,7 +1511,7 @@
       cachedCoverElement = img;
       isCoverVideoActive = false;
       document.getElementById("cover-indicator").innerText = "1 / 1";
-      updateHeartDisplay();
+      if (currentAlbumType === 'mp4') updateHeartDisplay();
       return;
     }
 
@@ -1521,10 +1520,13 @@
       if (blob.type.startsWith("video")) {
         let vid = document.createElement("video");
         vid.src = url;
-        vid.muted = true;
-        vid.loop = true;
+        vid.muted = true; // 強制將影片本身聲音設為靜音，只播放篇章音樂
         vid.playsInline = true;
         vid.style.display = (i === 0) ? "block" : "none";
+        
+        // 🌸 MP4 專區專屬：來回循環 (Ping-Pong Loop) 機制
+        setupPingPongVideo(vid);
+
         box.appendChild(vid);
         coverElements.push(vid);
         if (i === 0) {
@@ -1545,7 +1547,31 @@
       }
     });
     updateCoverDisplay();
-    updateHeartDisplay();
+    if (currentAlbumType === 'mp4') updateHeartDisplay();
+  }
+
+  // 跨平臺完美的影片來回循環 (Ping-Pong) 實現函數
+  function setupPingPongVideo(vid) {
+    let isReversing = false;
+    vid.addEventListener('timeupdate', () => {
+      if (!vid.duration) return;
+      if (!isReversing && vid.currentTime >= vid.duration - 0.15) {
+        isReversing = true;
+        vid.pause();
+        let t = vid.duration;
+        let revTimer = setInterval(() => {
+          t -= 0.08;
+          if (t <= 0) {
+            clearInterval(revTimer);
+            vid.currentTime = 0;
+            isReversing = false;
+            vid.play().catch(()=>{});
+          } else {
+            vid.currentTime = t;
+          }
+        }, 50);
+      }
+    });
   }
 
   function updateCoverDisplay() {
@@ -1556,11 +1582,8 @@
         cachedCoverElement = el;
         isCoverVideoActive = (el.tagName === 'VIDEO');
         if (el.tagName === 'VIDEO') {
-          if (isPowerSavingCover) {
-            el.pause();
-          } else {
-            el.play().catch(()=>{});
-          }
+          if (isPowerSavingCover) el.pause();
+          else el.play().catch(()=>{});
         }
       } else {
         el.style.display = "none";
@@ -1583,7 +1606,9 @@
   }
 
   function loadAndPlayCurrentTrack(track, album) {
-    initAudioAnalysis();
+    if (currentAlbumType === 'mp4') {
+      initAudioAnalysis();
+    }
 
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
@@ -1594,7 +1619,7 @@
 
     currentLrc = parseUniversalLyrics(track.lrcText);
 
-    document.getElementById("album-tag").innerText = album ? `📁 ${album.title}` : "📁 ASMR 隨身庫";
+    document.getElementById("album-tag").innerText = album ? `📁 ${album.title} [${album.albumType === 'mp4' ? '動態影音MP4' : '純音訊MP3'}]` : "📁 ASMR 隨身庫";
     document.getElementById("mini-title").innerText = track.title;
     document.getElementById("mini-player").classList.remove("hidden");
 
@@ -1645,7 +1670,7 @@
   function togglePlay() {
     if (currentIndex === -1) return;
     unlockAutoplayConstraints();
-    initAudioAnalysis();
+    if (currentAlbumType === 'mp4') initAudioAnalysis();
 
     if (isClimaxState) {
       if (climaxAudioEl.paused) {
@@ -1798,15 +1823,9 @@
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
     let backupData = { albums: [], tracks: [], settings: [] };
 
-    tx.objectStore("albums").getAll().onsuccess = (e) => {
-      backupData.albums = e.target.result;
-    };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => {
-      backupData.tracks = e.target.result;
-    };
-    tx.objectStore("settings").getAll().onsuccess = (e) => {
-      backupData.settings = e.target.result;
-    };
+    tx.objectStore("albums").getAll().onsuccess = (e) => { backupData.albums = e.target.result; };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => { backupData.tracks = e.target.result; };
+    tx.objectStore("settings").getAll().onsuccess = (e) => { backupData.settings = e.target.result; };
 
     tx.oncomplete = () => {
       const blob = new Blob([JSON.stringify(backupData)], { type: "application/json" });
@@ -1830,25 +1849,16 @@
         const data = JSON.parse(e.target.result);
         const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
         
-        if (data.albums) {
-          let store = tx.objectStore("albums");
-          data.albums.forEach(item => store.put(item));
-        }
-        if (data.tracks) {
-          let store = tx.objectStore("tracks");
-          data.tracks.forEach(item => store.put(item));
-        }
-        if (data.settings) {
-          let store = tx.objectStore("settings");
-          data.settings.forEach(item => store.put(item));
-        }
+        if (data.albums) { let store = tx.objectStore("albums"); data.albums.forEach(item => store.put(item)); }
+        if (data.tracks) { let store = tx.objectStore("tracks"); data.tracks.forEach(item => store.put(item)); }
+        if (data.settings) { let store = tx.objectStore("settings"); data.settings.forEach(item => store.put(item)); }
 
         tx.oncomplete = () => {
           loadData();
           alert("✅ 跨裝置備份還原成功！");
         };
       } catch (err) {
-        alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
+        alert("❌ 備份檔案解析失敗。");
       }
     };
     reader.readAsText(file);
