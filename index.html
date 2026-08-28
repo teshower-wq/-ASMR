@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (內建高潮上癮愛心能量槽)</title>
+  <title>軟軟騷穴專用肉棒</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -64,7 +64,7 @@
     .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
     .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
-    .admin-drawer.open { max-height: 3500px; }
+    .admin-drawer.open { max-height: 3800px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -198,6 +198,20 @@
       border: 2px solid #ff3366;
     }
 
+    /* 滿載時封面與啊嘿顏圖片的中型晃動效果 */
+    @keyframes mediumShake {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      20% { transform: translate(-4px, 3px) rotate(-1.5deg); }
+      40% { transform: translate(4px, -3px) rotate(1.5deg); }
+      60% { transform: translate(-3px, -2px) rotate(-1deg); }
+      80% { transform: translate(3px, 2px) rotate(1deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    .cover-box.is-shaking {
+      animation: mediumShake 0.35s infinite ease-in-out;
+    }
+
     .cover-box img { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
@@ -205,6 +219,23 @@
     .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; 
       position: absolute; top: 0; left: 0; border-radius: 12px;
+    }
+
+    /* 特殊動畫與啊嘿顏彈出圖層 */
+    .orgasm-overlay-img {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 5;
+      display: none;
+      border-radius: 12px;
+      pointer-events: none;
+      animation: orgasmZoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes orgasmZoomIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
     }
 
     .heart-toy {
@@ -264,7 +295,6 @@
       50% { transform: scale(1.18); }
     }
 
-    /* 前三次滿載閃爍 5 秒的特效樣式 */
     .heart-toy.is-flashing {
       border-color: #ff3366;
       box-shadow: 0 0 25px rgba(255, 51, 102, 0.8);
@@ -274,7 +304,6 @@
       animation: pinkFlash 0.4s infinite alternate;
     }
 
-    /* 第四次滿載永久鎖定高潮的特效樣式 */
     .heart-toy.is-orgasm-lock {
       border-color: #ff0055;
       box-shadow: 0 0 35px rgba(255, 0, 85, 0.95), inset 0 0 15px rgba(255, 121, 198, 0.8);
@@ -366,6 +395,31 @@
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
+    
+    <!-- 新增：啊嘿顏高潮互動設定專區 -->
+    <div class="glass-card" style="border: 1px solid rgba(255, 51, 102, 0.4); background: rgba(30, 10, 20, 0.85);">
+      <div class="card-title" style="color: #ff3366;">🔥 🌸 啊嘿顏高潮互動設定 (特殊動畫與高潮音效)</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        當愛心累積填滿時，將自動觸發專屬的「啊嘿顏特殊動畫」、「封面與畫面中型晃動 5 秒」以及播放你自定義的高潮音效！
+      </div>
+      <div class="form-group">
+        <label>🎯 開啟/關閉 高潮啊嘿顏特效互動</label>
+        <select id="setting-orgasm-toggle" onchange="saveOrgasmSettings()">
+          <option value="on">✨ 開啟啊嘿顏高潮互動特效</option>
+          <option value="off">🔒 關閉特效</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>🖼️ 上傳自定義「啊嘿顏/高潮爆發」特殊動畫圖片 (.png / .jpg / .gif)</label>
+        <input type="file" id="orgasm-img-input" accept="image/*" onchange="saveOrgasmImage(event)">
+      </div>
+      <div class="form-group">
+        <label>🔊 上傳自定義「高潮爽感/嬌喘」音效檔案 (.mp3 / .wav)</label>
+        <input type="file" id="orgasm-audio-input" accept="audio/*" onchange="saveOrgasmAudio(event)">
+      </div>
+      <div style="font-size: 0.8rem; color: #50fa7b; margin-top: 4px;" id="orgasm-status-tip">狀態：尚未自定義素材（將使用內建標準反饋）</div>
+    </div>
+
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
@@ -456,6 +510,9 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
+    <!-- 滿載啊嘿顏彈出特寫圖層 -->
+    <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
+
     <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
@@ -511,6 +568,7 @@
 
 <video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
+<audio id="orgasm-audio" preload="auto"></audio>
 
 <script>
   let db;
@@ -546,6 +604,7 @@
   let activeCreatedUrls = [];
 
   const audio = document.getElementById("main-audio");
+  const orgasmAudio = document.getElementById("orgasm-audio");
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
   const pipVideo = document.getElementById("pip-video");
@@ -560,10 +619,17 @@
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
 
-  // 愛心能量循環與高潮上癮機制變數
-  let fillCycleCount = 0;         // 記錄已被填滿幾次
-  let flashEndTime = 0;           // 前3次填滿時的 5 秒閃爍結束時間點
-  let isPermanentlyFull = false;  // 第四次滿載後是否永久鎖定
+  // 啊嘿顏高潮互動設定變數
+  let orgasmToggle = "on";
+  let customOrgasmImgBlob = null;
+  let customOrgasmAudioBlob = null;
+  let customOrgasmImgUrl = "";
+  let customOrgasmAudioUrl = "";
+
+  let fillCycleCount = 0;         
+  let flashEndTime = 0;           
+  let isPermanentlyFull = false;  
+  let lastTriggeredCycle = -1;    // 用於記錄哪一次循環已經觸發過動畫/音效
 
   function initAudioContextForHeart() {
     if (isAudioContextInitialized) return;
@@ -845,7 +911,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V34", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V35", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -882,13 +948,34 @@
     requestAnimationFrame(updateHeartToy);
   });
 
+  function triggerOrgasmEffects() {
+    if (orgasmToggle === "off") return;
+
+    // 1. 播放高潮音效
+    if (customOrgasmAudioBlob) {
+      orgasmAudio.src = customOrgasmAudioUrl;
+      orgasmAudio.currentTime = 0;
+      orgasmAudio.play().catch(e => console.log("高潮音效播放受阻:", e));
+    }
+
+    // 2. 顯示自定義啊嘿顏 / 特殊高潮動畫圖層
+    const overlayImg = document.getElementById("orgasm-overlay-img");
+    if (customOrgasmImgBlob && customOrgasmImgUrl) {
+      overlayImg.src = customOrgasmImgUrl;
+      overlayImg.style.display = "block";
+      // 5秒後自動隱藏特寫圖層
+      setTimeout(() => {
+        if (overlayImg) overlayImg.style.display = "none";
+      }, 5000);
+    }
+  }
+
   function updateHeartToy() {
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
     const coverBox = document.getElementById('player-cover-box');
     let now = Date.now();
 
-    // 如果已經是第四次滿載永久鎖定高潮狀態，直接固定滿格並保持極限高潮特效
     if (isPermanentlyFull) {
       heartEnergy = 30;
       if (clipRect) {
@@ -897,13 +984,15 @@
       }
       if (heartToy) {
         heartToy.className = "heart-toy is-orgasm-lock";
-        if (coverBox) coverBox.classList.add('is-full-pink-effect');
+        if (coverBox) {
+          coverBox.classList.add('is-full-pink-effect');
+          coverBox.classList.add('is-shaking');
+        }
       }
       requestAnimationFrame(updateHeartToy);
       return;
     }
 
-    // 判斷前3次填滿的 5 秒閃爍倒數中
     let isFlashingActive = (now < flashEndTime);
     if (isFlashingActive) {
       heartEnergy = 30;
@@ -913,18 +1002,20 @@
       }
       if (heartToy) {
         heartToy.className = "heart-toy is-flashing";
-        if (coverBox) coverBox.classList.add('is-full-pink-effect');
+        if (coverBox) {
+          coverBox.classList.add('is-full-pink-effect');
+          coverBox.classList.add('is-shaking');
+        }
       }
       requestAnimationFrame(updateHeartToy);
       return;
     } else {
-      // 閃爍結束後，如果是剛從前3次循環結束，自動歸零重新開始計算
+      if (coverBox) coverBox.classList.remove('is-shaking');
       if (fillCycleCount > 0 && fillCycleCount < 4 && heartEnergy >= 29.9) {
         heartEnergy = 0;
       }
     }
 
-    // 音訊播放中的累積邏輯（速度加快 50%：增幅係數乘以 1.5）
     if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
       
@@ -936,18 +1027,22 @@
       let avgVolume = sum / len;
 
       if (avgVolume > 3) {
-        let increment = (avgVolume / 128) * 0.018; // 速度提升 50% (原為 0.012)
+        let increment = (avgVolume / 128) * 0.018; 
         heartEnergy += increment;
         
         if (heartEnergy >= 30) {
           heartEnergy = 30;
-          fillCycleCount++; // 記錄填滿次數增加
+          fillCycleCount++; 
+
+          // 每次填滿時觸發啊嘿顏特效與音效
+          if (fillCycleCount !== lastTriggeredCycle) {
+            lastTriggeredCycle = fillCycleCount;
+            triggerOrgasmEffects();
+          }
 
           if (fillCycleCount >= 4) {
-            // 第四次填滿：永遠保持滿載，不重置
             isPermanentlyFull = true;
           } else {
-            // 前三次填滿：觸發 5 秒閃爍粉紅特效
             flashEndTime = Date.now() + 5000;
           }
         }
@@ -955,7 +1050,7 @@
       } else {
         silentFrameCounter++;
         if (silentFrameCounter > 300) {
-          heartEnergy -= 0.015; // 10秒無聲後緩慢下降
+          heartEnergy -= 0.015; 
         }
       }
     } else {
@@ -1006,6 +1101,71 @@
         startGlobalBgRotation();
       }
     };
+    tx.objectStore("settings").get("orgasmConfig").onsuccess = (e) => {
+      const res = e.target.result;
+      if (res) {
+        orgasmToggle = res.toggle || "on";
+        document.getElementById("setting-orgasm-toggle").value = orgasmToggle;
+        if (res.imgBlob) {
+          customOrgasmImgBlob = res.imgBlob;
+          customOrgasmImgUrl = createTrackedObjectURL(res.imgBlob);
+        }
+        if (res.audioBlob) {
+          customOrgasmAudioBlob = res.audioBlob;
+          customOrgasmAudioUrl = createTrackedObjectURL(res.audioBlob);
+        }
+        updateOrgasmStatusTip();
+      }
+    };
+  }
+
+  function saveOrgasmSettings() {
+    orgasmToggle = document.getElementById("setting-orgasm-toggle").value;
+    persistOrgasmConfig();
+  }
+
+  function saveOrgasmImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    customOrgasmImgBlob = file;
+    customOrgasmImgUrl = createTrackedObjectURL(file);
+    persistOrgasmConfig();
+    updateOrgasmStatusTip();
+    alert("✅ 啊嘿顏高潮特寫圖片設定成功！");
+  }
+
+  function saveOrgasmAudio(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    customOrgasmAudioBlob = file;
+    customOrgasmAudioUrl = createTrackedObjectURL(file);
+    persistOrgasmConfig();
+    updateOrgasmStatusTip();
+    alert("✅ 高潮爽感音效設定成功！");
+  }
+
+  function persistOrgasmConfig() {
+    const tx = db.transaction("settings", "readwrite");
+    tx.objectStore("settings").put({
+      key: "orgasmConfig",
+      toggle: orgasmToggle,
+      imgBlob: customOrgasmImgBlob,
+      audioBlob: customOrgasmAudioBlob
+    });
+  }
+
+  function updateOrgasmStatusTip() {
+    const tip = document.getElementById("orgasm-status-tip");
+    let parts = [];
+    if (customOrgasmImgBlob) parts.push("已載入自定義圖片");
+    if (customOrgasmAudioBlob) parts.push("已載入自定義音效");
+    if (parts.length > 0) {
+      tip.innerText = `狀態：${parts.join(" ｜ ")}`;
+      tip.style.color = "#ff79c6";
+    } else {
+      tip.innerText = "狀態：尚未自定義素材（將使用預設高潮互動）";
+      tip.style.color = "#50fa7b";
+    }
   }
 
   function toggleAdminDrawer() {
@@ -1480,6 +1640,7 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
+      <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
       <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
@@ -1817,6 +1978,7 @@
         
         if (data.albums) {
           let store = tx.objectStore("albums");
+          data.albums.exports = true;
           data.albums.forEach(item => store.put(item));
         }
         if (data.tracks) {
