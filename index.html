@@ -881,20 +881,21 @@
       }
       let avgVolume = sum / len;
 
-      if (avgVolume > 4) {
-        let increment = (avgVolume / 128) * 0.0035;
+      // [調整處] 將係數從 0.0035 提高到 0.008，使愛心累積判定更輕鬆
+      if (avgVolume > 3) {
+        let increment = (avgVolume / 128) * 0.008;
         heartEnergy += increment;
         if (heartEnergy > 30) heartEnergy = 30;
         silentTimer = 0; 
       } else {
         silentTimer++;
-        if (silentTimer > 20) {
-          heartEnergy -= 0.03;
+        if (silentTimer > 30) {
+          heartEnergy -= 0.02; // 放慢沒聲音時的消退速度
         }
       }
     } else {
       if (heartEnergy > 0) {
-        heartEnergy -= 0.06;
+        heartEnergy -= 0.05;
       }
     }
 
@@ -1789,4 +1790,3 @@
 </script>
 </body>
 </html>
-```[cite: 8]
