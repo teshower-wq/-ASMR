@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極致全方位超級大升級版)</title>
+  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
       --pink-glow: rgba(255, 121, 198, 0.45);
       --bg-dark: #07070a;
-      --card-glass: rgba(16, 16, 22, 0.88);
-      --card-glass-hover: rgba(24, 24, 34, 0.96);
+      --card-glass: rgba(16, 16, 22, 0.85);
+      --card-glass-hover: rgba(24, 24, 34, 0.94);
       --text-main: #ffffff;
       --text-sub: #9494ab;
       --border-glass: rgba(255, 255, 255, 0.08);
@@ -19,9 +19,7 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; padding: 16px; padding-bottom: 140px;
-      background: linear-gradient(135deg, #1a0d16 0%, #330b20 50%, #07070a 100%);
-      background-attachment: fixed;
-      color: var(--text-main);
+      background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
@@ -42,22 +40,20 @@
 
     #bg-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle, rgba(255,121,198,0.08) 0%, rgba(51,11,32,0.6) 50%, rgba(7,7,10,0.92) 100%);
+      background: radial-gradient(circle, rgba(7,7,10,0.3) 0%, rgba(7,7,10,0.88) 100%);
       z-index: -1; pointer-events: none;
     }
 
     .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
     .top-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
     .app-logo { font-size: 1.4rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 20px var(--pink-glow); cursor: pointer; letter-spacing: 0.5px; }
-    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    
+    .top-actions { display: flex; gap: 8px; }
     .btn-clean-mem {
       background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4);
       color: #50fa7b; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
       transition: all 0.25s ease; backdrop-filter: blur(10px);
     }
     .btn-clean-mem:hover { background: rgba(80, 250, 123, 0.3); box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
-
     .btn-toggle-admin {
       background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
       color: var(--primary-pink); padding: 10px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
@@ -66,7 +62,7 @@
     .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
     .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
-    .admin-drawer.open { max-height: 4500px; }
+    .admin-drawer.open { max-height: 3500px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -89,11 +85,11 @@
     }
 
     .btn-pink {
-      width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff3366 100%); color: #07070a; border: none;
+      width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); color: #07070a; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(255, 51, 102, 0.35); transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
-    .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 51, 102, 0.5); }
+    .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
 
     .btn-blue {
       width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
@@ -110,7 +106,6 @@
     .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
     .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .search-box-wrapper { margin-bottom: 16px; display: flex; gap: 8px; }
     .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -141,14 +136,8 @@
     }
 
     .breadcrumb-bar {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700;
-      color: var(--primary-pink); padding: 2px 0;
-    }
-    .breadcrumb-left { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-    .btn-play-all {
-      background: linear-gradient(135deg, #ff79c6 0%, #ff3366 100%); color: #07070a; border: none;
-      padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
-      box-shadow: 0 2px 10px rgba(255,51,102,0.3);
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700;
+      color: var(--primary-pink); cursor: pointer; padding: 2px 0;
     }
 
     .chapter-file-list { display: flex; flex-direction: column; gap: 8px; }
@@ -199,81 +188,45 @@
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
-      transition: box-shadow 0.3s ease;
+      transition: all 0.3s ease;
     }
-    
-    .cover-box.is-full-pink-effect {
-      box-shadow: 0 0 35px rgba(255, 51, 102, 0.9), inset 0 0 30px rgba(255, 121, 198, 0.7);
-      border: 2px solid #ff3366;
-    }
-
-    @keyframes mediumShake {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      20% { transform: translate(-4px, 3px) rotate(-1.5deg); }
-      40% { transform: translate(4px, -3px) rotate(1.5deg); }
-      60% { transform: translate(-3px, -2px) rotate(-1deg); }
-      80% { transform: translate(3px, 2px) rotate(1deg); }
-      100% { transform: translate(0, 0) rotate(0deg); }
-    }
-
-    .cover-box.is-shaking {
-      animation: mediumShake 0.35s infinite ease-in-out;
-    }
-
-    .cover-box img, .cover-box video { 
+    .cover-box img { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
     }
-
-    .orgasm-overlay-img {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      object-fit: cover;
-      z-index: 5;
-      display: none;
-      border-radius: 12px;
-      pointer-events: none;
-      animation: orgasmZoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    .cover-box video { 
+      width: 100%; height: 100%; object-fit: cover; display: none; 
+      position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
-    @keyframes orgasmZoomIn {
-      0% { opacity: 0; transform: scale(0.8); }
-      100% { opacity: 1; transform: scale(1); }
+    /* 愛心玩具特效專用樣式 */
+    .heart-toy-container {
+      position: absolute; top: 12px; right: 12px; width: 46px; height: 46px;
+      z-index: 30; cursor: pointer; user-select: none;
+      filter: drop-shadow(0 0 8px rgba(255, 121, 198, 0.8));
+      transition: transform 0.15s ease;
+    }
+    .heart-toy-container:active { transform: scale(1.2); }
+    .heart-svg { width: 100%; height: 100%; overflow: visible; }
+    .heart-bg { fill: rgba(10, 10, 16, 0.65); stroke: #ff79c6; stroke-width: 2.2; }
+    .heart-fill { fill: url(#heart-gradient); }
+    
+    .heart-full-beat {
+      animation: heartFullBeat 0.45s infinite alternate ease-in-out !important;
+    }
+    @keyframes heartFullBeat {
+      0% { transform: scale(1); filter: drop-shadow(0 0 10px #ff79c6); }
+      100% { transform: scale(1.35); filter: drop-shadow(0 0 25px #ff1493); }
     }
 
-    .heart-toy {
-      position: absolute; top: 16px; right: 16px; width: 88px; height: 88px;
-      background: rgba(10, 10, 15, 0.55); backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 121, 198, 0.3); border-radius: 50%;
-      display: flex; justify-content: center; align-items: center; z-index: 10;
-      cursor: pointer; transition: transform 0.2s ease, border-color 0.2s ease;
+    .cover-climax-pink {
+      animation: climaxPinkGlow 0.8s infinite alternate ease-in-out !important;
+      border: 2px solid #ff79c6 !important;
     }
-    .heart-toy:hover { transform: scale(1.08); border-color: var(--primary-pink); }
-
-    .heart-svg { width: 54px; height: 54px; overflow: visible; }
-    .heart-outline { fill: none; stroke: #ff79c6; stroke-width: 1.8; transition: stroke 0.2s ease; }
-    .heart-fill { fill: url(#heartGradient); filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.8)); }
-
-    @keyframes pinkFlash {
-      0%, 100% { filter: drop-shadow(0 0 6px #ff3366) drop-shadow(0 0 16px #ff6699); transform: scale(1); }
-      50% { filter: drop-shadow(0 0 14px #ff3366) drop-shadow(0 0 30px #ff99bb); transform: scale(1.10); }
+    @keyframes climaxPinkGlow {
+      0% { box-shadow: 0 0 15px rgba(255, 121, 198, 0.6), inset 0 0 20px rgba(255, 105, 180, 0.5); }
+      100% { box-shadow: 0 0 50px rgba(255, 20, 147, 1), inset 0 0 40px rgba(255, 20, 147, 0.85); }
     }
-    @keyframes heartBeatPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.18); }
-    }
-
-    .heart-toy.is-flashing {
-      border-color: #ff3366; box-shadow: 0 0 25px rgba(255, 51, 102, 0.8);
-      animation: heartBeatPulse 0.4s infinite ease-in-out;
-    }
-    .heart-toy.is-flashing .heart-svg { animation: pinkFlash 0.4s infinite alternate; }
-
-    .heart-toy.is-orgasm-lock {
-      border-color: #ff0055; box-shadow: 0 0 35px rgba(255, 0, 85, 0.95), inset 0 0 15px rgba(255, 121, 198, 0.8);
-      animation: heartBeatPulse 0.3s infinite ease-in-out;
-    }
-    .heart-toy.is-orgasm-lock .heart-svg { animation: pinkFlash 0.3s infinite alternate; }
 
     .btn-cover-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
@@ -357,30 +310,6 @@
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
-    
-    <div class="glass-card" style="border: 1px solid rgba(255, 51, 102, 0.4); background: rgba(30, 10, 20, 0.85);">
-      <div class="card-title" style="color: #ff3366;">🔥 🌸 啊嘿顏高潮互動設定 (特殊動畫與高潮音效)</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        當愛心累積填滿時，將自動觸發專屬的「啊嘿顏特殊動畫」、「封面與畫面中型晃動 5 秒」以及播放你自定義的高潮音效！
-      </div>
-      <div class="form-group">
-        <label>🎯 開啟/關閉 高潮啊嘿顏特效互動</label>
-        <select id="setting-orgasm-toggle" onchange="saveOrgasmSettings()">
-          <option value="on">✨ 開啟啊嘿顏高潮互動特效</option>
-          <option value="off">🔒 關閉特效</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>🖼️ 上傳自定義「啊嘿顏/高潮爆發」特殊動畫圖片 (.png / .jpg / .gif)</label>
-        <input type="file" id="orgasm-img-input" accept="image/*" onchange="saveOrgasmImage(event)">
-      </div>
-      <div class="form-group">
-        <label>🔊 上傳自定義「高潮爽感/嬌喘」音效檔案 (.mp3 / .wav)</label>
-        <input type="file" id="orgasm-audio-input" accept="audio/*" onchange="saveOrgasmAudio(event)">
-      </div>
-      <div style="font-size: 0.8rem; color: #50fa7b; margin-top: 4px;" id="orgasm-status-tip">狀態：尚未自定義素材（將使用內建標準反饋）</div>
-    </div>
-
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
@@ -440,9 +369,6 @@
   <div id="view-home" class="page-view active">
     <div class="glass-card">
       <div class="card-title">📚 選擇作品集</div>
-      <div class="search-box-wrapper">
-        <input type="text" id="home-search-input" placeholder="🔍 搜尋作品名稱..." oninput="handleHomeSearch(event)">
-      </div>
       <div id="album-list">載入中...</div>
       <div id="pagination-container"></div>
     </div>
@@ -450,14 +376,8 @@
 
   <div id="view-detail" class="page-view">
     <div class="glass-card">
-      <div class="breadcrumb-bar">
-        <div class="breadcrumb-left" onclick="switchPage('home')">
-          <span>⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
-        </div>
-        <button class="btn-play-all" onclick="playAllAlbumTracks()">▶ 全部播放</button>
-      </div>
-      <div class="search-box-wrapper">
-        <input type="text" id="detail-search-input" placeholder="🔍 搜尋篇章名稱..." oninput="handleDetailSearch(event)">
+      <div class="breadcrumb-bar" onclick="switchPage('home')">
+        <span>⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
       </div>
       <div id="chapter-list-container" class="chapter-file-list"></div>
     </div>
@@ -480,24 +400,6 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
-
-    <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
-      <svg class="heart-svg" viewBox="0 0 32 29.6">
-        <defs>
-          <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stop-color="#ff2a6d" />
-            <stop offset="50%" stop-color="#ff5e99" />
-            <stop offset="100%" stop-color="#ff99cc" />
-          </linearGradient>
-          <clipPath id="heartClip">
-            <rect id="clipRect" x="0" y="30" width="32" height="32" />
-          </clipPath>
-        </defs>
-        <path class="heart-outline" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-        <path class="heart-fill" clip-path="url(#heartClip)" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-      </svg>
-    </div>
     <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
     <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
     <div class="cover-indicator" id="cover-indicator">1 / 1</div>
@@ -535,10 +437,8 @@
   </div>
 </div>
 
-<!-- 移除 muted 屬性以允許 PiP 直接調用系統音訊通道 -->
-<video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
-<audio id="orgasm-audio" preload="auto"></audio>
 
 <script>
   let db;
@@ -573,11 +473,15 @@
   const itemsPerPage = 4;
   let activeCreatedUrls = [];
 
-  let homeSearchKeyword = "";
-  let detailSearchKeyword = "";
+  // Web Audio 愛心頻譜監測變數
+  let audioCtx = null;
+  let analyser = null;
+  let audioSourceNode = null;
+  let heartFillPercent = 0;
+  let isClimaxState = false;
+  let climaxResetTimer = null;
 
   const audio = document.getElementById("main-audio");
-  const orgasmAudio = document.getElementById("orgasm-audio");
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
   const pipVideo = document.getElementById("pip-video");
@@ -585,52 +489,6 @@
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
-
-  let clipRect, heartToy;
-  let heartEnergy = 0;
-  let silentFrameCounter = 0; 
-  let audioCtx, analyser, source, dataArray;
-  let mediaStreamDestination = null;
-  let isAudioContextInitialized = false;
-
-  let orgasmToggle = "on";
-  let customOrgasmImgBlob = null;
-  let customOrgasmAudioBlob = null;
-  let customOrgasmImgUrl = "";
-  let customOrgasmAudioUrl = "";
-
-  let fillCycleCount = 0;         
-  let flashEndTime = 0;           
-  let isPermanentlyFull = false;  
-  let lastTriggeredCycle = -1;    
-
-  function initAudioContextForHeart() {
-    try {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      if (!isAudioContextInitialized) {
-        analyser = audioCtx.createAnalyser();
-        source = audioCtx.createMediaElementSource(audio);
-        
-        // 核心修改：建立動態音訊目標節點，供懸浮視窗 (PiP) 畫面與聲音同步串流
-        mediaStreamDestination = audioCtx.createMediaStreamDestination();
-
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        analyser.connect(mediaStreamDestination);
-
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        isAudioContextInitialized = true;
-      }
-    } catch (e) {
-      console.log("Web Audio API 初始化略過或已綁定:", e);
-    }
-  }
 
   let touchStartY = 0;
   let touchCurrentY = 0;
@@ -661,9 +519,6 @@
       if (bgVideo && !bgVideo.paused) bgVideo.pause();
     } else {
       if (bgVideo && bgVideo.src && audio && !audio.paused) bgVideo.play().catch(()=>{});
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
     }
   });
 
@@ -685,7 +540,7 @@
   dragHandleArea.addEventListener("touchend", () => {
     if (!isDragging) return;
     isDragging = false;
-    playerCard.style.transform = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+    playerCard.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
     if (diff > 80) {
       minimizePlayer();
@@ -704,15 +559,101 @@
     }
   });
   pipVideo.addEventListener('play', () => {
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
     if (audio.paused) {
       audio.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
   });
+
+  function initAudioAnalysis() {
+    if (audioCtx) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      audioSourceNode = audioCtx.createMediaElementSource(audio);
+      audioSourceNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      requestAnimationFrame(analyzeAudioFrame);
+    } catch(e) {
+      console.error("AudioContext 初始化失敗:", e);
+    }
+  }
+
+  function analyzeAudioFrame() {
+    requestAnimationFrame(analyzeAudioFrame);
+    if (!audioCtx || audio.paused || isClimaxState) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteFrequencyData(dataArray);
+
+    // 頻率分析：基頻 170~600Hz (女性語音) 與 800~3000Hz (高音/呻吟浪叫)
+    let baseVoiceSum = 0;
+    let moanVoiceSum = 0;
+
+    for (let i = 2; i <= 7; i++) baseVoiceSum += dataArray[i];
+    for (let i = 9; i <= 35; i++) moanVoiceSum += dataArray[i];
+
+    let baseAvg = baseVoiceSum / 6;
+    let moanAvg = moanVoiceSum / 27;
+
+    if (baseAvg > 30) {
+      // 普通女性聲音：緩慢累積
+      heartFillPercent += 0.08 * (baseAvg / 100);
+    }
+    if (moanAvg > 40) {
+      // 交配高潮/呻吟浪叫頻段：快速暴增填滿
+      heartFillPercent += 0.45 * (moanAvg / 100);
+    }
+
+    if (heartFillPercent >= 100) {
+      heartFillPercent = 100;
+      triggerClimaxEffect();
+    }
+
+    updateHeartDisplay();
+  }
+
+  function updateHeartDisplay() {
+    const clipRect = document.getElementById("heart-clip-rect");
+    if (clipRect) {
+      let fillHeight = (heartFillPercent / 100) * 32;
+      let yPos = 32 - fillHeight;
+      clipRect.setAttribute("y", yPos);
+      clipRect.setAttribute("height", fillHeight);
+    }
+  }
+
+  function triggerClimaxEffect() {
+    if (isClimaxState) return;
+    isClimaxState = true;
+    heartFillPercent = 100;
+    updateHeartDisplay();
+
+    const heartEl = document.getElementById("heart-toy");
+    const coverBox = document.getElementById("player-cover-box");
+
+    if (heartEl) heartEl.classList.add("heart-full-beat");
+    if (coverBox) coverBox.classList.add("cover-climax-pink");
+
+    if (climaxResetTimer) clearTimeout(climaxResetTimer);
+    climaxResetTimer = setTimeout(() => {
+      heartFillPercent = 0;
+      updateHeartDisplay();
+      if (heartEl) heartEl.classList.remove("heart-full-beat");
+      if (coverBox) coverBox.classList.remove("cover-climax-pink");
+      isClimaxState = false;
+    }, 10000); // 10秒重新歸零開始計算
+  }
+
+  function triggerInstantOrgasm() {
+    if (climaxResetTimer) clearTimeout(climaxResetTimer);
+    isClimaxState = false;
+    triggerClimaxEffect();
+  }
 
   function togglePowerSavingCover() {
     isPowerSavingCover = !isPowerSavingCover;
@@ -758,8 +699,6 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
-          drawPiPHeartToy(pipCtx, heartEnergy);
-
           const currentTime = audio.currentTime;
           let currentText = getActiveSubtitleText(currentTime);
 
@@ -791,76 +730,10 @@
       requestAnimationFrame(renderPiPFrame);
 
       const stream = pipCanvas.captureStream(30);
-
-      // 核心修改：將 Web Audio API 聲軌動態加入懸浮 MediaStream，防止 iOS 降為無音軌背景靜音
-      if (mediaStreamDestination && mediaStreamDestination.stream.getAudioTracks().length > 0) {
-        const audioTrack = mediaStreamDestination.stream.getAudioTracks()[0];
-        stream.addTrack(audioTrack);
-      }
-
       pipVideo.srcObject = stream;
-      pipVideo.muted = false;
-      pipVideo.play().catch(e => console.log("PiP video play error:", e));
+      pipVideo.play();
       isPiPInitialized = true;
     } catch(e) { console.error(e); }
-  }
-
-  function drawPiPHeartToy(ctx, energy) {
-    ctx.save();
-    ctx.translate(920, 100);
-    
-    let now = Date.now();
-    let isFlashingNow = (now < flashEndTime);
-    let isLockedNow = isPermanentlyFull;
-
-    if (isFlashingNow || isLockedNow) {
-      let flashAlpha = 0.6 + 0.4 * Math.sin(now / 120);
-      ctx.shadowColor = isLockedNow ? "#ff0055" : "#ff3366";
-      ctx.shadowBlur = 30;
-      ctx.beginPath();
-      ctx.arc(0, 0, 58, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 51, 102, ${flashAlpha * 0.4})`;
-      ctx.fill();
-    }
-
-    ctx.beginPath();
-    ctx.arc(0, 0, 54, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(10, 10, 15, 0.7)";
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = (isFlashingNow || isLockedNow) ? "#ff3366" : "rgba(255, 121, 198, 0.4)";
-    ctx.stroke();
-
-    ctx.translate(-32, -32);
-    
-    let scaleFactor = 2.0;
-    if (isFlashingNow || isLockedNow) {
-      let pulse = 1 + 0.1 * Math.sin(now / 100);
-      scaleFactor = 2.0 * pulse;
-      ctx.translate(32 - 32 * pulse, 32 - 32 * pulse);
-    }
-    ctx.scale(scaleFactor, scaleFactor);
-
-    const heartPath = new Path2D("M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z");
-
-    ctx.lineWidth = 1.2;
-    ctx.strokeStyle = "#ff79c6";
-    ctx.stroke(heartPath);
-
-    ctx.save();
-    ctx.clip(heartPath);
-    let fillHeight = (energy / 30) * 32;
-    let fillY = 32 - fillHeight;
-    
-    let grad = ctx.createLinearGradient(0, 32, 0, 0);
-    grad.addColorStop(0, "#ff2a6d");
-    grad.addColorStop(0.5, "#ff5e99");
-    grad.addColorStop(1, "#ff99cc");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, fillY, 32, fillHeight);
-    ctx.restore();
-
-    ctx.restore();
   }
 
   function drawCoverToCanvas(ctx, source, size, isVideo) {
@@ -878,31 +751,19 @@
     let centerShiftX = (size - imgWidth * ratio) / 2;
     let centerShiftY = (size - imgHeight * ratio) / 2;
     ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    
-    let now = Date.now();
-    if (now < flashEndTime || isPermanentlyFull) {
-      ctx.lineWidth = 18;
-      ctx.strokeStyle = isPermanentlyFull ? "#ff0055" : "#ff3366";
-      ctx.strokeRect(0, 0, size, size);
-    }
     ctx.restore();
   }
 
   async function enablePiP() {
     if (currentIndex === -1) return alert("請先播放一個篇章才能開啟桌面懸浮窗！");
-    
-    // 開啟 PiP 時確保 AudioContext 不處於 suspended 狀態
-    initAudioContextForHeart();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      await audioCtx.resume();
-    }
+    initAudioAnalysis();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
     if (audio.paused) {
       await audio.play().catch(() => {});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
-
     initPiPEngine();
     if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) {
       cachedCoverElement.play().catch(() => {});
@@ -918,7 +779,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V37", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V30", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -951,139 +812,7 @@
         }
       }
     } catch(err) { console.error(err); }
-
-    requestAnimationFrame(updateHeartToy);
   });
-
-  function triggerOrgasmEffects() {
-    if (orgasmToggle === "off") return;
-
-    if (customOrgasmAudioBlob) {
-      orgasmAudio.src = customOrgasmAudioUrl;
-      orgasmAudio.currentTime = 0;
-      orgasmAudio.play().catch(e => console.log("高潮音效播放受阻:", e));
-    }
-
-    const overlayImg = document.getElementById("orgasm-overlay-img");
-    if (customOrgasmImgBlob && customOrgasmImgUrl) {
-      overlayImg.src = customOrgasmImgUrl;
-      overlayImg.style.display = "block";
-      setTimeout(() => {
-        if (overlayImg) overlayImg.style.display = "none";
-      }, 5000);
-    }
-  }
-
-  function updateHeartToy() {
-    clipRect = document.getElementById('clipRect');
-    heartToy = document.getElementById('heartToy');
-    const coverBox = document.getElementById('player-cover-box');
-    let now = Date.now();
-
-    if (isPermanentlyFull) {
-      heartEnergy = 30;
-      if (clipRect) {
-        clipRect.setAttribute('y', 0);
-        clipRect.setAttribute('height', 30);
-      }
-      if (heartToy) {
-        heartToy.className = "heart-toy is-orgasm-lock";
-        if (coverBox) {
-          coverBox.classList.add('is-full-pink-effect');
-          coverBox.classList.add('is-shaking');
-        }
-      }
-      requestAnimationFrame(updateHeartToy);
-      return;
-    }
-
-    let isFlashingActive = (now < flashEndTime);
-    if (isFlashingActive) {
-      heartEnergy = 30;
-      if (clipRect) {
-        clipRect.setAttribute('y', 0);
-        clipRect.setAttribute('height', 30);
-      }
-      if (heartToy) {
-        heartToy.className = "heart-toy is-flashing";
-        if (coverBox) {
-          coverBox.classList.add('is-full-pink-effect');
-          coverBox.classList.add('is-shaking');
-        }
-      }
-      requestAnimationFrame(updateHeartToy);
-      return;
-    } else {
-      if (coverBox) coverBox.classList.remove('is-shaking');
-      if (fillCycleCount > 0 && fillCycleCount < 4 && heartEnergy >= 29.9) {
-        heartEnergy = 0;
-      }
-    }
-
-    if (!audio.paused && analyser && dataArray) {
-      analyser.getByteFrequencyData(dataArray);
-      
-      let sum = 0;
-      const len = dataArray.length;
-      for (let i = 0; i < len; i++) {
-        sum += dataArray[i];
-      }
-      let avgVolume = sum / len;
-
-      if (avgVolume > 3) {
-        let increment = (avgVolume / 128) * 0.018; 
-        heartEnergy += increment;
-        
-        if (heartEnergy >= 30) {
-          heartEnergy = 30;
-          fillCycleCount++; 
-
-          if (fillCycleCount !== lastTriggeredCycle) {
-            lastTriggeredCycle = fillCycleCount;
-            triggerOrgasmEffects();
-          }
-
-          if (fillCycleCount >= 4) {
-            isPermanentlyFull = true;
-          } else {
-            flashEndTime = Date.now() + 5000;
-          }
-        }
-        silentFrameCounter = 0; 
-      } else {
-        silentFrameCounter++;
-        if (silentFrameCounter > 300) {
-          heartEnergy -= 0.015; 
-        }
-      }
-    } else {
-      silentFrameCounter++;
-      if (silentFrameCounter > 300) {
-        heartEnergy -= 0.015;
-      }
-    }
-
-    if (heartEnergy < 0) heartEnergy = 0;
-    if (heartEnergy > 30) heartEnergy = 30;
-
-    let currentY = 30 - heartEnergy;
-    if (clipRect) {
-      clipRect.setAttribute('y', currentY);
-      clipRect.setAttribute('height', heartEnergy);
-    }
-
-    if (heartToy) {
-      if (heartEnergy >= 29.5) {
-        heartToy.classList.add('is-full');
-        if (coverBox) coverBox.classList.add('is-full-pink-effect');
-      } else {
-        heartToy.classList.remove('is-full', 'is-flashing', 'is-orgasm-lock');
-        if (coverBox) coverBox.classList.remove('is-full-pink-effect');
-      }
-    }
-
-    requestAnimationFrame(updateHeartToy);
-  }
 
   function loadData() {
     if (!db) return;
@@ -1104,71 +833,6 @@
         startGlobalBgRotation();
       }
     };
-    tx.objectStore("settings").get("orgasmConfig").onsuccess = (e) => {
-      const res = e.target.result;
-      if (res) {
-        orgasmToggle = res.toggle || "on";
-        document.getElementById("setting-orgasm-toggle").value = orgasmToggle;
-        if (res.imgBlob) {
-          customOrgasmImgBlob = res.imgBlob;
-          customOrgasmImgUrl = createTrackedObjectURL(res.imgBlob);
-        }
-        if (res.audioBlob) {
-          customOrgasmAudioBlob = res.audioBlob;
-          customOrgasmAudioUrl = createTrackedObjectURL(res.audioBlob);
-        }
-        updateOrgasmStatusTip();
-      }
-    };
-  }
-
-  function saveOrgasmSettings() {
-    orgasmToggle = document.getElementById("setting-orgasm-toggle").value;
-    persistOrgasmConfig();
-  }
-
-  function saveOrgasmImage(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    customOrgasmImgBlob = file;
-    customOrgasmImgUrl = createTrackedObjectURL(file);
-    persistOrgasmConfig();
-    updateOrgasmStatusTip();
-    alert("✅ 啊嘿顏高潮特寫圖片設定成功！");
-  }
-
-  function saveOrgasmAudio(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    customOrgasmAudioBlob = file;
-    customOrgasmAudioUrl = createTrackedObjectURL(file);
-    persistOrgasmConfig();
-    updateOrgasmStatusTip();
-    alert("✅ 高潮爽感音效設定成功！");
-  }
-
-  function persistOrgasmConfig() {
-    const tx = db.transaction("settings", "readwrite");
-    tx.objectStore("settings").put({
-      key: "orgasmConfig",
-      toggle: orgasmToggle,
-      imgBlob: customOrgasmImgBlob,
-      audioBlob: customOrgasmAudioBlob
-    });
-  }
-
-  function updateOrgasmStatusTip() {
-    const tip = document.getElementById("orgasm-status-tip");
-    let parts = [];
-    if (customOrgasmImgBlob) parts.push("已載入自定義圖片");
-    if (customOrgasmAudioBlob) parts.push("已載入自定義音效");
-    if (parts.length > 0) {
-      tip.innerText = `狀態：${parts.join(" ｜ ")}`;
-      tip.style.color = "#ff79c6";
-    } else {
-      tip.innerText = "狀態：尚未自定義素材（將使用預設高潮互動）";
-      tip.style.color = "#50fa7b";
-    }
   }
 
   function toggleAdminDrawer() {
@@ -1213,7 +877,7 @@
             url: e.target.result,
             type: blobs[0].type
           }));
-        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖"); }
+        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖，將僅依賴資料庫"); }
       };
       reader.readAsDataURL(blobs[0]);
     }
@@ -1297,34 +961,23 @@
     };
   }
 
-  function handleHomeSearch(e) {
-    homeSearchKeyword = e.target.value.trim().toLowerCase();
-    currentPage = 1;
-    renderHomeAlbums();
-  }
-
   function renderHomeAlbums() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
     listEl.innerHTML = "";
     paginationEl.innerHTML = "";
 
-    let filteredAlbums = albums;
-    if (homeSearchKeyword) {
-      filteredAlbums = albums.filter(a => a.title.toLowerCase().includes(homeSearchKeyword));
-    }
-
-    if (!filteredAlbums.length) {
-      listEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">找不到符合的作品分區。</div>';
+    if (!albums.length) {
+      listEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">尚無作品分區，請從上方「管理選單」建立。</div>';
       return;
     }
 
-    const totalPages = Math.ceil(filteredAlbums.length / itemsPerPage);
+    const totalPages = Math.ceil(albums.length / itemsPerPage);
     if (currentPage > totalPages) currentPage = totalPages || 1;
 
     let start = (currentPage - 1) * itemsPerPage;
     let end = start + itemsPerPage;
-    let paginatedAlbums = filteredAlbums.slice(start, end);
+    let paginatedAlbums = albums.slice(start, end);
 
     paginatedAlbums.forEach(album => {
       let albumTracks = tracks.filter(t => t.albumId === album.id);
@@ -1379,13 +1032,6 @@
     tx.oncomplete = () => { loadData(); alert("已刪除！"); };
   }
 
-  function handleDetailSearch(e) {
-    detailSearchKeyword = e.target.value.trim().toLowerCase();
-    if (currentActiveAlbumId) {
-      renderDetailView(currentActiveAlbumId);
-    }
-  }
-
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
@@ -1395,23 +1041,18 @@
     container.innerHTML = "";
     let albumTracks = tracks.filter(t => t.albumId === albumId);
 
-    if (detailSearchKeyword) {
-      albumTracks = albumTracks.filter(t => t.title.toLowerCase().includes(detailSearchKeyword));
-    }
-
     if (!albumTracks.length) {
-      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">找不到符合的篇章。</div>';
+      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">此分區尚無篇章，請從管理選單新增。</div>';
       return;
     }
 
-    albumTracks.forEach((track) => {
-      let originalIdx = tracks.filter(t => t.albumId === albumId).findIndex(t => t.id === track.id);
+    albumTracks.forEach((track, idx) => {
       let item = document.createElement("div");
       item.className = "chapter-file-item";
       let isPlayingThis = (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === track.id);
       
       item.innerHTML = `
-        <div class="chapter-info-left" onclick="playTrackFromAlbum(${albumId}, ${originalIdx})">
+        <div class="chapter-info-left" onclick="playTrackFromAlbum(${albumId}, ${idx})">
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
@@ -1606,13 +1247,13 @@
         console.error(err);
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        alert("❌ 批量匯入寫入資料庫失敗。");
+        alert("❌ 批量匯入寫入資料庫失敗，可能是檔案過大或容量不足。");
       };
     } catch(e) {
       console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      alert("❌ 發生未預期的錯誤。");
+      alert("❌ 發生未預期的錯誤，請重新整理頁面後再試。");
     }
   }
 
@@ -1657,13 +1298,6 @@
     expandPlayer();
   }
 
-  function playAllAlbumTracks() {
-    if (!currentActiveAlbumId) return;
-    const albumTracks = tracks.filter(t => t.albumId === currentActiveAlbumId);
-    if (!albumTracks.length) return alert("此分區沒有篇章可播放！");
-    playTrackFromAlbum(currentActiveAlbumId, 0);
-  }
-
   function setupActiveAlbumCovers(album) {
     activeAlbumCoverBlobs = (album && album.covers && album.covers.length > 0) ? album.covers : [];
     activeCoverIndex = 0;
@@ -1673,30 +1307,31 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
-      <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
-        <svg class="heart-svg" viewBox="0 0 32 29.6">
-          <defs>
-            <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#ff2a6d" />
-              <stop offset="50%" stop-color="#ff5e99" />
-              <stop offset="100%" stop-color="#ff99cc" />
-            </linearGradient>
-            <clipPath id="heartClip">
-              <rect id="clipRect" x="0" y="30" width="32" height="32" />
-            </clipPath>
-          </defs>
-          <path class="heart-outline" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-          <path class="heart-fill" clip-path="url(#heartClip)" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-        </svg>
-      </div>
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
+      <div class="heart-toy-container ${isClimaxState ? 'heart-full-beat' : ''}" id="heart-toy" onclick="triggerInstantOrgasm()" title="點擊一鍵高潮">
+        <svg class="heart-svg" viewBox="0 0 32 32">
+          <defs>
+            <linearGradient id="heart-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stop-color="#ff1493" />
+              <stop offset="100%" stop-color="#ff79c6" />
+            </linearGradient>
+            <clipPath id="heart-clip">
+              <rect id="heart-clip-rect" x="0" y="32" width="32" height="0" />
+            </clipPath>
+          </defs>
+          <path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+          <path class="heart-fill" clip-path="url(#heart-clip)" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+        </svg>
+      </div>
     `;
-
     coverElements = [];
     cachedCoverElement = null;
+
+    if (isClimaxState) {
+      box.classList.add("cover-climax-pink");
+    }
 
     if (!activeAlbumCoverBlobs.length) {
       let img = document.createElement("img");
@@ -1707,6 +1342,7 @@
       cachedCoverElement = img;
       isCoverVideoActive = false;
       document.getElementById("cover-indicator").innerText = "1 / 1";
+      updateHeartDisplay();
       return;
     }
 
@@ -1739,6 +1375,7 @@
       }
     });
     updateCoverDisplay();
+    updateHeartDisplay();
   }
 
   function updateCoverDisplay() {
@@ -1776,7 +1413,8 @@
   }
 
   function loadAndPlayCurrentTrack(track, album) {
-    initAudioContextForHeart();
+    initAudioAnalysis();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
@@ -1802,10 +1440,6 @@
         album: "ASMR 私人隨身庫",
         artwork: (album && album.covers && album.covers.length > 0) ? [{ src: createTrackedObjectURL(album.covers[0]) }] : []
       });
-    }
-
-    if (currentActiveAlbumId) {
-      renderDetailView(currentActiveAlbumId);
     }
   }
 
@@ -1841,7 +1475,8 @@
 
   function togglePlay() {
     if (currentIndex === -1) return;
-    initAudioContextForHeart();
+    initAudioAnalysis();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
     if (audio.paused) {
       audio.play();
@@ -2025,7 +1660,7 @@
           alert("✅ 跨裝置備份還原成功！");
         };
       } catch (err) {
-        alert("❌ 備份檔案解析失敗。");
+        alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
       }
     };
     reader.readAsText(file);
