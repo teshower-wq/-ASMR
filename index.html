@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>軟軟騷穴專用肉棒</title>
+  <title>軟軟專用肉棒</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -688,7 +688,7 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
-          // 在 PiP 桌面懸浮窗同步繪製放大版的動態心跳能量槽（完美同步狀態）
+          // 在 PiP 桌面懸浮窗同步繪製與封面完全一致的動態心跳能量槽特效
           drawPiPHeartToy(pipCtx, heartEnergy);
 
           const currentTime = audio.currentTime;
@@ -728,7 +728,7 @@
     } catch(e) { console.error(e); }
   }
 
-  // 完美同步 PiP 懸浮窗中的動態心跳愛心
+  // 完美同步 PiP 懸浮窗中的動態心跳愛心與激烈震動閃爍特效
   function drawPiPHeartToy(ctx, energy) {
     ctx.save();
     ctx.translate(920, 100);
@@ -741,7 +741,15 @@
     ctx.stroke();
 
     ctx.translate(-32, -32);
-    ctx.scale(2.0, 2.0);
+    
+    // 當滿載時在 PiP 內模擬心跳 Pulse 放大與發光效果
+    let scaleFactor = 2.0;
+    if (energy >= 29.5) {
+      let pulse = 1 + 0.08 * Math.sin(Date.now() / 120);
+      scaleFactor = 2.0 * pulse;
+      ctx.translate(32 - 32 * pulse, 32 - 32 * pulse);
+    }
+    ctx.scale(scaleFactor, scaleFactor);
 
     const heartPath = new Path2D("M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z");
 
@@ -842,9 +850,8 @@
     requestAnimationFrame(updateHeartToy);
   });
 
-  // 更新愛心能量槽與特效的邏輯迴圈
+  // 更新動態愛心能量槽：填滿與變化的速度大幅放慢，且滿載時聲音減弱後才往下掉
   function updateHeartToy() {
-    // 每次迴圈抓取 DOM 元素以確保最新狀態同步
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
     const coverBox = document.getElementById('player-cover-box');
@@ -863,37 +870,36 @@
       }
       let femaleVoiceAvg = count > 0 ? (sum / count) : 0;
       
-      // 調整成長速度：速度變得很慢（系數縮小）
+      // 優化調整：讓填滿速度與變化速度慢很多（係數大幅調降至 0.02）
       let voiceIntensity = femaleVoiceAvg / 32; 
       
       if (heartEnergy < 30) {
         if (femaleVoiceAvg > 12) {
-          // 非常緩慢地隨著聲音慢慢增加
-          heartEnergy += voiceIntensity * 0.08;
-          silentTimer = 0; // 有聲音重置無聲計時
+          heartEnergy += voiceIntensity * 0.02; 
+          silentTimer = 0; // 有聲音重置無聲緩衝計時
         } else {
           silentTimer++;
-          // 超過幾秒沒聲音（約 3 秒，以 60fps 計算約 180 個 frame）才會開始往下掉
-          if (silentTimer > 180) {
-            heartEnergy -= 0.15;
+          // 聲音減弱或無聲需持續一段較長時間（約 5 秒 = 300 個 frame）才開始緩慢往下掉
+          if (silentTimer > 300) {
+            heartEnergy -= 0.08;
           }
         }
       } else {
-        // 如果滿了 (heartEnergy >= 30) 聲音一樣很強烈 -> 愛心激烈跳動，維持滿載
-        if (femaleVoiceAvg < 15) {
+        // 達到 100% 填滿後，即使還有激烈的聲音，心跳一樣維持滿載狀態
+        // 必須直到聲音明顯減弱衰退（持續大段無聲或音量降低）後，計時器達標才往下掉
+        if (femaleVoiceAvg < 14) {
           silentTimer++;
-          // 滿了之後若持續幾秒聲音變小或沒有聲音，才往下掉
-          if (silentTimer > 180) {
-            heartEnergy -= 0.15;
+          if (silentTimer > 350) { // 延長等待聲音減弱的時間
+            heartEnergy -= 0.08;
           }
         } else {
           silentTimer = 0;
-          heartEnergy = 30; // 保持滿載激烈跳動
+          heartEnergy = 30; // 聲音激烈時保持 100% 滿載
         }
       }
     } else {
       if (heartEnergy > 0) {
-        heartEnergy -= 0.2;
+        heartEnergy -= 0.1;
       }
     }
 
@@ -909,7 +915,7 @@
     if (heartToy) {
       if (heartEnergy >= 29.5) {
         heartToy.classList.add('is-full');
-        if (coverBox) coverBox.classList.add('is-full-pink-effect'); // 填滿時封面產生粉紅色特效
+        if (coverBox) coverBox.classList.add('is-full-pink-effect'); // 完美同步封面粉紅色特效
       } else {
         heartToy.classList.remove('is-full');
         if (coverBox) coverBox.classList.remove('is-full-pink-effect');
