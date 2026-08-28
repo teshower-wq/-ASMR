@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>軟軟的騷穴好緊</title>
+  <title>軟軟騷穴專屬肉棒</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -198,6 +198,59 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
+    /* 右上角小玩具：互動愛心能量槽 */
+    .heart-toy {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .heart-toy:hover {
+      transform: scale(1.1);
+    }
+
+    .heart-svg {
+      width: 24px;
+      height: 24px;
+      overflow: visible;
+    }
+
+    .heart-outline {
+      fill: rgba(255, 255, 255, 0.3);
+      stroke: #ffffff;
+      stroke-width: 1.5;
+      transition: fill 0.1s ease;
+    }
+
+    .heart-fill {
+      fill: #ff3366;
+      transition: y 0.1s ease, height 0.1s ease;
+    }
+
+    @keyframes pinkFlash {
+      0%, 100% {
+        filter: drop-shadow(0 0 2px #ff3366) drop-shadow(0 0 8px #ff6699);
+      }
+      50% {
+        filter: drop-shadow(0 0 6px #ff3366) drop-shadow(0 0 16px #ff99bb);
+      }
+    }
+
+    .heart-toy.is-full .heart-svg {
+      animation: pinkFlash 1s infinite alternate;
+    }
+
     .btn-cover-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
       background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -370,6 +423,18 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
+    <!-- 右上角小玩具：互動愛心能量槽[cite: 5] -->
+    <div class="heart-toy" id="heartToy" title="音樂心跳能量槽">
+      <svg class="heart-svg" viewBox="0 0 32 29.6">
+        <defs>
+          <clipPath id="heartClip">
+            <rect id="clipRect" x="0" y="30" width="32" height="32" />
+          </clipPath>
+        </defs>
+        <path class="heart-outline" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+        <path class="heart-fill" clip-path="url(#heartClip)" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+      </svg>
+    </div>
     <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
     <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
     <div class="cover-indicator" id="cover-indicator">1 / 1</div>
@@ -451,6 +516,29 @@
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
+
+  // 愛心能量槽變數[cite: 5]
+  const clipRect = document.getElementById('clipRect');
+  const heartToy = document.getElementById('heartToy');
+  let heartEnergy = 0;
+  let audioCtx, analyser, source, dataArray;
+  let isAudioContextInitialized = false;
+
+  function initAudioContextForHeart() {
+    if (isAudioContextInitialized) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      source = audioCtx.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      analyser.fftSize = 64;
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      isAudioContextInitialized = true;
+    } catch (e) {
+      console.log("Web Audio API not supported or blocked");
+    }
+  }
 
   let touchStartY = 0;
   let touchCurrentY = 0;
@@ -682,7 +770,45 @@
         }
       }
     } catch(err) { console.error(err); }
+
+    // 啟動愛心能量槽動畫迴圈[cite: 5]
+    requestAnimationFrame(updateHeartToy);
   });
+
+  // 愛心能量槽核心邏輯[cite: 5]
+  function updateHeartToy() {
+    if (!audio.paused && analyser) {
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      let average = sum / dataArray.length;
+      let intensityFactor = average / 40; 
+      heartEnergy += intensityFactor * 0.4;
+    } else {
+      heartEnergy -= 0.3;
+    }
+
+    if (heartEnergy < 0) heartEnergy = 0;
+    if (heartEnergy > 30) heartEnergy = 30;
+
+    let currentY = 30 - heartEnergy;
+    if (clipRect) {
+      clipRect.setAttribute('y', currentY);
+      clipRect.setAttribute('height', heartEnergy);
+    }
+
+    if (heartToy) {
+      if (heartEnergy >= 29.5) {
+        heartToy.classList.add('is-full');
+      } else {
+        heartToy.classList.remove('is-full');
+      }
+    }
+
+    requestAnimationFrame(updateHeartToy);
+  }
 
   function loadData() {
     if (!db) return;
@@ -1117,13 +1243,13 @@
         console.error(err);
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        alert("❌ 批量匯入寫入資料庫失敗，可能是檔案過大或容量不足。");
+        alert("❌ 批量匯入寫入資料庫失敗。");
       };
     } catch(e) {
       console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      alert("❌ 發生未預期的錯誤，請重新整理頁面後再試。");
+      alert("❌ 發生未預期的錯誤。");
     }
   }
 
@@ -1176,11 +1302,28 @@
 
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
+    // 保留原本的 heartToy 結構與按鈕
     box.innerHTML = `
+      <div class="heart-toy" id="heartToy" title="音樂心跳能量槽">
+        <svg class="heart-svg" viewBox="0 0 32 29.6">
+          <defs>
+            <clipPath id="heartClip">
+              <rect id="clipRect" x="0" y="30" width="32" height="32" />
+            </clipPath>
+          </defs>
+          <path class="heart-outline" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+          <path class="heart-fill" clip-path="url(#heartClip)" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
+        </svg>
+      </div>
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     `;
+    
+    // 重新取得全域變數引用
+    clipRect.id = 'clipRect';
+    heartToy.id = 'heartToy';
+
     coverElements = [];
     cachedCoverElement = null;
 
@@ -1262,6 +1405,11 @@
   }
 
   function loadAndPlayCurrentTrack(track, album) {
+    initAudioContextForHeart();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
     audio.play().then(() => {
@@ -1321,6 +1469,11 @@
 
   function togglePlay() {
     if (currentIndex === -1) return;
+    initAudioContextForHeart();
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
     if (audio.paused) {
       audio.play();
       document.getElementById("btn-play").innerText = "⏸";
@@ -1503,7 +1656,7 @@
           alert("✅ 跨裝置備份還原成功！");
         };
       } catch (err) {
-        alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
+        alert("❌ 備份檔案解析失敗。");
       }
     };
     reader.readAsText(file);
@@ -1526,4 +1679,3 @@
 </script>
 </body>
 </html>
-```[cite: 4]
