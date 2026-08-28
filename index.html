@@ -19,9 +19,7 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; padding: 16px; padding-bottom: 140px;
-      background: linear-gradient(135deg, #1a0d16 0%, #330b20 50%, #07070a 100%);
-      background-attachment: fixed;
-      color: var(--text-main);
+      background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
@@ -42,7 +40,7 @@
 
     #bg-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle, rgba(255,121,198,0.08) 0%, rgba(51,11,32,0.6) 50%, rgba(7,7,10,0.92) 100%);
+      background: radial-gradient(circle, rgba(7,7,10,0.3) 0%, rgba(7,7,10,0.88) 100%);
       z-index: -1; pointer-events: none;
     }
 
@@ -87,11 +85,11 @@
     }
 
     .btn-pink {
-      width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff3366 100%); color: #07070a; border: none;
+      width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); color: #07070a; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(255, 51, 102, 0.35); transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
-    .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 51, 102, 0.5); }
+    .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
 
     .btn-blue {
       width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
@@ -446,6 +444,7 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
+    <!-- 放大一倍的動態小愛心能量槽 -->
     <div class="heart-toy" id="heartToy" title="女性呻吟起伏動態心跳能量槽">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
@@ -544,9 +543,10 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
+  // 愛心能量槽變數與延遲計時器
   let clipRect, heartToy;
   let heartEnergy = 0;
-  let silentFrameCounter = 0; 
+  let silentTimer = 0; // 持續無聲音的計時（frame 單位）
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
 
@@ -862,12 +862,12 @@
     requestAnimationFrame(updateHeartToy);
   });
 
+  // 修改後的愛心能量槽判定：只要有呻吟或聲音就能緩慢提升，越舒服提升越快（速度整體保持很慢）
   function updateHeartToy() {
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
     const coverBox = document.getElementById('player-cover-box');
 
-    // 判斷是否有聲音且正在播放（暫停或無聲時皆不會遞增，也不會立刻衰減）
     if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
       
@@ -876,29 +876,26 @@
       for (let i = 0; i < len; i++) {
         sum += dataArray[i];
       }
-      let avgVolume = sum / len;
+      let avgVolume = sum / len; // 計算整體的音訊音量與聲音強度
 
-      // 偵測到明顯聲音訊號
-      if (avgVolume > 3) {
-        let increment = (avgVolume / 128) * 0.012; // 提升響應靈敏度
+      // 只要有聲音（大於基本雜音門檻 4），就會啟動提升機制
+      if (avgVolume > 4) {
+        // 聲音越舒服/音量越大（avgVolume 越高），提升速度越快；
+        // 基礎係數設得很小（0.0015），確保平時提升速度通常都很慢。
+        let increment = (avgVolume / 128) * 0.0035;
         heartEnergy += increment;
         if (heartEnergy > 30) heartEnergy = 30;
-        silentFrameCounter = 0; // 重置無聲計數器
+        silentTimer = 0; 
       } else {
-        // 播放中但當下片段無聲音或音量極低
-        silentFrameCounter++;
-        // 30fps 計算：約 300 幀 = 10 秒完全無聲後才開始緩慢往下掉
-        if (silentFrameCounter > 300) {
-          heartEnergy -= 0.015; // 緩慢漸降速率
+        // 安靜或無聲音時，緩慢下降
+        silentTimer++;
+        if (silentTimer > 20) {
+          heartEnergy -= 0.03;
         }
       }
     } else {
-      // 音樂暫停或停止播放狀態：
-      // 依要求「暫停音樂也不會因此降低愛心，只有沒聲音10秒才會」，
-      // 因此在暫停時也視同無聲狀態，同樣享有 10 秒（約 300 幀）的完全滯留防護！
-      silentFrameCounter++;
-      if (silentFrameCounter > 300) {
-        heartEnergy -= 0.015;
+      if (heartEnergy > 0) {
+        heartEnergy -= 0.06;
       }
     }
 
