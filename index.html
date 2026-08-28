@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全格式文檔完美升級版)</title>
+  <title>ASMR 私人隨身庫 (全格式文檔點擊解鎖與背景輪播版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -28,7 +28,7 @@
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: cover; background-color: var(--bg-dark);
       z-index: -2; display: none; filter: brightness(0.7) blur(4px);
-      transform: scale(1); transition: opacity 0.8s ease, transform 0.8s ease;
+      transform: scale(1); transition: opacity 1s ease, transform 1s ease;
       will-change: transform, opacity;
     }
     @media (max-width: 768px) {
@@ -293,13 +293,13 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">🖼️ 設定預設全域背景</div>
-      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
+      <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒自動輪播)</div>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (支援多張封面圖/影片手動切換)</div>
+      <div class="card-title">📁 建立作品分區 (封面手動切換)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女"></div>
       <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
@@ -314,14 +314,14 @@
       </div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (全手機與文字檔解鎖版)</div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (iOS 全文檔點擊解鎖版)</div>
         <div class="form-group">
           <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
           <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
         </div>
         <div class="form-group">
-          <label>複選所有字幕/文檔 (支援 .lrc / .srt / .txt / .vtt)</label>
-          <input type="file" id="batch-lrcs" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt" multiple>
+          <label>複選所有字幕/文檔 (.lrc / .srt / .txt / .vtt 等全格式)</label>
+          <input type="file" id="batch-lrcs" accept="" multiple>
         </div>
         <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
       </div>
@@ -330,7 +330,7 @@
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
         <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac"></div>
-        <div class="form-group"><label>字幕/文檔 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt"></div>
+        <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=""></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
       </div>
     </div>
@@ -379,7 +379,7 @@
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
-    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
+    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept="" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
     <button class="btn-sub-quick" id="btn-power-saving" onclick="togglePowerSavingCover()">⚡ 省電模式：動態開</button>
@@ -423,6 +423,7 @@
 
   let globalBackgrounds = [];
   let bgIndex = 0;
+  let bgTimer = null;
   let isCustomAlbumPlaying = false;
   let currentAlbumBgBlobs = [];
   let albumBgIndex = 0;
@@ -645,14 +646,14 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V26", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V27", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); startGlobalBgRotation(); };
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
@@ -662,10 +663,20 @@
       const res = e.target.result;
       if (res && res.blobs && res.blobs.length > 0) {
         globalBackgrounds = res.blobs;
-        bgIndex = 0;
         if (!isCustomAlbumPlaying) applyBackgroundBlob(globalBackgrounds[bgIndex]);
       }
     };
+  }
+
+  // 每 30 秒自動切換全域背景
+  function startGlobalBgRotation() {
+    if (bgTimer) clearInterval(bgTimer);
+    bgTimer = setInterval(() => {
+      if (!isCustomAlbumPlaying && globalBackgrounds.length > 1) {
+        bgIndex = (bgIndex + 1) % globalBackgrounds.length;
+        applyBackgroundBlob(globalBackgrounds[bgIndex]);
+      }
+    }, 30000);
   }
 
   async function exportDataBackup() {
@@ -838,7 +849,7 @@
     tx.oncomplete = () => {
       globalBackgrounds = blobsArray; bgIndex = 0; isCustomAlbumPlaying = false;
       if(globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
-      alert(`成功儲存 ${blobsArray.length} 張全域背景！`);
+      alert(`成功儲存 ${blobsArray.length} 張全域背景！將每 30 秒自動輪播。`);
       document.getElementById("global-bg-input").value = "";
     };
   }
@@ -922,10 +933,6 @@
       loadData();
       alert("作品集與附屬篇章已成功刪除！");
     };
-    tx.onerror = (err) => {
-      console.error(err);
-      alert("刪除失敗，資料庫發生錯誤！");
-    };
   }
 
   function readFileTextSmart(file) {
@@ -1008,7 +1015,7 @@
       }
 
       tx.oncomplete = () => {
-        alert(`🎉 批量匯入成功！\n共成功上傳 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個已成功自動嵌入字幕/文檔！`);
+        alert(`🎉 批量匯入成功！\n共成功上傳 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個已成功自動匹配字幕文檔！`);
         document.getElementById("batch-audios").value = "";
         document.getElementById("batch-lrcs").value = "";
         btnBatch.disabled = false;
@@ -1048,7 +1055,7 @@
     });
 
     tx.oncomplete = () => {
-      alert("篇章新增成功 (音訊與字幕文檔已同步上傳)！");
+      alert("篇章新增成功！");
       document.getElementById("track-title-input").value = "";
       document.getElementById("track-audio").value = "";
       document.getElementById("track-lrc").value = "";
@@ -1113,14 +1120,7 @@
     
     const tx = db.transaction(["tracks"], "readwrite");
     tx.objectStore("tracks").delete(targetTrackId);
-    tx.oncomplete = () => { 
-      loadData(); 
-      alert("篇章已成功刪除！"); 
-    };
-    tx.onerror = (err) => {
-      console.error(err);
-      alert("刪除篇章失敗！");
-    };
+    tx.oncomplete = () => { loadData(); alert("篇章已成功刪除！"); };
   }
 
   function renderAlbumList() {
