@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (封面完整顯示、跨裝置資料互通版)</title>
+  <title>ASMR 私人隨身庫 (圖片精緻小圖完整顯示、影片完美無黑邊)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -24,7 +24,6 @@
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
 
-    /* 背景：電腦版維持原始大小，手機版縮小 20% */
     #bg-video, #bg-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: cover; background-color: var(--bg-dark);
@@ -155,7 +154,6 @@
     .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
     .page-info { font-size: 0.85rem; color: var(--text-sub); }
 
-    /* 播放面板本體 */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
       max-height: 90vh; height: auto; overflow-y: auto; overflow-x: hidden;
@@ -170,8 +168,9 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 封面與影片區塊修正：
-       - 改用 object-fit: contain，讓圖片縮小並完整顯示「所有樣子」（保留原比例不裁切），周圍以深色背景填補。
+    /* 完美智慧顯示區塊：
+       - 圖片：縮小（Contain）且四周保留適當內距與沉穩深色背景，確保「完整看到圖片所有畫面、不會過大」。
+       - 影片：滿版覆蓋（Cover），確保「絕不留任何黑邊」。
     */
     .cover-box { 
       width: 100%; height: 260px; border-radius: 16px; 
@@ -179,8 +178,15 @@
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
     }
-    .cover-box img, .cover-box video { 
-      width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; border-radius: 12px;
+    .cover-box img { 
+      max-width: 85%; max-height: 85%; width: auto; height: auto; 
+      object-fit: contain; display: none; position: absolute; 
+      top: 50%; left: 50%; transform: translate(-50%, -50%); 
+      border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    }
+    .cover-box video { 
+      width: 100%; height: 100%; object-fit: cover; display: none; 
+      position: absolute; top: 0; left: 0; border-radius: 12px;
     }
     
     .album-tag { font-size: 0.82rem; color: var(--text-sub); text-align: center; margin-bottom: 4px; font-weight: 500; }
@@ -453,7 +459,7 @@
             if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused) {
               cachedCoverElement.play().catch(() => {});
             }
-            drawCoverToCanvas(pipCtx, cachedCoverElement, 1080);
+            drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive);
           } else {
             pipCtx.fillStyle = "#121218";
             pipCtx.fillRect(0, 0, 1080, 1080);
@@ -500,20 +506,31 @@
     } catch(e) { console.error(e); }
   }
 
-  function drawCoverToCanvas(ctx, source, size) {
+  function drawCoverToCanvas(ctx, source, size, isVideo) {
     let imgWidth = source.videoWidth || source.width;
     let imgHeight = source.videoHeight || source.height;
     if (!imgWidth || !imgHeight) return;
 
-    let hRatio = size / imgWidth;
-    let vRatio = size / imgHeight;
-    let ratio = Math.min(hRatio, vRatio); // Contain 模式換算
-    let centerShiftX = (size - imgWidth * ratio) / 2;
-    let centerShiftY = (size - imgHeight * ratio) / 2;
     ctx.save();
     ctx.fillStyle = "#050508";
     ctx.fillRect(0, 0, size, size);
-    ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
+
+    if (isVideo) {
+      let hRatio = size / imgWidth;
+      let vRatio = size / imgHeight;
+      let ratio = Math.max(hRatio, vRatio);
+      let centerShiftX = (size - imgWidth * ratio) / 2;
+      let centerShiftY = (size - imgHeight * ratio) / 2;
+      ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
+    } else {
+      let maxDrawSize = size * 0.85;
+      let hRatio = maxDrawSize / imgWidth;
+      let vRatio = maxDrawSize / imgHeight;
+      let ratio = Math.min(hRatio, vRatio);
+      let centerShiftX = (size - imgWidth * ratio) / 2;
+      let centerShiftY = (size - imgHeight * ratio) / 2;
+      ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
+    }
     ctx.restore();
   }
 
@@ -537,7 +554,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V24", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V25", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -559,7 +576,6 @@
     };
   }
 
-  // 資料備份匯出功能 (支援跨裝置電腦/手機互通)
   async function exportDataBackup() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
     let exportAlbums = await new Promise(res => tx.objectStore("albums").getAll().onsuccess = e => res(e.target.result));
@@ -622,10 +638,9 @@
     a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    alert("備份檔案已成功匯出！請將此檔案傳送到另一台裝置進行匯入。");
+    alert("備份檔案已成功匯出！");
   }
 
-  // 資料還原匯入功能
   async function importDataBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -960,9 +975,9 @@
       if (covers.length > 0) {
         let thumbUrl = URL.createObjectURL(covers[0]);
         if (covers[0].type && covers[0].type.startsWith('video/')) {
-          thumbHtml = `<video src="${thumbUrl}" class="album-grid-thumb" autoplay loop muted playsinline></video>`;
+          thumbHtml = `<video src="${thumbUrl}" class="album-grid-thumb" autoplay loop muted playsinline style="object-fit:cover;"></video>`;
         } else {
-          thumbHtml = `<img src="${thumbUrl}" class="album-grid-thumb" style="object-fit:contain;">`;
+          thumbHtml = `<img src="${thumbUrl}" class="album-grid-thumb" style="object-fit:cover;">`;
         }
       }
 
