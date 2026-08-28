@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (懸浮影片背景常駐與超清去背字幕版)</title>
+  <title>ASMR 私人隨身庫 (粉紅超清大字幕與精緻背景縮放版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
       --pink-glow: rgba(255, 121, 198, 0.45);
       --bg-dark: #07070a;
-      --card-glass: rgba(16, 16, 22, 0.78);
-      --card-glass-hover: rgba(24, 24, 34, 0.88);
+      --card-glass: rgba(16, 16, 22, 0.82);
+      --card-glass-hover: rgba(24, 24, 34, 0.92);
       --text-main: #ffffff;
       --text-sub: #9494ab;
       --border-glass: rgba(255, 255, 255, 0.08);
@@ -24,14 +24,16 @@
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
 
+    /* 背景圖/影片適度縮小、加入contain/cover與居中調整，避免手機端被過度放大擠壓 */
     #bg-video, #bg-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      object-fit: cover; z-index: -2; display: none; filter: brightness(0.35) blur(4px);
-      transform: scale(1.02); transition: opacity 0.8s ease;
+      object-fit: contain; background-color: var(--bg-dark);
+      z-index: -2; display: none; filter: brightness(0.6) blur(2px);
+      transition: opacity 0.8s ease;
     }
     #bg-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle, rgba(7,7,10,0.2) 0%, rgba(7,7,10,0.85) 100%);
+      background: radial-gradient(circle, rgba(7,7,10,0.3) 0%, rgba(7,7,10,0.85) 100%);
       z-index: -1; pointer-events: none;
     }
 
@@ -50,7 +52,7 @@
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-glass); border-radius: 24px; padding: 24px; margin-bottom: 20px;
+      border: 1px solid var(--border-glass); border-radius: 24px; padding: 22px; margin-bottom: 20px;
       box-shadow: 0 16px 40px rgba(0,0,0,0.5); transition: border-color 0.3s ease, background 0.3s ease;
     }
     .card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; color: var(--primary-pink); display: flex; align-items: center; gap: 10px; }
@@ -388,7 +390,7 @@
     touchCurrentY = 0;
   });
 
-  // ================= 桌面懸浮窗常駐播放與去背大字超清引擎 =================
+  // ================= 桌面懸浮窗常駐播放與超清粉紅大字字幕引擎 =================
   pipVideo.addEventListener('pause', () => {
     if (!audio.paused) {
       audio.pause();
@@ -413,13 +415,11 @@
       pipCanvas.height = 1080;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
-      // 使用 requestAnimationFrame 確保離開網頁到桌面時，畫面影音更新迴圈依然全速運行不凍結
       function renderPiPFrame() {
         if (pipCtx) {
           pipCtx.fillStyle = "#07070a";
           pipCtx.fillRect(0, 0, 1080, 1080);
 
-          // 封面滿版渲染（支援 MP4 持續循環播放）
           if (isCoverVideoActive && cachedCoverVideo) {
             if (cachedCoverVideo.paused) cachedCoverVideo.play().catch(() => {});
             drawCoverToCanvas(pipCtx, cachedCoverVideo, 1080);
@@ -437,12 +437,12 @@
           const currentTime = audio.currentTime;
           let currentText = getActiveSubtitleText(currentTime);
 
-          // 刪除黑框背景，改用超清晰描邊大字，讓字幕極度顯眼通透
+          // 字幕加大、字體改為粉紅色 (#ff79c6)，加上乾淨強效描邊與陰影，清晰度頂峰
           pipCtx.textAlign = "center";
-          pipCtx.font = "bold 56px -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif";
+          pipCtx.font = "bold 64px -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif";
           
           let lines = [];
-          if (pipCtx.measureText(currentText).width > 960) {
+          if (pipCtx.measureText(currentText).width > 940) {
             let mid = Math.floor(currentText.length / 2);
             lines.push(currentText.substring(0, mid));
             lines.push(currentText.substring(mid));
@@ -450,15 +450,15 @@
             lines.push(currentText);
           }
 
-          let startY = lines.length > 1 ? 940 : 970;
+          let startY = lines.length > 1 ? 920 : 960;
           lines.forEach((lineText, idx) => {
-            let curY = startY + (idx * 64);
-            // 文字外框陰影與描邊（確保在任何亮/暗封面背景上都超清晰）
-            pipCtx.lineWidth = 8;
+            let curY = startY + (idx * 72);
+            // 描邊維持極黑，主體改為粉紅色
+            pipCtx.lineWidth = 9;
             pipCtx.strokeStyle = "rgba(0, 0, 0, 0.95)";
             pipCtx.strokeText(lineText, 540, curY);
 
-            pipCtx.fillStyle = "#ffffff";
+            pipCtx.fillStyle = "#ff79c6";
             pipCtx.fillText(lineText, 540, curY);
           });
         }
@@ -526,7 +526,7 @@
   }
 
   // ================= 資料庫與介面核心邏輯 =================
-  const request = indexedDB.open("ASMR_Categorized_DB_V17", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V18", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
