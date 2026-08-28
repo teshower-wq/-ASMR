@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (iOS 真正硬體影片 PiP 版)</title>
+  <title>ASMR 私人隨身庫 (iOS 互動解鎖 PiP 版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -251,11 +251,12 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pip" id="btn-pip" onclick="enablePiP()">📺 開啟懸浮小視窗 (iOS 影片軌道強制版)</button>
+    <!-- 關鍵：直接綁定使用者點擊事件觸發，不透過非同步延遲 -->
+    <button class="btn-pip" id="btn-pip" onclick="enablePiPDirect()">📺 開啟懸浮小視窗 (iOS 直擊解鎖版)</button>
   </div>
 </div>
 
-<!-- iOS 專用：透過真實影音編碼串流的隱藏影片載體 -->
+<!-- iOS 專用：常駐可播放的隱藏真實影片元素，確保系統承認其為影片播放源 -->
 <video id="pip-video" playsinline muted autoplay style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0.01;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
@@ -279,8 +280,6 @@
   let pipCanvas = null;
   let pipCtx = null;
   let cachedCoverImage = null;
-  let mediaRecorder = null;
-  let recordedChunks = [];
   let pipAnimationTimer = null;
 
   let currentPage = 1;
@@ -308,39 +307,26 @@
     }
   }
 
-  // 關鍵核心：利用 MediaRecorder 將 Canvas 畫面錄製成 iOS 認可的真實 Video 串流
-  function startPiPRenderStream() {
+  // 預先產生一個靜態的 1 秒循環影片 Blob 給 pipVideo，讓 iOS 隨時都能進入 PiP
+  function initPiPVideoSource() {
     setupPiPCanvas();
-    if (!pipCanvas || !pipCanvas.captureStream) return;
+    if (!pipCanvas) return;
+    drawPiPFrame();
 
-    try {
-      const stream = pipCanvas.captureStream(15); // 15 FPS
-      
-      // 如果支援 MediaRecorder，透過錄製成 blob 餵給 pipVideo，徹底打破 iOS 黑畫面限制
-      if (window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-        try {
-          mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8', videoBitsPerSecond: 500000 });
-        } catch(e) {
-          mediaRecorder = new MediaRecorder(stream);
-        }
-        
-        recordedChunks = [];
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) recordedChunks.push(e.data);
-        };
-        mediaRecorder.onstop = () => {
-          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    const stream = pipCanvas.captureStream ? pipCanvas.captureStream(10) : null;
+    if (stream && window.MediaRecorder && MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+      try {
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
+        let chunks = [];
+        recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: 'video/webm' });
           pipVideo.src = URL.createObjectURL(blob);
-          pipVideo.play().catch(err => console.log(err));
+          pipVideo.play().catch(e => {});
         };
-        mediaRecorder.start(1000); // 每秒打包一次真實影片區段
-      } else {
-        // 備用方案：直接綁定串流
-        pipVideo.srcObject = stream;
-        pipVideo.play().catch(e => console.log(e));
-      }
-    } catch(err) {
-      console.log("MediaRecorder init error:", err);
+        recorder.start();
+        setTimeout(() => { recorder.stop(); }, 600);
+      } catch(err) {}
     }
   }
 
@@ -407,11 +393,11 @@
     }
   }
 
-  // 啟用 PiP
-  async function enablePiP() {
+  // 關鍵：在使用者點擊按鈕的「同一個同步調用疊代」內直接呼叫 PiP，不加任何非同步延遲！
+  function enablePiPDirect() {
     try {
       if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
+        document.exitPictureInPicture();
         return;
       }
       if (pipVideo.webkitPresentationMode === 'picture-in-picture') {
@@ -420,31 +406,21 @@
       }
 
       setupPiPCanvas();
-      startPiPRenderStream();
+      drawPiPFrame();
 
       if (pipAnimationTimer) clearInterval(pipAnimationTimer);
-      pipAnimationTimer = setInterval(drawPiPFrame, 100);
+      pipAnimationTimer = setInterval(drawPiPFrame, 200);
 
-      setTimeout(async () => {
-        try {
-          if (pipVideo.requestPictureInPicture) {
-            await pipVideo.requestPictureInPicture();
-          } else if (pipVideo.webkitSetPresentationMode) {
-            pipVideo.webkitSetPresentationMode('picture-in-picture');
-          } else {
-            alert("您的裝置不支援懸浮小視窗。");
-          }
-        } catch (e) {
-          if (pipVideo.webkitSetPresentationMode) {
-            pipVideo.webkitSetPresentationMode('picture-in-picture');
-          }
-        }
-      }, 300);
-
-    } catch(err) {
+      // 直接強制呼叫 iOS Safari 原生影片 PiP
       if (pipVideo.webkitSetPresentationMode) {
         pipVideo.webkitSetPresentationMode('picture-in-picture');
+      } else if (pipVideo.requestPictureInPicture) {
+        pipVideo.requestPictureInPicture();
+      } else {
+        alert("此瀏覽器不支援懸浮小視窗。");
       }
+    } catch(err) {
+      alert("無法啟動小視窗，請確認是否為 iOS Safari。");
     }
   }
 
@@ -513,14 +489,14 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V17", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V18", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
-  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); setupPiPCanvas(); };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); initMediaSession(); setupPiPCanvas(); initPiPVideoSource(); };
 
   function loadData() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
@@ -895,7 +871,7 @@
 
     updateMediaSessionMetadata(track.title, album ? album.title : "ASMR", coverUrl);
     updatePlayStateUI(true);
-    startPiPRenderStream();
+    initPiPVideoSource();
   }
 
   function togglePlay() {
