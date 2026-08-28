@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (動態影音與MP3雙專區極速優化版)</title>
+  <title>ASMR 私人隨身庫 (動態影音與MP3雙專區極速優化流暢升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -16,25 +16,25 @@
       --border-glass: rgba(255, 255, 255, 0.08);
       --border-glass-hover: rgba(255, 121, 198, 0.35);
     }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transform; }
     body {
       margin: 0; padding: 16px; padding-bottom: 140px;
       background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
     }
 
     #bg-video, #bg-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: cover; background-color: var(--bg-dark);
       z-index: -2; display: none; filter: brightness(0.7) blur(4px);
-      transform: scale(1); transition: opacity 1s ease, transform 1s ease;
-      will-change: transform, opacity;
+      transform: translateZ(0); will-change: transform, opacity;
+      transition: opacity 0.8s ease;
     }
     @media (max-width: 768px) {
       #bg-video, #bg-img {
         top: -10vh; left: -10vw; width: 120vw; height: 120vh;
-        transform: scale(0.8);
       }
     }
 
@@ -51,30 +51,30 @@
     .btn-clean-mem {
       background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4);
       color: #50fa7b; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
-      transition: all 0.25s ease; backdrop-filter: blur(10px);
+      transition: all 0.2s ease; backdrop-filter: blur(10px);
     }
     .btn-clean-mem:hover { background: rgba(80, 250, 123, 0.3); box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
     .btn-toggle-admin {
       background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
       color: var(--primary-pink); padding: 10px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      transition: all 0.25s ease; backdrop-filter: blur(10px);
+      transition: all 0.2s ease; backdrop-filter: blur(10px);
     }
     .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
-    .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
+    .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
     .admin-drawer.open { max-height: 4500px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--border-glass); border-radius: 24px; padding: 20px; margin-bottom: 18px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5); transform: translateZ(0);
     }
     .card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; color: var(--primary-pink); display: flex; align-items: center; gap: 10px; }
     .form-group { margin-bottom: 12px; }
     label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 6px; font-weight: 500; }
     input, select {
       width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.25s ease;
+      border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.2s ease;
     }
     input:focus, select:focus { border-color: var(--primary-pink); box-shadow: 0 0 12px rgba(255, 121, 198, 0.25); background: rgba(0,0,0,0.6); }
     
@@ -87,26 +87,26 @@
     .btn-pink {
       width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); color: #07070a; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.2s ease;
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
 
     .btn-blue {
       width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.2s ease;
     }
     .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5); }
 
     .btn-green {
       width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;
     }
     .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
     .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
+    .page-view { display: none; width: 100%; animation: fadeIn 0.2s ease; }
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -114,7 +114,7 @@
       background: var(--card-glass); backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass); border-radius: 20px; padding: 14px; margin-bottom: 12px;
       display: flex; align-items: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3); transform: translateZ(0);
     }
     .album-grid-card:hover {
       background: var(--card-glass-hover); border-color: var(--border-glass-hover);
@@ -147,7 +147,7 @@
     .chapter-file-item {
       display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;
       background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px;
-      cursor: pointer; transition: all 0.2s ease;
+      cursor: pointer; transition: all 0.15s ease;
     }
     .chapter-file-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255, 121, 198, 0.25); }
     .chapter-info-left { display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1; margin-right: 10px; }
@@ -178,21 +178,61 @@
       background: rgba(16, 16, 22, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       padding: 4px 18px 24px 18px; box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
-      z-index: 1000; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      will-change: transform;
+      z-index: 1000; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform; transform: translateZ(0);
     }
     .player-card.minimized { transform: translateY(110%); pointer-events: none; }
 
     .drag-handle-area { width: 100%; padding: 12px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
+    /* 🌸 YouTube 風格全螢幕影片與字幕容器 (支援獨立元素全螢幕，非網站全螢幕) */
+    #media-display-container {
+      width: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #media-display-container:fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #000000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 30px !important;
+      box-sizing: border-box !important;
+    }
+    #media-display-container:-webkit-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      background: #000000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding: 30px !important;
+      box-sizing: border-box !important;
+    }
+
     .cover-box { 
       width: 100%; height: 240px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
     }
+    #media-display-container:fullscreen .cover-box,
+    #media-display-container:-webkit-full-screen .cover-box {
+      width: 100% !important;
+      height: 72vh !important;
+      max-height: none !important;
+      border-radius: 16px !important;
+      margin-bottom: 20px !important;
+    }
+
     .cover-box img, .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
@@ -239,7 +279,7 @@
       background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
       color: #fff; width: 36px; height: 36px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center; cursor: pointer;
-      font-size: 1rem; z-index: 10; transition: all 0.2s ease; backdrop-filter: blur(4px);
+      font-size: 1rem; z-index: 10; transition: all 0.15s ease; backdrop-filter: blur(4px);
     }
     .btn-cover-nav:hover { background: rgba(255, 121, 198, 0.4); border-color: var(--primary-pink); }
     .cover-prev { left: 10px; }
@@ -251,11 +291,22 @@
     }
     
     .album-tag { font-size: 0.82rem; color: var(--text-sub); text-align: center; margin-bottom: 4px; font-weight: 500; }
+    #media-display-container:fullscreen .album-tag,
+    #media-display-container:-webkit-full-screen .album-tag {
+      font-size: 1.1rem !important;
+      margin-bottom: 8px !important;
+    }
     
     .lrc-box {
       min-height: 48px; display: flex; align-items: center; justify-content: center;
       text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink);
       text-shadow: 0 0 20px var(--pink-glow), 0 2px 4px rgba(0,0,0,0.8); padding: 2px 8px; line-height: 1.3; margin-bottom: 8px;
+    }
+    #media-display-container:fullscreen .lrc-box,
+    #media-display-container:-webkit-full-screen .lrc-box {
+      font-size: 1.8rem !important;
+      text-shadow: 0 0 30px var(--pink-glow), 0 4px 10px rgba(0,0,0,0.95) !important;
+      margin-top: 10px !important;
     }
 
     .sub-quick-tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
@@ -295,7 +346,7 @@
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 64px;
       background: rgba(16, 16, 22, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 14px;
-      z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .mini-player.hidden { transform: translateY(100%); pointer-events: none; }
     .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
@@ -355,7 +406,7 @@
       <div class="form-group">
         <label>分區類型選擇</label>
         <select id="album-type">
-          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、無愛心特效與卡頓)</option>
+          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、懸浮全功能支援)</option>
           <option value="mp4">🌸 動態影音 MP4 專區 (影片封面來回循環 + 粉紅字幕 + 愛心小遊戲)</option>
         </select>
       </div>
@@ -427,15 +478,18 @@
     <div class="drag-handle"></div>
   </div>
 
-  <div class="cover-box" id="player-cover-box">
-    <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
-    <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
-    <div class="cover-indicator" id="cover-indicator">1 / 1</div>
-    <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:20; object-fit:cover; border-radius:12px;">
+  <!-- 🌸 YouTube 風格全螢幕專用容器 (影片/封面 + 字幕同步放大全螢幕) -->
+  <div id="media-display-container">
+    <div class="cover-box" id="player-cover-box">
+      <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
+      <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
+      <div class="cover-indicator" id="cover-indicator">1 / 1</div>
+      <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:20; object-fit:cover; border-radius:12px;">
+    </div>
+    
+    <div id="album-tag" class="album-tag">請選擇作品分區</div>
+    <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
   </div>
-  
-  <div id="album-tag" class="album-tag">請選擇作品分區</div>
-  <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
     <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.vtt,.srt,.txt" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
@@ -463,7 +517,7 @@
 
   <div class="bottom-tools">
     <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP)</button>
-    <button class="btn-fullscreen" onclick="toggleFullScreen()">🔲 全螢幕模式</button>
+    <button class="btn-fullscreen" onclick="toggleFullScreen()">🔲 影片全螢幕</button>
   </div>
 </div>
 
@@ -505,7 +559,6 @@
   const itemsPerPage = 4;
   let activeCreatedUrls = [];
 
-  // Web Audio 變數 (僅在 MP4 動態影音專區啟用，保護 MP3 專區輕量不卡死)
   let audioCtx = null;
   let analyser = null;
   let audioSourceNode = null;
@@ -555,7 +608,7 @@
       bgVideo.removeAttribute('src');
       bgVideo.load();
     }
-    alert("⚡ 已完成快取釋放與記憶體清理！手機負載與熱量已降低。");
+    alert("⚡ 已完成快取釋放與記憶體清理！手機流暢度與電池續航已最佳化。");
   }
 
   document.addEventListener("visibilitychange", () => {
@@ -584,7 +637,7 @@
   dragHandleArea.addEventListener("touchend", () => {
     if (!isDragging) return;
     isDragging = false;
-    playerCard.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+    playerCard.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
     if (diff > 80) {
       minimizePlayer();
@@ -611,7 +664,7 @@
   });
 
   function initAudioAnalysis() {
-    if (currentAlbumType !== 'mp4') return; // MP3 專區不啟用頻譜分析，徹底杜絕懸浮無聲與卡死
+    if (currentAlbumType !== 'mp4') return;
     if (audioCtx) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       return;
@@ -893,10 +946,12 @@
     if (currentIndex === -1) return alert("請先播放一個篇章才能開啟桌面懸浮窗！");
     
     unlockAutoplayConstraints();
+    
+    // 🌸 升級：MP3 與 MP4 專區皆能完整開啟桌面懸浮 (PiP) 顯示畫面與字幕
     if (currentAlbumType === 'mp4') {
       initAudioAnalysis();
-      initPiPEngine();
     }
+    initPiPEngine();
 
     if (audio.paused && !isClimaxState) {
       await audio.play().catch(() => {});
@@ -904,7 +959,7 @@
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
 
-    if (currentAlbumType === 'mp4' && cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) {
+    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) {
       cachedCoverElement.play().catch(() => {});
     }
     
@@ -918,11 +973,13 @@
     }
   }
 
+  // 🌸 升級：YouTube 風格影片與字幕全螢幕 (只讓影片與字幕容器全螢幕，非整個網頁)
   function toggleFullScreen() {
-    const elem = document.documentElement;
+    const container = document.getElementById("media-display-container");
+    if (!container) return;
     if (!document.fullscreenElement) {
-      elem.requestFullscreen().catch(err => {
-        alert("無法進入全螢幕模式： " + err.message);
+      container.requestFullscreen().catch(err => {
+        alert("無法進入影片全螢幕模式： " + err.message);
       });
     } else {
       document.exitFullscreen();
@@ -941,7 +998,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V31", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V32", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1467,7 +1524,6 @@
     const box = document.getElementById("player-cover-box");
     let overlay = document.getElementById("climax-overlay-img");
     
-    // 依據專區動態顯示或隱藏愛心互動小遊戲容器
     let heartHtml = '';
     if (currentAlbumType === 'mp4') {
       heartHtml = `
@@ -1520,11 +1576,10 @@
       if (blob.type.startsWith("video")) {
         let vid = document.createElement("video");
         vid.src = url;
-        vid.muted = true; // 強制將影片本身聲音設為靜音，只播放篇章音樂
+        vid.muted = true;
         vid.playsInline = true;
         vid.style.display = (i === 0) ? "block" : "none";
         
-        // 🌸 MP4 專區專屬：來回循環 (Ping-Pong Loop) 機制
         setupPingPongVideo(vid);
 
         box.appendChild(vid);
@@ -1550,7 +1605,6 @@
     if (currentAlbumType === 'mp4') updateHeartDisplay();
   }
 
-  // 跨平臺完美的影片來回循環 (Ping-Pong) 實現函數
   function setupPingPongVideo(vid) {
     let isReversing = false;
     vid.addEventListener('timeupdate', () => {
