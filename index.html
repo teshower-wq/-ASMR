@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (手機面板觸控與滑動修復版)</title>
+  <title>ASMR 私人隨身庫 (手機批量配對與觸控修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -1006,6 +1006,20 @@
     };
   }
 
+  // 封裝非同步讀取文字檔案的函式，避免在行動端 Promise 迴圈中卡死
+  function readFileAsTextAsync(file) {
+    return new Promise((resolve) => {
+      if (!file) {
+        resolve("");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result || "");
+      reader.onerror = () => resolve("");
+      reader.readAsText(file);
+    });
+  }
+
   async function batchUploadAndPair() {
     const albumId = parseInt(document.getElementById("select-album").value);
     const audioInput = document.getElementById("batch-audios");
@@ -1021,43 +1035,60 @@
     let audios = Array.from(audioInput.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
     let lrcs = Array.from(lrcInput.files);
 
-    const tx = db.transaction("tracks", "readwrite");
-    const store = tx.objectStore("tracks");
-
-    for (let audioFile of audios) {
-      let baseName = audioFile.name.replace(/\.[^/.]+$/, "").trim();
-      let matchedLrcText = "";
-
-      let foundLrc = lrcs.find(l => {
-        let lBase = l.name.replace(/\.[^/.]+$/, "").trim();
-        return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
-      });
-
-      if (foundLrc) {
-        matchedLrcText = await foundLrc.text();
-      }
-
-      store.add({
-        albumId,
-        title: baseName,
-        audioBlob: audioFile,
-        lrcText: matchedLrcText
-      });
+    // 先把所有字幕檔案內容在記憶體中讀取完畢，避免 DOM 互動與 File 讀取在迴圈卡住
+    let lrcMapData = [];
+    for (let l of lrcs) {
+      let text = await readFileAsTextAsync(l);
+      let lBase = l.name.replace(/\.[^/.]+$/, "").trim();
+      lrcMapData.push({ base: lBase, text: text });
     }
 
-    tx.oncomplete = () => {
-      audioInput.value = "";
-      lrcInput.value = "";
+    try {
+      const tx = db.transaction("tracks", "readwrite");
+      const store = tx.objectStore("tracks");
+
+      for (let audioFile of audios) {
+        let baseName = audioFile.name.replace(/\.[^/.]+$/, "").trim();
+        let matchedLrcText = "";
+
+        let found = lrcMapData.find(item => {
+          let lBase = item.base;
+          return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
+        });
+
+        if (found) {
+          matchedLrcText = found.text;
+        }
+
+        store.add({
+          albumId,
+          title: baseName,
+          audioBlob: audioFile,
+          lrcText: matchedLrcText
+        });
+      }
+
+      tx.oncomplete = () => {
+        audioInput.value = "";
+        lrcInput.value = "";
+        btn.disabled = false;
+        btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
+        loadData();
+        alert(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對字幕！`);
+      };
+
+      tx.onerror = (err) => {
+        console.error(err);
+        btn.disabled = false;
+        btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
+        alert("❌ 批量匯入寫入資料庫失敗，可能是檔案過大或容量不足。");
+      };
+    } catch(e) {
+      console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      loadData();
-      alert(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對字幕！`);
-    };
-    tx.onerror = () => {
-      btn.disabled = false;
-      btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      alert("❌ 批量匯入失敗，請檢查檔案格式。");
-    };
+      alert("❌ 發生未預期的錯誤，請重新整理頁面後再試。");
+    }
   }
 
   function deleteTrack(id) {
@@ -1346,7 +1377,7 @@
     if (currentIndex === -1) return;
     const file = event.target.files[0];
     if (!file) return;
-    const text = await file.text();
+    const text = await readFileAsTextAsync(file);
     const track = currentTrackList[currentIndex];
     track.lrcText = text;
     currentLrc = parseUniversalLyrics(text);
