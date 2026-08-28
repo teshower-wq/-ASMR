@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全格式文檔完美上傳版)</title>
+  <title>ASMR 私人隨身庫 (全格式文檔完美升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -384,6 +384,7 @@
     <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.srt,.txt,.vtt,text/plain" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
+    <button class="btn-sub-quick" id="btn-power-saving" onclick="togglePowerSavingCover()">⚡ 省電模式：動態開</button>
   </div>
 
   <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100" step="0.1">
@@ -433,6 +434,7 @@
   let coverElements = [];
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
+  let isPowerSavingCover = false; // 省電開關狀態：true 為強制靜態圖片模式
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -524,6 +526,24 @@
     }
   });
 
+  // 切換省電模式：關閉動態封面影片、改為靜態封面圖片 (且 PiP 懸浮時影片不動但字幕持續運作)
+  function togglePowerSavingCover() {
+    isPowerSavingCover = !isPowerSavingCover;
+    const btn = document.getElementById("btn-power-saving");
+    if (isPowerSavingCover) {
+      btn.innerText = "⚡ 省電模式：靜態開";
+      btn.style.background = "rgba(80, 250, 123, 0.2)";
+      btn.style.borderColor = "#50fa7b";
+      btn.style.color = "#50fa7b";
+    } else {
+      btn.innerText = "⚡ 省電模式：動態開";
+      btn.style.background = "";
+      btn.style.borderColor = "";
+      btn.style.color = "";
+    }
+    updateCoverDisplay();
+  }
+
   function initPiPEngine() {
     if (isPiPInitialized) return;
     try {
@@ -538,10 +558,11 @@
           pipCtx.fillRect(0, 0, 1080, 1080);
 
           if (cachedCoverElement) {
-            if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused) {
+            // 省電模式開啟時，如果封面是影片，則不讓其自動撥放 (維持靜態畫面)，但字幕依然正常繪製更新
+            if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
               cachedCoverElement.play().catch(() => {});
             }
-            drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive);
+            drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive && !isPowerSavingCover);
           } else {
             pipCtx.fillStyle = "#121218";
             pipCtx.fillRect(0, 0, 1080, 1080);
@@ -624,7 +645,9 @@
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
     initPiPEngine();
-    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.play().catch(() => {});
+    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) {
+      cachedCoverElement.play().catch(() => {});
+    }
     
     try {
       if (pipVideo !== document.pictureInPictureElement) await pipVideo.requestPictureInPicture();
@@ -919,7 +942,6 @@
     };
   }
 
-  // 強化版字幕文字讀取引擎
   function readFileTextSmart(file) {
     return new Promise((resolve) => {
       if (!file) return resolve("");
@@ -940,15 +962,13 @@
     });
   }
 
-  // 純化檔名進行高精度匹配
   function getCleanBaseName(filename) {
     if (!filename) return "";
     let clean = filename.trim();
-    clean = clean.replace(/\.[^/.]+$/, ""); // 去除字尾副檔名
+    clean = clean.replace(/\.[^/.]+$/, "");
     return clean.toLowerCase().replace(/[\s\-_]/g, '').trim();
   }
 
-  // 1-Click 批量自動配對全解鎖核心
   async function batchUploadAndPair() {
     const selectEl = document.getElementById("select-album");
     const albumId = parseInt(selectEl.value);
@@ -970,7 +990,6 @@
     btnBatch.innerText = "⏳ 正在分析與寫入資料庫中...";
 
     try {
-      // 預先讀取所有文檔，建立高效率 Match Map
       const lrcContentMap = new Map();
       for (let lrcFile of lrcFiles) {
         let cleanKey = getCleanBaseName(lrcFile.name);
@@ -1019,7 +1038,6 @@
     }
   }
 
-  // 單一篇章手動新增 (同步修復文檔讀取與連動)
   async function addTrack() {
     const albumId = parseInt(document.getElementById("select-album").value);
     if (!albumId) return alert("請先選擇作品分區！");
@@ -1188,6 +1206,15 @@
 
   function changePage(page) { currentPage = page; renderAlbumList(); }
 
+  // 智慧自然排序演算法：自動將篇章集數排序，支援 1 開頭從小到大排序 (例如 1, 2, 10 或 01, 02... 混合字串皆能完美辨識)
+  function naturalSortTracks(trackA, trackB) {
+    const aText = trackA.title || "";
+    const bText = trackB.title || "";
+    
+    // 萃取字串中的數字群組進行比較
+    return aText.localeCompare(bText, 'zh-TW', { numeric: true, sensitivity: 'base' });
+  }
+
   function renderDetailView(albumId) {
     const targetAlbumId = Number(albumId);
     const album = albums.find(a => Number(a.id) === targetAlbumId);
@@ -1195,11 +1222,17 @@
     document.getElementById("detail-album-title").innerText = album.title;
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
-    const albumTracks = tracks.filter(t => Number(t.albumId) === targetAlbumId);
+    
+    let albumTracks = tracks.filter(t => Number(t.albumId) === targetAlbumId);
+    
+    // 依據需求：作品集裡面的篇章自動排版集數，1開頭從小往數字大的排列
+    albumTracks.sort(naturalSortTracks);
+
     if (albumTracks.length === 0) {
       container.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0; text-align:center;'>此分區目前沒有篇章。</div>";
       return;
     }
+    
     albumTracks.forEach(track => {
       const item = document.createElement("div");
       item.className = "chapter-file-item";
@@ -1225,7 +1258,11 @@
     const targetAlbumId = Number(albumId);
     const targetTrackId = Number(trackId);
     const album = albums.find(a => Number(a.id) === targetAlbumId);
+    
     currentTrackList = tracks.filter(t => Number(t.albumId) === targetAlbumId);
+    // 確保點擊播放時的順序與列表畫面排版一致
+    currentTrackList.sort(naturalSortTracks);
+
     currentIndex = currentTrackList.findIndex(t => Number(t.id) === targetTrackId);
     if (currentIndex === -1) return;
 
@@ -1300,7 +1337,11 @@
         el.style.display = "block";
         cachedCoverElement = el;
         isCoverVideoActive = el.tagName === 'VIDEO';
-        if (isCoverVideoActive) el.play().catch(() => {});
+        if (isCoverVideoActive && !isPowerSavingCover) {
+          el.play().catch(() => {});
+        } else if (isCoverVideoActive && isPowerSavingCover) {
+          el.pause(); // 省電模式：封面的影片保持靜態暫停
+        }
       } else {
         el.style.display = "none";
         if (el.tagName === 'VIDEO') el.pause();
@@ -1325,7 +1366,7 @@
     if (currentIndex === -1) return;
     if (audio.paused) {
       audio.play();
-      if (isCoverVideoActive && cachedCoverElement) cachedCoverElement.play();
+      if (isCoverVideoActive && cachedCoverElement && !isPowerSavingCover) cachedCoverElement.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     } else {
@@ -1461,3 +1502,4 @@
 
 </body>
 </html>
+```[cite: 3]
