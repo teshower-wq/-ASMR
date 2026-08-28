@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (圖片精緻小圖完整顯示、影片完美無黑邊)</title>
+  <title>ASMR 私人隨身庫 (封面/背景手動自主切換)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -168,10 +168,7 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 完美智慧顯示區塊：
-       - 圖片：縮小（Contain）且四周保留適當內距與沉穩深色背景，確保「完整看到圖片所有畫面、不會過大」。
-       - 影片：滿版覆蓋（Cover），確保「絕不留任何黑邊」。
-    */
+    /* 封面展示區塊（支援手動切換按鈕） */
     .cover-box { 
       width: 100%; height: 260px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
@@ -187,6 +184,23 @@
     .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; 
       position: absolute; top: 0; left: 0; border-radius: 12px;
+    }
+
+    /* 手動切換封面按鈕樣式 */
+    .btn-cover-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff; width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      font-size: 1rem; z-index: 10; transition: all 0.2s ease; backdrop-filter: blur(4px);
+    }
+    .btn-cover-nav:hover { background: rgba(255, 121, 198, 0.4); border-color: var(--primary-pink); }
+    .cover-prev { left: 10px; }
+    .cover-next { right: 10px; }
+    .cover-indicator {
+      position: absolute; bottom: 10px; right: 12px; background: rgba(0, 0, 0, 0.6);
+      padding: 3px 8px; border-radius: 8px; font-size: 0.72rem; color: #fff; z-index: 10;
+      backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
     }
     
     .album-tag { font-size: 0.82rem; color: var(--text-sub); text-align: center; margin-bottom: 4px; font-weight: 500; }
@@ -266,11 +280,11 @@
 
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景</div>
-      <div class="form-group"><label>選取多張圖片或 MP4 影片（每 1 分鐘自動輪換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
-      <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存並啟動背景輪播</button>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
+      <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (支援多張封面圖/影片 30秒自動輪換)</div>
+      <div class="card-title">📁 建立作品分區 (支援多張封面圖/影片手動切換)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：系列名稱"></div>
       <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
@@ -319,7 +333,12 @@
     <div class="drag-handle"></div>
   </div>
 
-  <div class="cover-box" id="player-cover-box"></div>
+  <!-- 封面顯示區塊（內建左右手動切換按鈕） -->
+  <div class="cover-box" id="player-cover-box">
+    <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
+    <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
+    <div class="cover-indicator" id="cover-indicator">1 / 1</div>
+  </div>
   
   <div id="album-tag" class="album-tag">請選擇作品分區</div>
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
@@ -368,15 +387,13 @@
 
   let globalBackgrounds = [];
   let bgIndex = 0;
-  let bgIntervalTimer = null;
   let isCustomAlbumPlaying = false;
   let currentAlbumBgBlobs = [];
   let albumBgIndex = 0;
-  let albumBgIntervalTimer = null;
 
   let activeAlbumCoverBlobs = [];
   let activeCoverIndex = 0;
-  let coverCarouselTimer = null;
+  let coverElements = [];
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
 
@@ -554,7 +571,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V25", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V26", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -571,7 +588,8 @@
       const res = e.target.result;
       if (res && res.blobs && res.blobs.length > 0) {
         globalBackgrounds = res.blobs;
-        startBackgroundCarousel();
+        bgIndex = 0;
+        if (!isCustomAlbumPlaying) applyBackgroundBlob(globalBackgrounds[bgIndex]);
       }
     };
   }
@@ -721,7 +739,6 @@
     if (viewName === 'home') {
       document.getElementById('view-home').classList.add('active');
       currentActiveAlbumId = null; isCustomAlbumPlaying = false;
-      if (albumBgIntervalTimer) clearInterval(albumBgIntervalTimer);
       if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
     } else if (viewName === 'detail') {
       document.getElementById('view-detail').classList.add('active');
@@ -745,34 +762,11 @@
     const tx = db.transaction(["settings"], "readwrite");
     tx.objectStore("settings").put({ key: "globalBgs", blobs: blobsArray });
     tx.oncomplete = () => {
-      globalBackgrounds = blobsArray; bgIndex = 0; isCustomAlbumPlaying = false; startBackgroundCarousel();
-      alert(`成功設定 ${blobsArray.length} 張背景！`);
+      globalBackgrounds = blobsArray; bgIndex = 0; isCustomAlbumPlaying = false;
+      if(globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
+      alert(`成功儲存 ${blobsArray.length} 張全域背景！`);
       document.getElementById("global-bg-input").value = "";
     };
-  }
-
-  function startBackgroundCarousel() {
-    if (bgIntervalTimer) clearInterval(bgIntervalTimer);
-    if (!globalBackgrounds || globalBackgrounds.length === 0) return;
-    if (!isCustomAlbumPlaying) applyBackgroundBlob(globalBackgrounds[bgIndex]);
-    bgIntervalTimer = setInterval(() => {
-      if (!isCustomAlbumPlaying && globalBackgrounds.length > 0) {
-        bgIndex = (bgIndex + 1) % globalBackgrounds.length;
-        applyBackgroundBlob(globalBackgrounds[bgIndex]);
-      }
-    }, 60000);
-  }
-
-  function startAlbumBackgroundCarousel() {
-    if (albumBgIntervalTimer) clearInterval(albumBgIntervalTimer);
-    if (!currentAlbumBgBlobs || currentAlbumBgBlobs.length === 0) return;
-    applyBackgroundBlob(currentAlbumBgBlobs[albumBgIndex]);
-    if (currentAlbumBgBlobs.length > 1) {
-      albumBgIntervalTimer = setInterval(() => {
-        albumBgIndex = (albumBgIndex + 1) % currentAlbumBgBlobs.length;
-        applyBackgroundBlob(currentAlbumBgBlobs[albumBgIndex]);
-      }, 60000);
-    }
   }
 
   function applyBackgroundBlob(blob) {
@@ -961,10 +955,9 @@
           isCustomAlbumPlaying = true;
           currentAlbumBgBlobs = album.bgBlobs;
           albumBgIndex = 0;
-          startAlbumBackgroundCarousel();
+          applyBackgroundBlob(currentAlbumBgBlobs[albumBgIndex]);
         } else {
           isCustomAlbumPlaying = false;
-          if (albumBgIntervalTimer) clearInterval(albumBgIntervalTimer);
           if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
         }
         switchPage('detail', album.id);
@@ -1061,7 +1054,7 @@
 
     activeAlbumCoverBlobs = album && album.coverBlobs ? album.coverBlobs : (album && album.coverBlob ? [album.coverBlob] : []);
     activeCoverIndex = 0;
-    setupPlayerCoverCarousel();
+    setupPlayerCovers();
 
     let firstCoverUrl = activeAlbumCoverBlobs.length > 0 ? URL.createObjectURL(activeAlbumCoverBlobs[0]) : "";
     document.getElementById("mini-thumb").src = firstCoverUrl || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
@@ -1073,18 +1066,23 @@
     expandPlayer();
   }
 
-  function setupPlayerCoverCarousel() {
-    if (coverCarouselTimer) clearInterval(coverCarouselTimer);
+  function setupPlayerCovers() {
     const coverBox = document.getElementById("player-cover-box");
+    // 保留導覽按鈕與指示器，移除舊的媒體元素
+    const navButtons = coverBox.querySelectorAll('.btn-cover-nav, .cover-indicator');
     coverBox.innerHTML = "";
+    navButtons.forEach(btn => coverBox.appendChild(btn));
+
+    coverElements = [];
 
     if (activeAlbumCoverBlobs.length === 0) {
       cachedCoverElement = null;
       isCoverVideoActive = false;
+      document.getElementById("cover-indicator").innerText = "0 / 0";
       return;
     }
 
-    let coverElements = activeAlbumCoverBlobs.map((blob, idx) => {
+    activeAlbumCoverBlobs.forEach((blob, idx) => {
       let url = URL.createObjectURL(blob);
       let el;
       if (blob.type && blob.type.startsWith('video/')) {
@@ -1100,22 +1098,38 @@
       }
       el.style.display = idx === 0 ? "block" : "none";
       coverBox.appendChild(el);
-      return el;
+      coverElements.push(el);
     });
 
-    cachedCoverElement = coverElements[0];
-    isCoverVideoActive = cachedCoverElement.tagName === 'VIDEO';
+    updateCoverDisplay();
+  }
 
-    if (coverElements.length > 1) {
-      coverCarouselTimer = setInterval(() => {
-        coverElements[activeCoverIndex].style.display = "none";
-        activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
-        coverElements[activeCoverIndex].style.display = "block";
-        cachedCoverElement = coverElements[activeCoverIndex];
-        isCoverVideoActive = cachedCoverElement.tagName === 'VIDEO';
-        if (isCoverVideoActive) cachedCoverElement.play().catch(() => {});
-      }, 30000);
-    }
+  function updateCoverDisplay() {
+    if (coverElements.length === 0) return;
+    coverElements.forEach((el, idx) => {
+      if (idx === activeCoverIndex) {
+        el.style.display = "block";
+        cachedCoverElement = el;
+        isCoverVideoActive = el.tagName === 'VIDEO';
+        if (isCoverVideoActive) el.play().catch(() => {});
+      } else {
+        el.style.display = "none";
+        if (el.tagName === 'VIDEO') el.pause();
+      }
+    });
+    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
+  }
+
+  function nextCover() {
+    if (coverElements.length <= 1) return;
+    activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
+    updateCoverDisplay();
+  }
+
+  function prevCover() {
+    if (coverElements.length <= 1) return;
+    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
+    updateCoverDisplay();
   }
 
   function togglePlay() {
