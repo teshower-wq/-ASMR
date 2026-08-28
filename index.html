@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (大升級極速修復版)</title>
+  <title>ASMR 私人隨身庫 (全格式文檔完美上傳版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -290,21 +290,21 @@
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
         <label>📥 2. 匯入備份檔案 (接收端裝置)</label>
-        <input type="file" id="import-backup-input" accept="*/*" onchange="importDataBackup(event)">
+        <input type="file" id="import-backup-input" accept=".json,application/json" onchange="importDataBackup(event)">
       </div>
     </div>
 
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景</div>
-      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="*/*" multiple></div>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
 
     <div class="glass-card">
       <div class="card-title">📁 建立作品分區 (支援多張封面圖/影片手動切換)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女"></div>
-      <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="*/*" multiple></div>
-      <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="*/*" multiple></div>
+      <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
+      <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
@@ -319,11 +319,12 @@
         <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (全手機與文字檔解鎖版)</div>
         <div class="form-group">
           <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
-          <input type="file" id="batch-audios" accept="*/*" multiple>
+          <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
         </div>
         <div class="form-group">
-          <label>複選所有字幕/文檔 (可一次選多個 .lrc/.srt/.txt/.vtt)</label>
-          <input type="file" id="batch-lrcs" accept="*/*" multiple>
+          <label>複選所有字幕/文檔 (支持 .lrc / .srt / .txt / .vtt)</label>
+          <!-- 修正 accept：明確寫出附檔名與文字類型，避免手機系統檔下文檔 -->
+          <input type="file" id="batch-lrcs" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt" multiple>
         </div>
         <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
       </div>
@@ -331,8 +332,8 @@
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
-        <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="*/*"></div>
-        <div class="form-group"><label>字幕/文檔 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept="*/*"></div>
+        <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac"></div>
+        <div class="form-group"><label>字幕/文檔 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt"></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
       </div>
     </div>
@@ -381,7 +382,7 @@
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
-    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept="*/*" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
+    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.srt,.txt,.vtt,text/plain" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
   </div>
@@ -870,7 +871,7 @@
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = '*/*';
+    fileInput.accept = 'image/*,video/*';
     fileInput.multiple = true;
     fileInput.onchange = (e) => {
       const newCovers = Array.from(e.target.files);
@@ -887,7 +888,6 @@
     fileInput.click();
   }
 
-  // 大修復：作品分區刪除邏輯，強制對齊 Key 型態
   async function deleteAlbum(albumId, event) {
     if (event) event.stopPropagation();
     const targetId = Number(albumId);
@@ -920,10 +920,10 @@
     };
   }
 
-  // 超強悍字幕檔案讀取器，解決 iOS Safari 與高版本瀏覽器相容性
+  // 強化版字幕文字讀取引擎
   function readFileTextSmart(file) {
     return new Promise((resolve) => {
-      if (!file) resolve("");
+      if (!file) return resolve("");
       const reader = new FileReader();
       reader.onload = (e) => {
         let text = e.target.result || "";
@@ -941,15 +941,15 @@
     });
   }
 
-  // 超級檔名純化：移除所有字尾副檔名與標點符號，進行純文字匹配
+  // 純化檔名進行高精度匹配
   function getCleanBaseName(filename) {
     if (!filename) return "";
     let clean = filename.trim();
-    clean = clean.replace(/\.[^/.]+$/, ""); // 徹底撕掉副檔名
+    clean = clean.replace(/\.[^/.]+$/, ""); // 去除字尾副檔名
     return clean.toLowerCase().replace(/[\s\-_]/g, '').trim();
   }
 
-  // 1-Click 批量自動匹配上傳的核心強化
+  // 1-Click 批量自動配對全解鎖核心
   async function batchUploadAndPair() {
     const selectEl = document.getElementById("select-album");
     const albumId = parseInt(selectEl.value);
@@ -968,10 +968,10 @@
     
     btnBatch.disabled = true;
     const originalBtnText = btnBatch.innerText;
-    btnBatch.innerText = "⏳ 正在分析檔名與配對字幕中...";
+    btnBatch.innerText = "⏳ 正在分析與寫入資料庫中...";
 
     try {
-      // 建立字幕內容快取表
+      // 預先讀取所有文檔，建立高效率 Match Map
       const lrcContentMap = new Map();
       for (let lrcFile of lrcFiles) {
         let cleanKey = getCleanBaseName(lrcFile.name);
@@ -1004,7 +1004,7 @@
       }
 
       tx.oncomplete = () => {
-        alert(`🎉 批量匯入成功！\n共成功上傳 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個已精準配對並嵌入字幕/文檔！`);
+        alert(`🎉 批量匯入成功！\n共成功上傳 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個已成功自動嵌入字幕/文檔！`);
         document.getElementById("batch-audios").value = "";
         document.getElementById("batch-lrcs").value = "";
         btnBatch.disabled = false;
@@ -1020,6 +1020,7 @@
     }
   }
 
+  // 單一篇章手動新增 (同步修復文檔讀取與連動)
   async function addTrack() {
     const albumId = parseInt(document.getElementById("select-album").value);
     if (!albumId) return alert("請先選擇作品分區！");
@@ -1029,12 +1030,22 @@
     let defaultTitle = audioFile.name.replace(/\.[^/.]+$/, "") || audioFile.name;
     const title = document.getElementById("track-title-input").value.trim() || defaultTitle;
     const lrcFile = document.getElementById("track-lrc").files[0];
-    let lrcText = lrcFile ? await readFileTextSmart(lrcFile) : "";
+    
+    let lrcText = "";
+    if (lrcFile) {
+      lrcText = await readFileTextSmart(lrcFile);
+    }
 
     const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").add({ albumId: Number(albumId), title, audioBlob: audioFile, lrcText });
+    tx.objectStore("tracks").add({ 
+      albumId: Number(albumId), 
+      title: title, 
+      audioBlob: audioFile, 
+      lrcText: lrcText 
+    });
+
     tx.oncomplete = () => {
-      alert("篇章新增成功！");
+      alert("篇章新增成功 (音訊與字幕文檔已同步上傳)！");
       document.getElementById("track-title-input").value = "";
       document.getElementById("track-audio").value = "";
       document.getElementById("track-lrc").value = "";
@@ -1092,7 +1103,6 @@
     if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
   }
 
-  // 大修復：單篇章刪除邏輯，強制對齊 Key 型態
   async function deleteTrack(trackId, event) {
     if (event) event.stopPropagation();
     const targetTrackId = Number(trackId);
