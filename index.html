@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (iOS 多選完美修復版)</title>
+  <title>ASMR 私人隨身庫 (極速穩定版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -83,20 +83,18 @@
       box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
+    .btn-pink:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
     .btn-blue {
       width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
       box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.25s ease;
     }
-    .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5); }
-
     .btn-clean {
       width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
       box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.25s ease;
     }
-    .btn-clean:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
 
     .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
     .page-view.active { display: block; }
@@ -295,7 +293,7 @@
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
-    <!-- 一鍵批次匯入配對 (解鎖 iOS 限制，可全選所有檔案) -->
+    <!-- 一鍵批次匯入配對 -->
     <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5);">
       <div class="card-title">⚡ 2. 智慧一鍵批次配對匯入</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
@@ -303,17 +301,17 @@
       </div>
       <div class="form-group"><label>選擇作品分區</label><select id="batch-select-album"><option value="">-- 請選擇分區 --</option></select></div>
       <div class="form-group"><label>選取所有檔案 (不限副檔名，可全選)</label><input type="file" id="batch-files" multiple></div>
-      <button class="btn-pink" onclick="batchAddTracks()">⚡ 一鍵配對並自動匯入</button>
+      <button class="btn-pink" id="btn-batch-import" onclick="batchAddTracks()">⚡ 一鍵配對並自動匯入</button>
     </div>
 
     <!-- 單篇匯入 -->
     <div class="glass-card">
       <div class="card-title">🎵 3. 單篇手動匯入</div>
       <div class="form-group"><label>選擇作品分區</label><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
-      <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_耳語安慰"></div>
+      <div class="form-group"><label>篇章名稱 (選填，預設同檔名)</label><input type="text" id="track-title-input" placeholder="例如：01_耳語安慰"></div>
       <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*"></div>
       <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc"></div>
-      <button class="btn-pink" onclick="addTrack()">新增篇章至分區</button>
+      <button class="btn-pink" id="btn-single-import" onclick="addTrack()">新增篇章至分區</button>
     </div>
 
     <!-- 全域背景 -->
@@ -730,58 +728,80 @@
     reader.readAsText(file);
   }
 
-  /* 智慧一鍵批次自動配對 (針對 iOS Safari 多選強效優化版) */
+  /* 智慧一鍵批次配對（非同步隊列優化 & 狀態反饋） */
   async function batchAddTracks() {
-    const albumId = parseInt(document.getElementById("batch-select-album").value);
-    const files = Array.from(document.getElementById("batch-files").files);
-    if (!albumId) return alert("請選擇作品分區！");
-    if (files.length === 0) return alert("請選取檔案！");
+    const btn = document.getElementById("btn-batch-import");
+    const albumSelect = document.getElementById("batch-select-album");
+    let albumId = parseInt(albumSelect.value);
 
-    const audioMap = new Map();
-    const lrcMap = new Map();
-
-    files.forEach(f => {
-      const fileName = f.name;
-      const lastDotIndex = fileName.lastIndexOf('.');
-      if (lastDotIndex === -1) return;
-
-      const ext = fileName.substring(lastDotIndex).toLowerCase();
-      let baseName = fileName.substring(0, lastDotIndex).trim();
-
-      const audioExtensions = ['.mp3', '.wav', '.m4a', '.flac', '.ogg', '.aac', '.mp4'];
-      const lrcExtensions = ['.lrc', '.srt', '.vtt', '.txt'];
-
-      // 特殊處理：例如 "0-1.序章.mp3.lrc" 或以 .mp3 為主檔名一部分的字幕
-      if (lrcExtensions.includes(ext)) {
-        if (baseName.toLowerCase().endsWith('.mp3')) {
-          baseName = baseName.substring(0, baseName.length - 4).trim();
-        }
-        lrcMap.set(baseName, f);
-      } else if (audioExtensions.includes(ext) || f.type.startsWith('audio/')) {
-        audioMap.set(baseName, f);
-      }
-    });
-
-    if (audioMap.size === 0) return alert("未在您選取的檔案中發現有效音訊！請確保有包含音樂檔。");
-
-    let count = 0;
-    const tx = db.transaction(["tracks"], "readwrite");
-    const store = tx.objectStore("tracks");
-
-    for (let [baseName, audioFile] of audioMap.entries()) {
-      let lrcText = "";
-      if (lrcMap.has(baseName)) {
-        lrcText = await lrcMap.get(baseName).text();
-      }
-      store.add({ albumId: albumId, title: baseName, audioBlob: audioFile, lrcText: lrcText });
-      count++;
+    // 防呆：若使用者未手動選取，預設自動帶入第一個存在的作品集
+    if (!albumId && albums.length > 0) {
+      albumId = albums[0].id;
+      albumSelect.value = albumId;
     }
 
-    tx.oncomplete = () => {
-      alert(`⚡ 智慧配對匯入完成！成功新增 ${count} 個篇章！`);
+    if (!albumId) return alert("請先建立作品分區！");
+
+    const files = Array.from(document.getElementById("batch-files").files).filter(f => !f.name.startsWith('.'));
+    if (files.length === 0) return alert("請選取檔案！");
+
+    btn.disabled = true;
+    btn.innerText = "⏳ 處理中，請稍候...";
+
+    try {
+      const audioMap = new Map();
+      const lrcMap = new Map();
+
+      files.forEach(f => {
+        const fileName = f.name;
+        const lastDotIndex = fileName.lastIndexOf('.');
+        if (lastDotIndex === -1) return;
+
+        const ext = fileName.substring(lastDotIndex).toLowerCase();
+        let baseName = fileName.substring(0, lastDotIndex).trim();
+
+        const lrcExtensions = ['.lrc', '.srt', '.vtt', '.txt'];
+
+        if (lrcExtensions.includes(ext)) {
+          if (baseName.toLowerCase().endsWith('.mp3')) {
+            baseName = baseName.substring(0, baseName.length - 4).trim();
+          }
+          lrcMap.set(baseName, f);
+        } else {
+          audioMap.set(baseName, f);
+        }
+      });
+
+      if (audioMap.size === 0) {
+        alert("未在選取的檔案中找到音樂檔，請確認有選擇音樂！");
+        btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入";
+        return;
+      }
+
+      let count = 0;
+      for (let [baseName, audioFile] of audioMap.entries()) {
+        let lrcText = "";
+        if (lrcMap.has(baseName)) {
+          lrcText = await lrcMap.get(baseName).text().catch(() => "");
+        }
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction(["tracks"], "readwrite");
+          tx.objectStore("tracks").add({ albumId, title: baseName, audioBlob: audioFile, lrcText });
+          tx.oncomplete = () => resolve();
+          tx.onerror = (e) => reject(e);
+        });
+        count++;
+      }
+
+      alert(`⚡ 智慧配對成功！已自動新增 ${count} 個篇章！`);
       document.getElementById("batch-files").value = "";
       loadData();
-    };
+    } catch (err) {
+      alert("匯入過程出錯：" + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "⚡ 一鍵配對並自動匯入";
+    }
   }
 
   function toggleAdminDrawer() {
@@ -797,6 +817,10 @@
       sel1.innerHTML += `<option value="${a.id}">${a.title}</option>`;
       sel2.innerHTML += `<option value="${a.id}">${a.title}</option>`;
     });
+    if (albums.length > 0) {
+      sel1.value = albums[0].id;
+      sel2.value = albums[0].id;
+    }
   }
 
   function createAlbum() {
@@ -816,33 +840,56 @@
     };
   }
 
-  function addTrack() {
-    const albumId = parseInt(document.getElementById("select-album").value);
-    const title = document.getElementById("track-title-input").value.trim();
+  /* 單篇手動匯入修復 */
+  async function addTrack() {
+    const btn = document.getElementById("btn-single-import");
+    const albumSelect = document.getElementById("select-album");
+    let albumId = parseInt(albumSelect.value);
+
+    if (!albumId && albums.length > 0) {
+      albumId = albums[0].id;
+      albumSelect.value = albumId;
+    }
+
+    if (!albumId) return alert("請先建立作品分區！");
+
     const audioFile = document.getElementById("track-audio").files[0];
     const lrcFile = document.getElementById("track-lrc").files[0];
+    let title = document.getElementById("track-title-input").value.trim();
 
-    if (!albumId || !title || !audioFile) return alert("請填寫篇章名稱並選擇音檔！");
-
-    if (lrcFile) {
-      const reader = new FileReader();
-      reader.onload = (e) => saveTrackToDB(albumId, title, audioFile, e.target.result);
-      reader.readAsText(lrcFile);
-    } else {
-      saveTrackToDB(albumId, title, audioFile, "");
+    if (!audioFile) return alert("請選取音訊檔案！");
+    if (!title) {
+      const lastDot = audioFile.name.lastIndexOf('.');
+      title = lastDot !== -1 ? audioFile.name.substring(0, lastDot) : audioFile.name;
     }
-  }
 
-  function saveTrackToDB(albumId, title, audioBlob, lrcText) {
-    const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").add({ albumId, title, audioBlob, lrcText });
-    tx.oncomplete = () => {
+    btn.disabled = true;
+    btn.innerText = "⏳ 寫入中...";
+
+    try {
+      let lrcText = "";
+      if (lrcFile) {
+        lrcText = await lrcFile.text().catch(() => "");
+      }
+
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(["tracks"], "readwrite");
+        tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
+        tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e);
+      });
+
+      alert("✅ 單篇新增成功！");
       document.getElementById("track-title-input").value = "";
       document.getElementById("track-audio").value = "";
       document.getElementById("track-lrc").value = "";
       loadData();
-      alert("✅ 新增篇章成功！");
-    };
+    } catch (err) {
+      alert("新增失敗：" + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "新增篇章至分區";
+    }
   }
 
   function renderAlbumList() {
