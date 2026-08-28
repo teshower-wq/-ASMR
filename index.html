@@ -893,13 +893,12 @@
     });
   }
 
-  // 🔥 萬能字幕解析器 (完美支援 LRC、VTT、SRT、TXT 全格式)
+  // 萬能字幕解析器 (完美支援 LRC、VTT、SRT、TXT 全格式)
   function parseUniversalLyrics(rawText) {
     if (!rawText) return [];
     const lines = rawText.split('\n');
     const lyrics = [];
 
-    // 1. 嘗試匹配 LRC 格式: [mm:ss.xx] 或 [mm:ss.xxx]
     const lrcTimeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
     let isLrcFormat = false;
 
@@ -924,7 +923,6 @@
         }
       }
     } else {
-      // 2. 嘗試匹配 VTT / SRT 格式 (例如 00:01:00.000 --> 00:01:05.000 或 00:01:00,000 --> 00:01:05,000)
       const timeRangeReg = /(\d{2}):(\d{2}):(\d{2})[\.,](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[\.,](\d{3})/;
       let currentStartTime = null;
       let textBuffer = [];
@@ -949,7 +947,6 @@
             currentStartTime = null;
           }
         } else if (currentStartTime !== null) {
-          // 過濾 HTML 標籤
           let cleanLine = line.replace(/<[^>]*>/g, '');
           if (cleanLine) textBuffer.push(cleanLine);
         }
@@ -959,7 +956,6 @@
       }
     }
 
-    // 3. 若以上皆非，則將每一行平均分配時間
     if (lyrics.length === 0) {
       let validLines = lines.map(l => l.trim()).filter(l => l && !l.startsWith('WEBVTT'));
       validLines.forEach((text, i) => {
@@ -1027,7 +1023,6 @@
       let baseName = audioFile.name.replace(/\.[^/.]+$/, "").trim();
       let matchedLrcText = "";
 
-      // 尋找檔名匹配的字幕檔 (.lrc, .vtt, .srt, .txt)
       let foundLrc = lrcs.find(l => {
         let lBase = l.name.replace(/\.[^/.]+$/, "").trim();
         return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
@@ -1109,7 +1104,6 @@
 
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
-    // 保留導航按鈕與指標
     box.innerHTML = `
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
@@ -1380,7 +1374,6 @@
     tx.oncomplete = () => { alert("✅ 字幕已修改儲存！"); };
   }
 
-  // 跨裝置備份功能 (匯出 JSON)
   async function exportDataBackup() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
     let backupData = { albums: [], tracks: [], settings: [] };
@@ -1406,7 +1399,6 @@
     };
   }
 
-  // 跨裝置還原功能 (匯入 JSON)
   async function importDataBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
