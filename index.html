@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (終極強效版)</title>
+  <title>ASMR 私人隨身庫 (大升級極速修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -308,7 +308,6 @@
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
-    <!-- 全面放寬 accept 限制，相容 iOS Safari 所有副檔名與檔案選取 -->
     <div class="glass-card">
       <div class="card-title">⚡ 一鍵自動配對音檔與字幕</div>
       <div class="form-group">
@@ -317,13 +316,13 @@
       </div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (iOS Safari 解鎖版)</div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (全手機與文字檔解鎖版)</div>
         <div class="form-group">
           <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
           <input type="file" id="batch-audios" accept="*/*" multiple>
         </div>
         <div class="form-group">
-          <label>複選所有字幕檔 (可一次選多個 .lrc/.srt/.txt)</label>
+          <label>複選所有字幕/文檔 (可一次選多個 .lrc/.srt/.txt/.vtt)</label>
           <input type="file" id="batch-lrcs" accept="*/*" multiple>
         </div>
         <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
@@ -333,7 +332,7 @@
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
         <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="*/*"></div>
-        <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept="*/*"></div>
+        <div class="form-group"><label>字幕/文檔 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept="*/*"></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
       </div>
     </div>
@@ -888,50 +887,69 @@
     fileInput.click();
   }
 
+  // 大修復：作品分區刪除邏輯，強制對齊 Key 型態
   async function deleteAlbum(albumId, event) {
-    event.stopPropagation();
-    const album = albums.find(a => a.id === albumId);
-    if (!album) return;
-    if (!confirm(`確定要刪除作品集「${album.title}」嗎？`)) return;
+    if (event) event.stopPropagation();
+    const targetId = Number(albumId);
+    const album = albums.find(a => Number(a.id) === targetId);
+    if (!album) return alert("找不到要刪除的作品！");
+    
+    if (!confirm(`確定要刪除作品集「${album.title}」及其底下的所有篇章嗎？`)) return;
 
     const tx = db.transaction(["albums", "tracks"], "readwrite");
-    tx.objectStore("albums").delete(albumId);
-    tx.objectStore("tracks").getAll().onsuccess = (e) => {
-      e.target.result.forEach(t => { if (t.albumId === albumId) tx.objectStore("tracks").delete(t.id); });
+    tx.objectStore("albums").delete(targetId);
+    
+    const trackStore = tx.objectStore("tracks");
+    trackStore.getAll().onsuccess = (e) => {
+      const allTrks = e.target.result || [];
+      allTrks.forEach(t => {
+        if (Number(t.albumId) === targetId) {
+          trackStore.delete(Number(t.id));
+        }
+      });
     };
+
     tx.oncomplete = () => {
-      if (currentActiveAlbumId === albumId) switchPage('home');
+      if (Number(currentActiveAlbumId) === targetId) switchPage('home');
       loadData();
-      alert("作品集已刪除！");
+      alert("作品集與附屬篇章已成功刪除！");
+    };
+    tx.onerror = (err) => {
+      console.error(err);
+      alert("刪除失敗，資料庫發生錯誤！");
     };
   }
 
+  // 超強悍字幕檔案讀取器，解決 iOS Safari 與高版本瀏覽器相容性
   function readFileTextSmart(file) {
     return new Promise((resolve) => {
+      if (!file) resolve("");
       const reader = new FileReader();
       reader.onload = (e) => {
-        let text = e.target.result;
+        let text = e.target.result || "";
         if (text.includes('\uFFFD')) {
           const readerSJIS = new FileReader();
-          readerSJIS.onload = (e2) => resolve(e2.target.result);
+          readerSJIS.onload = (e2) => resolve(e2.target.result || "");
+          readerSJIS.onerror = () => resolve(text);
           readerSJIS.readAsText(file, 'shift-jis');
-        } else { resolve(text); }
+        } else {
+          resolve(text);
+        }
       };
+      reader.onerror = () => resolve("");
       reader.readAsText(file, 'utf-8');
     });
   }
 
-  // 超級洗淨檔名：移除副檔名、底線、減號與前後空白，支援模糊比對
+  // 超級檔名純化：移除所有字尾副檔名與標點符號，進行純文字匹配
   function getCleanBaseName(filename) {
     if (!filename) return "";
     let clean = filename.trim();
-    if (clean.includes('.')) {
-      clean = clean.substring(0, clean.lastIndexOf('.'));
-    }
+    clean = clean.replace(/\.[^/.]+$/, ""); // 徹底撕掉副檔名
     return clean.toLowerCase().replace(/[\s\-_]/g, '').trim();
   }
 
-  // 大升級：一鍵配對與批量匯入核心 logic
+  // 1-Click 批量自動匹配上傳的核心強化
   async function batchUploadAndPair() {
     const selectEl = document.getElementById("select-album");
     const albumId = parseInt(selectEl.value);
@@ -948,17 +966,19 @@
     const lrcFiles = Array.from(document.getElementById("batch-lrcs").files || []);
     const btnBatch = document.getElementById("btn-batch-upload");
     
-    // UI 載入動畫防呆
     btnBatch.disabled = true;
     const originalBtnText = btnBatch.innerText;
-    btnBatch.innerText = "⏳ 正在配對與匯入中，請稍候...";
+    btnBatch.innerText = "⏳ 正在分析檔名與配對字幕中...";
 
     try {
-      // 建立字幕 Map 對照表
-      const lrcMap = new Map();
+      // 建立字幕內容快取表
+      const lrcContentMap = new Map();
       for (let lrcFile of lrcFiles) {
         let cleanKey = getCleanBaseName(lrcFile.name);
-        lrcMap.set(cleanKey, lrcFile);
+        let text = await readFileTextSmart(lrcFile);
+        if (text) {
+          lrcContentMap.set(cleanKey, text);
+        }
       }
 
       let pairedCount = 0;
@@ -967,25 +987,24 @@
 
       for (let audioFile of audioFiles) {
         let audioCleanKey = getCleanBaseName(audioFile.name);
-        let displayTitle = audioFile.name.includes('.') ? audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) : audioFile.name;
+        let displayTitle = audioFile.name.replace(/\.[^/.]+$/, "");
         
-        let lrcText = "";
-        if (lrcMap.has(audioCleanKey)) {
-          let matchedLrcFile = lrcMap.get(audioCleanKey);
-          lrcText = await readFileTextSmart(matchedLrcFile);
+        let matchedLrcText = "";
+        if (lrcContentMap.has(audioCleanKey)) {
+          matchedLrcText = lrcContentMap.get(audioCleanKey);
           pairedCount++;
         }
 
         store.add({
-          albumId: albumId,
+          albumId: Number(albumId),
           title: displayTitle,
           audioBlob: audioFile,
-          lrcText: lrcText
+          lrcText: matchedLrcText
         });
       }
 
       tx.oncomplete = () => {
-        alert(`🎉 批量匯入成功！\n共成功上傳 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個已精準自動配對字幕！`);
+        alert(`🎉 批量匯入成功！\n共成功上傳 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個已精準配對並嵌入字幕/文檔！`);
         document.getElementById("batch-audios").value = "";
         document.getElementById("batch-lrcs").value = "";
         btnBatch.disabled = false;
@@ -995,7 +1014,7 @@
 
     } catch (err) {
       console.error(err);
-      alert("❌ 匯入過程中發生錯誤，請重新試試看！");
+      alert("❌ 匯入過程中發生錯誤，請重新嘗試！");
       btnBatch.disabled = false;
       btnBatch.innerText = originalBtnText;
     }
@@ -1007,13 +1026,13 @@
     const audioFile = document.getElementById("track-audio").files[0];
     if (!audioFile) return alert("請選擇音訊檔案！");
     
-    let defaultTitle = audioFile.name.substring(0, audioFile.name.lastIndexOf('.')) || audioFile.name;
+    let defaultTitle = audioFile.name.replace(/\.[^/.]+$/, "") || audioFile.name;
     const title = document.getElementById("track-title-input").value.trim() || defaultTitle;
     const lrcFile = document.getElementById("track-lrc").files[0];
     let lrcText = lrcFile ? await readFileTextSmart(lrcFile) : "";
 
     const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
+    tx.objectStore("tracks").add({ albumId: Number(albumId), title, audioBlob: audioFile, lrcText });
     tx.oncomplete = () => {
       alert("篇章新增成功！");
       document.getElementById("track-title-input").value = "";
@@ -1025,16 +1044,17 @@
 
   async function saveTrackSubtitle(trackId, lrcText) {
     return new Promise((resolve) => {
+      const targetTrackId = Number(trackId);
       const tx = db.transaction(["tracks"], "readwrite");
       const store = tx.objectStore("tracks");
-      store.get(trackId).onsuccess = (e) => {
+      store.get(targetTrackId).onsuccess = (e) => {
         const track = e.target.result;
         if (track) { track.lrcText = lrcText; store.put(track); }
       };
       tx.oncomplete = () => {
-        const t = tracks.find(item => item.id === trackId);
+        const t = tracks.find(item => Number(item.id) === targetTrackId);
         if (t) t.lrcText = lrcText;
-        if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
+        if (currentIndex !== -1 && currentTrackList[currentIndex] && Number(currentTrackList[currentIndex].id) === targetTrackId) {
           currentTrackList[currentIndex].lrcText = lrcText;
           currentLrc = parseSubtitles(lrcText, audio.duration);
         }
@@ -1066,18 +1086,28 @@
   }
 
   async function editTrackLrc(trackId) {
-    const track = tracks.find(t => t.id === trackId);
+    const track = tracks.find(t => Number(t.id) === Number(trackId));
     if (!track) return;
     const newText = prompt(`編輯【${track.title}】字幕：`, track.lrcText || "");
     if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
   }
 
+  // 大修復：單篇章刪除邏輯，強制對齊 Key 型態
   async function deleteTrack(trackId, event) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
+    const targetTrackId = Number(trackId);
     if (!confirm("確定要刪除這個篇章嗎？")) return;
+    
     const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").delete(trackId);
-    tx.oncomplete = () => { loadData(); alert("篇章已刪除！"); };
+    tx.objectStore("tracks").delete(targetTrackId);
+    tx.oncomplete = () => { 
+      loadData(); 
+      alert("篇章已成功刪除！"); 
+    };
+    tx.onerror = (err) => {
+      console.error(err);
+      alert("刪除篇章失敗！");
+    };
   }
 
   function renderAlbumList() {
@@ -1095,7 +1125,7 @@
     const paginatedAlbums = albums.slice(start, start + itemsPerPage);
 
     paginatedAlbums.forEach(album => {
-      const albumTracks = tracks.filter(t => t.albumId === album.id);
+      const albumTracks = tracks.filter(t => Number(t.albumId) === Number(album.id));
       const card = document.createElement("div");
       card.className = "album-grid-card";
       card.onclick = () => {
@@ -1150,12 +1180,13 @@
   function changePage(page) { currentPage = page; renderAlbumList(); }
 
   function renderDetailView(albumId) {
-    const album = albums.find(a => a.id === albumId);
+    const targetAlbumId = Number(albumId);
+    const album = albums.find(a => Number(a.id) === targetAlbumId);
     if (!album) return;
     document.getElementById("detail-album-title").innerText = album.title;
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
-    const albumTracks = tracks.filter(t => t.albumId === albumId);
+    const albumTracks = tracks.filter(t => Number(t.albumId) === targetAlbumId);
     if (albumTracks.length === 0) {
       container.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0; text-align:center;'>此分區目前沒有篇章。</div>";
       return;
@@ -1182,13 +1213,15 @@
   }
 
   function playTrack(albumId, trackId) {
-    const album = albums.find(a => a.id === albumId);
-    currentTrackList = tracks.filter(t => t.albumId === albumId);
-    currentIndex = currentTrackList.findIndex(t => t.id === trackId);
+    const targetAlbumId = Number(albumId);
+    const targetTrackId = Number(trackId);
+    const album = albums.find(a => Number(a.id) === targetAlbumId);
+    currentTrackList = tracks.filter(t => Number(t.albumId) === targetAlbumId);
+    currentIndex = currentTrackList.findIndex(t => Number(t.id) === targetTrackId);
     if (currentIndex === -1) return;
 
     const track = currentTrackList[currentIndex];
-    currentPlayingAlbumId = albumId;
+    currentPlayingAlbumId = targetAlbumId;
 
     audio.src = createTrackedObjectURL(track.audioBlob);
     audio.play();
@@ -1324,7 +1357,7 @@
 
     let activeText = getActiveSubtitleText(audio.currentTime);
     document.getElementById("lrc-box").innerText = activeText;
-    document.getElementById("mini-lrc").innerText = activeText !== "♪ 選擇小篇章開始收聽 ♪" ? activeText : "♪ 播放中...";
+    document.getElementById("mini-lrc").innerText = activeText !== "♪ 享受純淨的 ASMR 時光 ♪" ? activeText : "♪ 播放中...";
     updatePositionState();
   });
 
