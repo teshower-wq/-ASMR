@@ -437,7 +437,7 @@
   </div>
 </div>
 
-<video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -468,7 +468,6 @@
   let pipCanvas = null;
   let pipCtx = null;
   let isPiPInitialized = false;
-  let pipAudioDestination = null;
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -481,6 +480,15 @@
   let heartFillPercent = 0;
   let isClimaxState = false;
   let climaxResetTimer = null;
+
+  // 降頻與節流變數
+  let lastPiPRenderTime = 0;
+  const PIP_FPS = 20; // 懸浮畫面降頻至 20 FPS 以極大化順暢度
+  const PIP_INTERVAL = 1000 / PIP_FPS;
+
+  let lastAudioAnalyzeTime = 0;
+  const AUDIO_FPS = 15; // 音訊頻譜降頻至 15 FPS 分析
+  const AUDIO_INTERVAL = 1000 / AUDIO_FPS;
 
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
@@ -573,14 +581,11 @@
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
+      analyser.fftSize = 256;
       
-      pipAudioDestination = audioCtx.createMediaStreamDestination();
       audioSourceNode = audioCtx.createMediaElementSource(audio);
-      
       audioSourceNode.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      analyser.connect(pipAudioDestination);
+      // 拔除直接輸出至音訊裝置以排除雙重聲音/回音
       
       requestAnimationFrame(analyzeAudioFrame);
     } catch(e) {
@@ -588,8 +593,11 @@
     }
   }
 
-  function analyzeAudioFrame() {
+  function analyzeAudioFrame(timestamp) {
     requestAnimationFrame(analyzeAudioFrame);
+    if (timestamp - lastAudioAnalyzeTime < AUDIO_INTERVAL) return;
+    lastAudioAnalyzeTime = timestamp;
+
     if (!audioCtx || audio.paused || isClimaxState) return;
 
     const bufferLength = analyser.frequencyBinCount;
@@ -599,18 +607,18 @@
     let baseVoiceSum = 0;
     let moanVoiceSum = 0;
 
-    for (let i = 2; i <= 7; i++) baseVoiceSum += dataArray[i];
-    for (let i = 9; i <= 35; i++) moanVoiceSum += dataArray[i];
+    for (let i = 1; i <= 4; i++) baseVoiceSum += dataArray[i];
+    for (let i = 5; i <= 20; i++) moanVoiceSum += dataArray[i];
 
-    let baseAvg = baseVoiceSum / 6;
-    let moanAvg = moanVoiceSum / 27;
+    let baseAvg = baseVoiceSum / 4;
+    let moanAvg = moanVoiceSum / 16;
 
-    /* 愛心成長速度調降 200%（即除以 3） */
-    if (baseAvg > 30) {
-      heartFillPercent += (0.08 / 3.0) * (baseAvg / 100);
+    /* 愛心成長速度大幅降低（大幅調小積攢倍率） */
+    if (baseAvg > 35) {
+      heartFillPercent += (0.01 / 8.0) * (baseAvg / 100);
     }
-    if (moanAvg > 40) {
-      heartFillPercent += (0.45 / 3.0) * (moanAvg / 100);
+    if (moanAvg > 45) {
+      heartFillPercent += (0.05 / 8.0) * (moanAvg / 100);
     }
 
     if (heartFillPercent >= 100) {
@@ -653,6 +661,7 @@
     }, 10000);
   }
 
+  /* 點擊愛心一鍵高潮功能 */
   function triggerInstantOrgasm() {
     if (climaxResetTimer) clearTimeout(climaxResetTimer);
     isClimaxState = false;
@@ -676,6 +685,32 @@
     updateCoverDisplay();
   }
 
+  /* 繪製封面素材至 Canvas (確保繪製邏輯正確) */
+  function drawCoverToCanvas(ctx, element, size, isVideo) {
+    if (!element) return;
+    try {
+      let sw = isVideo ? element.videoWidth : element.naturalWidth;
+      let sh = isVideo ? element.videoHeight : element.naturalHeight;
+      if (!sw || !sh) {
+        sw = size;
+        sh = size;
+      }
+      let aspect = sw / sh;
+      let dw = size, dh = size;
+      let dx = 0, dy = 0;
+      if (aspect > 1) {
+        dw = size * aspect;
+        dh = size;
+        dx = (size - dw) / 2;
+      } else {
+        dw = size;
+        dh = size / aspect;
+        dy = (size - dh) / 2;
+      }
+      ctx.drawImage(element, dx, dy, dw, dh);
+    } catch(e) {}
+  }
+
   function initPiPEngine() {
     if (isPiPInitialized) return;
     try {
@@ -684,7 +719,11 @@
       pipCanvas.height = 1080;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
-      function renderPiPFrame() {
+      function renderPiPFrame(timestamp) {
+        requestAnimationFrame(renderPiPFrame);
+        if (timestamp - lastPiPRenderTime < PIP_INTERVAL) return;
+        lastPiPRenderTime = timestamp;
+
         if (pipCtx) {
           pipCtx.fillStyle = "#07070a";
           pipCtx.fillRect(0, 0, 1080, 1080);
@@ -706,7 +745,6 @@
           const currentTime = audio.currentTime;
           let currentText = getActiveSubtitleText(currentTime);
 
-          /* 繪製底層黑底光暈底框以防字幕看不清 */
           pipCtx.fillStyle = "rgba(7, 7, 10, 0.65)";
           pipCtx.fillRect(40, 840, 1000, 200);
 
@@ -733,20 +771,13 @@
             pipCtx.fillText(lineText, 540, curY);
           });
         }
-        requestAnimationFrame(renderPiPFrame);
       }
       requestAnimationFrame(renderPiPFrame);
 
-      const canvasStream = pipCanvas.captureStream(30);
-      let tracksToCombine = [...canvasStream.getVideoTracks()];
-      
-      if (pipAudioDestination && pipAudioDestination.stream.getAudioTracks().length > 0) {
-        tracksToCombine.push(pipAudioDestination.stream.getAudioTracks()[0]);
-      }
-
-      const combinedStream = new MediaStream(tracksToCombine);
-      pipVideo.srcObject = combinedStream;
-      pipVideo.play();
+      const canvasStream = pipCanvas.captureStream(20);
+      pipVideo.srcObject = canvasStream;
+      pipVideo.muted = true; // 保持靜音避免聲軌干擾
+      pipVideo.play().catch(()=>{});
       isPiPInitialized = true;
     } catch(e) { console.error("PiP 初始化失敗:", e); }
   }
