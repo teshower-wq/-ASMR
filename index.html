@@ -186,7 +186,6 @@
     .drag-handle-area { width: 100%; padding: 12px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 🌸 影片專區與 MP3 專區容器 */
     #media-display-container {
       width: 100%;
       position: relative;
@@ -225,7 +224,6 @@
       transition: all 0.25s ease;
     }
 
-    /* 🌸 影片專區專屬 MP4 播放面板 (如同圖1標準影片撥放器，支援 iOS 全螢幕橫向填滿) */
     .video-player-box {
       width: 100%;
       height: 280px;
@@ -312,7 +310,6 @@
       backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
     }
     
-    /* 🌸 字幕在影片下方位置，乾淨無雜字 */
     .lrc-box {
       min-height: 48px; display: flex; align-items: center; justify-content: center;
       text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink);
@@ -392,7 +389,7 @@
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
+        點擊「匯出備份檔案」會下載完整資料（包含媒體與封面檔案轉碼）。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
       </div>
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
@@ -495,16 +492,13 @@
     <div class="drag-handle"></div>
   </div>
 
-  <!-- 🌸 乾淨的播放容器 (完全不顯示任何資料夾名稱或類型雜字，支援全螢幕橫向放大填滿) -->
   <div id="media-display-container">
-    <!-- MP3 專區專屬封面容器 -->
     <div class="cover-box" id="player-cover-box" style="display:none;">
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     </div>
 
-    <!-- MP4 動態影音專區專屬標準影片播放面板 (支援 iOS 全螢幕、橫向填滿、心動特效) -->
     <div class="video-player-box" id="video-player-box" style="display:none;">
       <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous"></video>
       <div class="heart-toy-container" id="heart-toy" onclick="triggerInstantOrgasm()" title="點擊一鍵高潮" style="display:none;">
@@ -525,7 +519,6 @@
       <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:25; object-fit:cover; border-radius:12px;">
     </div>
     
-    <!-- 🌸 字幕固定在影片下方，畫面極簡乾淨 -->
     <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
   </div>
 
@@ -587,7 +580,7 @@
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
   let isPowerSavingCover = false;
-  let currentAlbumType = 'mp3'; // 'mp3' or 'mp4'
+  let currentAlbumType = 'mp3';
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -876,9 +869,7 @@
     };
   }
 
-  function togglePowerSavingCover() {
-    // 預留相容
-  }
+  function togglePowerSavingCover() {}
 
   function drawCoverToCanvas(ctx, element, size, isVideo) {
     if (!element) return;
@@ -1001,7 +992,6 @@
     }
   }
 
-  // 🌸 影片與字幕容器全螢幕 (支援手機桌面全螢幕填滿與橫向旋轉)
   function toggleFullScreen() {
     const container = document.getElementById("media-display-container");
     if (!container) return;
@@ -1269,7 +1259,6 @@
       if (album.albumType === 'mp3' && album.covers && album.covers.length > 0) {
         thumbUrl = createTrackedObjectURL(album.covers[0]);
       } else if (album.albumType === 'mp4' && albumTracks.length > 0 && albumTracks[0].audioBlob) {
-        // MP4 可以用第一支影片作為預覽缩圖（若是瀏覽器支援）
         thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14'>MP4</text></svg>";
       }
 
@@ -1694,7 +1683,6 @@
     }
   }
 
-  // 統一時間進度監聽
   function onMediaTimeUpdate() {
     let m = getActiveMedia();
     if (!m || !m.duration) return;
@@ -1893,15 +1881,81 @@
     tx.oncomplete = () => { alert("✅ 字幕已修改儲存！"); };
   }
 
+  // 🌸 修正版 Blob 轉 DataURL 序列化備份（完整支援跨裝置同步音樂與圖片檔案）
+  async function blobToDataURL(blob) {
+    return new Promise((resolve) => {
+      if (!blob || !(blob instanceof Blob)) { resolve(blob); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function dataURLToBlob(dataurl) {
+    if (!dataurl || typeof dataurl !== 'string' || !dataurl.startsWith('data:')) {
+      return dataurl;
+    }
+    try {
+      const res = await fetch(dataurl);
+      return await res.blob();
+    } catch(e) {
+      return null;
+    }
+  }
+
   async function exportDataBackup() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    let backupData = { albums: [], tracks: [], settings: [] };
+    let rawAlbums = [];
+    let rawTracks = [];
+    let rawSettings = [];
 
-    tx.objectStore("albums").getAll().onsuccess = (e) => { backupData.albums = e.target.result; };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => { backupData.tracks = e.target.result; };
-    tx.objectStore("settings").getAll().onsuccess = (e) => { backupData.settings = e.target.result; };
+    tx.objectStore("albums").getAll().onsuccess = (e) => { rawAlbums = e.target.result; };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => { rawTracks = e.target.result; };
+    tx.objectStore("settings").getAll().onsuccess = (e) => { rawSettings = e.target.result; };
 
-    tx.oncomplete = () => {
+    tx.oncomplete = async () => {
+      let exportAlbums = [];
+      for (let a of rawAlbums) {
+        let coversBase64 = [];
+        if (a.covers) {
+          for (let c of a.covers) {
+            coversBase64.push(await blobToDataURL(c));
+          }
+        }
+        let bgsBase64 = [];
+        if (a.backgrounds) {
+          for (let b of a.backgrounds) {
+            bgsBase64.push(await blobToDataURL(b));
+          }
+        }
+        exportAlbums.push({ ...a, covers: coversBase64, backgrounds: bgsBase64 });
+      }
+
+      let exportTracks = [];
+      for (let t of rawTracks) {
+        let audioBase64 = await blobToDataURL(t.audioBlob);
+        exportTracks.push({ ...t, audioBlob: audioBase64 });
+      }
+
+      let exportSettings = [];
+      for (let s of rawSettings) {
+        if (s.key === "globalBackgrounds" && s.blobs) {
+          let blobsBase64 = [];
+          for (let b of s.blobs) {
+            blobsBase64.push(await blobToDataURL(b));
+          }
+          exportSettings.push({ ...s, blobs: blobsBase64 });
+        } else if (s.key === "climaxCustomData") {
+          let imgBase64 = await blobToDataURL(s.imgBlob);
+          let audioBase64 = await blobToDataURL(s.audioBlob);
+          exportSettings.push({ key: s.key, imgBlob: imgBase64, audioBlob: audioBase64 });
+        } else {
+          exportSettings.push(s);
+        }
+      }
+
+      const backupData = { albums: exportAlbums, tracks: exportTracks, settings: exportSettings };
       const blob = new Blob([JSON.stringify(backupData)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -1921,17 +1975,73 @@
     reader.onload = async (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
         
-        if (data.albums) { let store = tx.objectStore("albums"); data.albums.forEach(item => store.put(item)); }
-        if (data.tracks) { let store = tx.objectStore("tracks"); data.tracks.forEach(item => store.put(item)); }
-        if (data.settings) { let store = tx.objectStore("settings"); data.settings.forEach(item => store.put(item)); }
+        let importedAlbums = [];
+        if (data.albums) {
+          for (let a of data.albums) {
+            let coversBlobs = [];
+            if (a.covers) {
+              for (let c of a.covers) {
+                coversBlobs.push(await dataURLToBlob(c));
+              }
+            }
+            let bgsBlobs = [];
+            if (a.backgrounds) {
+              for (let b of a.backgrounds) {
+                bgsBlobs.push(await dataURLToBlob(b));
+              }
+            }
+            importedAlbums.push({ ...a, covers: coversBlobs, backgrounds: bgsBlobs });
+          }
+        }
+
+        let importedTracks = [];
+        if (data.tracks) {
+          for (let t of data.tracks) {
+            let audioBlob = await dataURLToBlob(t.audioBlob);
+            importedTracks.push({ ...t, audioBlob });
+          }
+        }
+
+        let importedSettings = [];
+        if (data.settings) {
+          for (let s of data.settings) {
+            if (s.key === "globalBackgrounds" && s.blobs) {
+              let blobs = [];
+              for (let b of s.blobs) {
+                blobs.push(await dataURLToBlob(b));
+              }
+              importedSettings.push({ ...s, blobs });
+            } else if (s.key === "climaxCustomData") {
+              let imgBlob = await dataURLToBlob(s.imgBlob);
+              let audioBlob = await dataURLToBlob(s.audioBlob);
+              importedSettings.push({ key: s.key, imgBlob, audioBlob });
+            } else {
+              importedSettings.push(s);
+            }
+          }
+        }
+
+        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        if (importedAlbums.length) {
+          let store = tx.objectStore("albums");
+          importedAlbums.forEach(item => store.put(item));
+        }
+        if (importedTracks.length) {
+          let store = tx.objectStore("tracks");
+          importedTracks.forEach(item => store.put(item));
+        }
+        if (importedSettings.length) {
+          let store = tx.objectStore("settings");
+          importedSettings.forEach(item => store.put(item));
+        }
 
         tx.oncomplete = () => {
           loadData();
-          alert("✅ 跨裝置備份還原成功！");
+          alert("✅ 跨裝置備份還原成功！所有音訊與封面素材已完整同步。");
         };
       } catch (err) {
+        console.error(err);
         alert("❌ 備份檔案解析失敗。");
       }
     };
