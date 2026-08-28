@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>軟軟專用肉棒</title>
+  <title>ASMR 私人隨身庫 (內建動態小愛心優化能量槽)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -862,7 +862,6 @@
     requestAnimationFrame(updateHeartToy);
   });
 
-  // 修改後的愛心能量槽判定：只要有呻吟或聲音就能緩慢提升，越舒服提升越快（速度整體保持很慢）
   function updateHeartToy() {
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
@@ -876,18 +875,14 @@
       for (let i = 0; i < len; i++) {
         sum += dataArray[i];
       }
-      let avgVolume = sum / len; // 計算整體的音訊音量與聲音強度
+      let avgVolume = sum / len;
 
-      // 只要有聲音（大於基本雜音門檻 4），就會啟動提升機制
       if (avgVolume > 4) {
-        // 聲音越舒服/音量越大（avgVolume 越高），提升速度越快；
-        // 基礎係數設得很小（0.0015），確保平時提升速度通常都很慢。
         let increment = (avgVolume / 128) * 0.0035;
         heartEnergy += increment;
         if (heartEnergy > 30) heartEnergy = 30;
         silentTimer = 0; 
       } else {
-        // 安靜或無聲音時，緩慢下降
         silentTimer++;
         if (silentTimer > 20) {
           heartEnergy -= 0.03;
