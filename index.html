@@ -320,7 +320,7 @@
           <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
         </div>
         <div class="form-group">
-          <label>複選所有字幕/文檔 (支持 .lrc / .srt / .txt / .vtt)</label>
+          <label>複選所有字幕/文檔 (支援 .lrc / .srt / .txt / .vtt)</label>
           <input type="file" id="batch-lrcs" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt" multiple>
         </div>
         <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
@@ -379,7 +379,7 @@
   <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
 
   <div class="sub-quick-tools">
-    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.srt,.txt,.vtt,text/plain" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
+    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.srt,.txt,.vtt,text/plain,text/vtt" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
     <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
     <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
     <button class="btn-sub-quick" id="btn-power-saving" onclick="togglePowerSavingCover()">⚡ 省電模式：動態開</button>
@@ -432,7 +432,7 @@
   let coverElements = [];
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
-  let isPowerSavingCover = false; // 省電開關狀態：true 為強制靜態圖片模式
+  let isPowerSavingCover = false;
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -524,7 +524,6 @@
     }
   });
 
-  // 切換省電模式：關閉動態封面影片、改為靜態封面圖片 (且 PiP 懸浮時影片不動但字幕持續運作)
   function togglePowerSavingCover() {
     isPowerSavingCover = !isPowerSavingCover;
     const btn = document.getElementById("btn-power-saving");
@@ -556,7 +555,6 @@
           pipCtx.fillRect(0, 0, 1080, 1080);
 
           if (cachedCoverElement) {
-            // 省電模式開啟時，如果封面是影片，則不讓其自動撥放 (維持靜態畫面)，但字幕依然正常繪製更新
             if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
               cachedCoverElement.play().catch(() => {});
             }
@@ -1484,4 +1482,3 @@
 
 </body>
 </html>
-```[cite: 3]
