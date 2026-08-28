@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (電腦/手機背景分開、圖片完美填滿版)</title>
+  <title>ASMR 私人隨身庫 (封面完整顯示、跨裝置資料互通版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -24,7 +24,7 @@
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
     }
 
-    /* 背景：電腦版維持原始大小，手機版縮小 20% (transform: scale(0.8)) */
+    /* 背景：電腦版維持原始大小，手機版縮小 20% */
     #bg-video, #bg-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: cover; background-color: var(--bg-dark);
@@ -56,7 +56,7 @@
     .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
     .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
-    .admin-drawer.open { max-height: 2500px; }
+    .admin-drawer.open { max-height: 3000px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -84,6 +84,13 @@
       box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
+
+    .btn-blue {
+      width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
+      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
+      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.25s ease;
+    }
+    .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5); }
 
     .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
     .page-view.active { display: block; }
@@ -163,17 +170,17 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 封面與影片區塊調整：
-       - 圖片與影片皆採用 object-fit: cover，完美縮小並填滿整個 260px 框，絕不留黑邊。
+    /* 封面與影片區塊修正：
+       - 改用 object-fit: contain，讓圖片縮小並完整顯示「所有樣子」（保留原比例不裁切），周圍以深色背景填補。
     */
     .cover-box { 
       width: 100%; height: 260px; border-radius: 16px; 
-      overflow: hidden; background: #0c0c10; margin: 0 auto 10px auto; 
+      overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
     }
     .cover-box img, .cover-box video { 
-      width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; left: 0; border-radius: 12px;
+      width: 100%; height: 100%; object-fit: contain; display: none; position: absolute; top: 0; left: 0; border-radius: 12px;
     }
     
     .album-tag { font-size: 0.82rem; color: var(--text-sub); text-align: center; margin-bottom: 4px; font-weight: 500; }
@@ -219,7 +226,7 @@
       z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .mini-player.hidden { transform: translateY(100%); }
-    .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
+    .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: contain; margin-right: 10px; flex-shrink: 0; }
     .mini-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .mini-title { font-size: 0.88rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
     .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
@@ -239,6 +246,18 @@
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
+    <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
+      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置（手機或電腦），再點擊下方「匯入備份檔案」即可完整同步所有作品、音訊、封面與字幕！
+      </div>
+      <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
+      <div class="form-group" style="margin-top: 12px;">
+        <label>📥 2. 匯入備份檔案 (接收端裝置)</label>
+        <input type="file" id="import-backup-input" accept=".json" onchange="importDataBackup(event)">
+      </div>
+    </div>
+
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景</div>
       <div class="form-group"><label>選取多張圖片或 MP4 影片（每 1 分鐘自動輪換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
@@ -488,11 +507,11 @@
 
     let hRatio = size / imgWidth;
     let vRatio = size / imgHeight;
-    let ratio = Math.max(hRatio, vRatio);
+    let ratio = Math.min(hRatio, vRatio); // Contain 模式換算
     let centerShiftX = (size - imgWidth * ratio) / 2;
     let centerShiftY = (size - imgHeight * ratio) / 2;
     ctx.save();
-    ctx.fillStyle = "#0c0c10";
+    ctx.fillStyle = "#050508";
     ctx.fillRect(0, 0, size, size);
     ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
     ctx.restore();
@@ -518,7 +537,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V23", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V24", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -538,6 +557,148 @@
         startBackgroundCarousel();
       }
     };
+  }
+
+  // 資料備份匯出功能 (支援跨裝置電腦/手機互通)
+  async function exportDataBackup() {
+    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+    let exportAlbums = await new Promise(res => tx.objectStore("albums").getAll().onsuccess = e => res(e.target.result));
+    let exportTracks = await new Promise(res => tx.objectStore("tracks").getAll().onsuccess = e => res(e.target.result));
+    let exportSettings = await new Promise(res => tx.objectStore("settings").getAll().onsuccess = e => res(e.target.result));
+
+    async function blobToBase64(blob) {
+      if (!blob) return null;
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    let cleanAlbums = [];
+    for (let alb of exportAlbums) {
+      let cBlobs = [];
+      if (alb.coverBlobs) {
+        for (let b of alb.coverBlobs) cBlobs.push(await blobToBase64(b));
+      } else if (alb.coverBlob) {
+        cBlobs.push(await blobToBase64(alb.coverBlob));
+      }
+      let bBlobs = [];
+      if (alb.bgBlobs) {
+        for (let b of alb.bgBlobs) bBlobs.push(await blobToBase64(b));
+      }
+      cleanAlbums.push({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
+    }
+
+    let cleanTracks = [];
+    for (let trk of exportTracks) {
+      cleanTracks.push({
+        id: trk.id,
+        albumId: trk.albumId,
+        title: trk.title,
+        audioBase64: await blobToBase64(trk.audioBlob),
+        lrcText: trk.lrcText
+      });
+    }
+
+    let cleanSettings = [];
+    for (let st of exportSettings) {
+      if (st.key === 'globalBgs' && st.blobs) {
+        let gBlobs = [];
+        for (let b of st.blobs) gBlobs.push(await blobToBase64(b));
+        cleanSettings.push({ key: 'globalBgs', blobs: gBlobs });
+      } else {
+        cleanSettings.push(st);
+      }
+    }
+
+    const backupData = { version: 1, albums: cleanAlbums, tracks: cleanTracks, settings: cleanSettings };
+    const jsonStr = JSON.stringify(backupData);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert("備份檔案已成功匯出！請將此檔案傳送到另一台裝置進行匯入。");
+  }
+
+  // 資料還原匯入功能
+  async function importDataBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!confirm("匯入備份將會覆蓋當前裝置的所有資料，確定要繼續嗎？")) {
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        
+        function base64ToBlob(base64Data) {
+          if (!base64Data) return null;
+          const parts = base64Data.split(';base64,');
+          const contentType = parts[0].split(':')[1];
+          const raw = window.atob(parts[1]);
+          const rawLength = raw.length;
+          const uInt8Array = new Uint8Array(rawLength);
+          for (let i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+          }
+          return new Blob([uInt8Array], { type: contentType });
+        }
+
+        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        tx.objectStore("albums").clear();
+        tx.objectStore("tracks").clear();
+        tx.objectStore("settings").clear();
+
+        for (let alb of data.albums) {
+          let cBlobs = [];
+          if (alb.coverBlobs) {
+            for (let bStr of alb.coverBlobs) cBlobs.push(base64ToBlob(bStr));
+          }
+          let bBlobs = [];
+          if (alb.bgBlobs) {
+            for (let bStr of alb.bgBlobs) bBlobs.push(base64ToBlob(bStr));
+          }
+          tx.objectStore("albums").add({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
+        }
+
+        for (let trk of data.tracks) {
+          tx.objectStore("tracks").add({
+            id: trk.id,
+            albumId: trk.albumId,
+            title: trk.title,
+            audioBlob: base64ToBlob(trk.audioBase64),
+            lrcText: trk.lrcText
+          });
+        }
+
+        for (let st of data.settings) {
+          if (st.key === 'globalBgs' && st.blobs) {
+            let gBlobs = [];
+            for (let bStr of st.blobs) gBlobs.push(base64ToBlob(bStr));
+            tx.objectStore("settings").add({ key: 'globalBgs', blobs: gBlobs });
+          } else {
+            tx.objectStore("settings").add(st);
+          }
+        }
+
+        tx.oncomplete = () => {
+          alert("資料成功匯入並同步！");
+          location.reload();
+        };
+      } catch (err) {
+        console.error(err);
+        alert("匯入失敗：檔案格式錯誤或損毀。");
+      }
+    };
+    reader.readAsText(file);
   }
 
   function switchPage(viewName, albumId) {
@@ -801,7 +962,7 @@
         if (covers[0].type && covers[0].type.startsWith('video/')) {
           thumbHtml = `<video src="${thumbUrl}" class="album-grid-thumb" autoplay loop muted playsinline></video>`;
         } else {
-          thumbHtml = `<img src="${thumbUrl}" class="album-grid-thumb">`;
+          thumbHtml = `<img src="${thumbUrl}" class="album-grid-thumb" style="object-fit:contain;">`;
         }
       }
 
