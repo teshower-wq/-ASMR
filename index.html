@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (內建啊嘿顏高潮互動解鎖)</title>
+  <title>軟軟騷穴專用肉棒</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -198,6 +198,7 @@
       border: 2px solid #ff3366;
     }
 
+    /* 滿載時封面與啊嘿顏圖片的中型晃動效果 */
     @keyframes mediumShake {
       0% { transform: translate(0, 0) rotate(0deg); }
       20% { transform: translate(-4px, 3px) rotate(-1.5deg); }
@@ -220,6 +221,7 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
+    /* 特殊動畫與啊嘿顏彈出圖層 */
     .orgasm-overlay-img {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -394,11 +396,19 @@
 
   <div id="admin-drawer" class="admin-drawer">
     
+    <!-- 啊嘿顏高潮互動設定專區 (包含一鍵高潮按鍵與長度自動同步) -->
     <div class="glass-card" style="border: 1px solid rgba(255, 51, 102, 0.4); background: rgba(30, 10, 20, 0.85);">
       <div class="card-title" style="color: #ff3366;">🔥 🌸 啊嘿顏高潮互動設定 (特殊動畫與高潮音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        當愛心累積填滿時，將自動觸發專屬的「啊嘿顏特殊動畫」、「封面與畫面中型晃動 5 秒」以及播放你自定義的高潮音效！
+        當愛心累積填滿或點擊「一鍵高潮」時，將自動觸發專屬的「啊嘿顏特殊動畫」、畫面晃動以及播放你自定義的高潮音效。<strong>特效與晃動時間會完全取決於上傳的高潮音效長度</strong>（若音效 10 秒則特效持續 10 秒）。
       </div>
+      
+      <!-- 新增：一鍵高潮按鍵功能 -->
+      <div class="form-group">
+        <label>⚡ 手動測試觸發器</label>
+        <button class="btn-pink" style="margin-top:0; background: linear-gradient(135deg, #ff0055 0%, #ff3366 100%);" onclick="forceTriggerOrgasm()">💥 一鍵高潮爆發 (測試觸發)</button>
+      </div>
+
       <div class="form-group">
         <label>🎯 開啟/關閉 高潮啊嘿顏特效互動</label>
         <select id="setting-orgasm-toggle" onchange="saveOrgasmSettings()">
@@ -411,7 +421,7 @@
         <input type="file" id="orgasm-img-input" accept="image/*" onchange="saveOrgasmImage(event)">
       </div>
       <div class="form-group">
-        <label>🔊 上傳自定義「高潮爽感/嬌喘」音效檔案 (.mp3 / .wav)</label>
+        <label>🔊 上傳自定義「高潮爽感/嬌喘」音效檔案 (.mp3 / .wav) [決定晃動與特效總時長]</label>
         <input type="file" id="orgasm-audio-input" accept="audio/*" onchange="saveOrgasmAudio(event)">
       </div>
       <div style="font-size: 0.8rem; color: #50fa7b; margin-top: 4px;" id="orgasm-status-tip">狀態：尚未自定義素材（將使用內建標準反饋）</div>
@@ -507,9 +517,10 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
+    <!-- 滿載啊嘿顏彈出特寫圖層 -->
     <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
 
-    <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
+    <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、點擊可直接一鍵高潮)" onclick="forceTriggerOrgasm()">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
           <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -615,6 +626,7 @@
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
 
+  // 啊嘿顏高潮互動設定變數
   let orgasmToggle = "on";
   let customOrgasmImgBlob = null;
   let customOrgasmAudioBlob = null;
@@ -624,7 +636,7 @@
   let fillCycleCount = 0;         
   let flashEndTime = 0;           
   let isPermanentlyFull = false;  
-  let lastTriggeredCycle = -1;
+  let lastTriggeredCycle = -1;    
 
   function initAudioContextForHeart() {
     if (isAudioContextInitialized) return;
@@ -906,7 +918,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V35", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V36", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -943,8 +955,69 @@
     requestAnimationFrame(updateHeartToy);
   });
 
+  // 核心：強制一鍵高潮觸發函式 (根據上傳的音效長度自動同步動畫與晃動時間)
+  function forceTriggerOrgasm() {
+    if (orgasmToggle === "off") return alert("目前已關閉高潮特效互動！");
+    
+    heartEnergy = 30;
+    
+    let audioDurationMs = 5000; // 預設 5 秒
+    if (customOrgasmAudioBlob) {
+      // 透過暫時的 audio 物件精確取得上傳的音效時長
+      let tempAudio = new Audio(customOrgasmAudioUrl);
+      tempAudio.onloadedmetadata = () => {
+        if (tempAudio.duration && !isNaN(tempAudio.duration)) {
+          audioDurationMs = tempAudio.duration * 1000;
+        }
+        executeOrgasmAction(audioDurationMs);
+      };
+      // 若 metadata 已經載入過直接執行
+      if (tempAudio.readyState >= 1) {
+        if (tempAudio.duration && !isNaN(tempAudio.duration)) {
+          audioDurationMs = tempAudio.duration * 1000;
+        }
+        executeOrgasmAction(audioDurationMs);
+      } else {
+        tempAudio.load();
+        setTimeout(() => executeOrgasmAction(audioDurationMs), 150);
+      }
+    } else {
+      executeOrgasmAction(audioDurationMs);
+    }
+  }
+
+  function executeOrgasmAction(durationMs) {
+    // 1. 播放高潮音效
+    if (customOrgasmAudioBlob) {
+      orgasmAudio.src = customOrgasmAudioUrl;
+      orgasmAudio.currentTime = 0;
+      orgasmAudio.play().catch(e => console.log("高潮音效播放受阻:", e));
+    }
+
+    // 2. 顯示自定義啊嘿顏 / 特寫圖層
+    const overlayImg = document.getElementById("orgasm-overlay-img");
+    if (customOrgasmImgBlob && customOrgasmImgUrl) {
+      overlayImg.src = customOrgasmImgUrl;
+      overlayImg.style.display = "block";
+      setTimeout(() => {
+        if (overlayImg) overlayImg.style.display = "none";
+      }, durationMs);
+    }
+
+    // 3. 設定計時器，使愛心閃爍、封面晃動與音效時間完全同步
+    flashEndTime = Date.now() + durationMs;
+  }
+
   function triggerOrgasmEffects() {
     if (orgasmToggle === "off") return;
+
+    let audioDurationMs = 5000;
+    if (customOrgasmAudioBlob) {
+      let tempAudio = new Audio(customOrgasmAudioUrl);
+      if (tempAudio.duration && !isNaN(tempAudio.duration)) {
+        audioDurationMs = tempAudio.duration * 1000;
+      }
+    }
 
     if (customOrgasmAudioBlob) {
       orgasmAudio.src = customOrgasmAudioUrl;
@@ -958,8 +1031,10 @@
       overlayImg.style.display = "block";
       setTimeout(() => {
         if (overlayImg) overlayImg.style.display = "none";
-      }, 5000);
+      }, audioDurationMs);
     }
+
+    flashEndTime = Date.now() + audioDurationMs;
   }
 
   function updateHeartToy() {
@@ -1034,7 +1109,11 @@
           if (fillCycleCount >= 4) {
             isPermanentlyFull = true;
           } else {
-            flashEndTime = Date.now() + 5000;
+            let dur = 5000;
+            if (customOrgasmAudioBlob && orgasmAudio.duration) {
+              dur = orgasmAudio.duration * 1000;
+            }
+            flashEndTime = Date.now() + dur;
           }
         }
         silentFrameCounter = 0; 
@@ -1132,7 +1211,7 @@
     customOrgasmAudioUrl = createTrackedObjectURL(file);
     persistOrgasmConfig();
     updateOrgasmStatusTip();
-    alert("✅ 高潮爽感音效設定成功！");
+    alert("✅ 高潮爽感音效設定成功！特效與晃動時間將自動與此音效長度同步。");
   }
 
   function persistOrgasmConfig() {
@@ -1149,7 +1228,7 @@
     const tip = document.getElementById("orgasm-status-tip");
     let parts = [];
     if (customOrgasmImgBlob) parts.push("已載入自定義圖片");
-    if (customOrgasmAudioBlob) parts.push("已載入自定義音效");
+    if (customOrgasmAudioBlob) parts.push("已載入自定義音效(時長同步)");
     if (parts.length > 0) {
       tip.innerText = `狀態：${parts.join(" ｜ ")}`;
       tip.style.color = "#ff79c6";
@@ -1632,7 +1711,7 @@
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
       <img id="orgasm-overlay-img" class="orgasm-overlay-img" alt="啊嘿顏高潮特寫">
-      <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
+      <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、點擊可直接一鍵高潮)" onclick="forceTriggerOrgasm()">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
             <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
