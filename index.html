@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>軟軟騷穴的專屬者</title>
+  <title>軟軟騷穴專屬者</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -198,16 +198,16 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 右上角愛心能量槽造型強化 */
+    /* 放大一倍的動態小愛心能量槽（原本44px放大至88px） */
     .heart-toy {
       position: absolute;
       top: 16px;
       right: 16px;
-      width: 44px;
-      height: 44px;
+      width: 88px;
+      height: 88px;
       background: rgba(10, 10, 15, 0.55);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 121, 198, 0.3);
+      border: 2px solid rgba(255, 121, 198, 0.3);
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -218,45 +218,52 @@
     }
 
     .heart-toy:hover {
-      transform: scale(1.1);
+      transform: scale(1.08);
       border-color: var(--primary-pink);
     }
 
     .heart-svg {
-      width: 26px;
-      height: 26px;
+      width: 54px;
+      height: 54px;
       overflow: visible;
     }
 
     .heart-outline {
-      fill: rgba(255, 255, 255, 0.12);
+      fill: none; /* 初始空心設定 */
       stroke: #ff79c6;
       stroke-width: 1.8;
-      transition: fill 0.1s ease;
+      transition: stroke 0.2s ease;
     }
 
     .heart-fill {
       fill: url(#heartGradient);
-      filter: drop-shadow(0 0 4px rgba(255, 51, 102, 0.8));
-      transition: y 0.1s ease, height 0.1s ease;
+      filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.8));
     }
 
     @keyframes pinkFlash {
       0%, 100% {
-        filter: drop-shadow(0 0 3px #ff3366) drop-shadow(0 0 10px #ff6699);
+        filter: drop-shadow(0 0 4px #ff3366) drop-shadow(0 0 12px #ff6699);
+        transform: scale(1);
       }
       50% {
-        filter: drop-shadow(0 0 8px #ff3366) drop-shadow(0 0 20px #ff99bb);
+        filter: drop-shadow(0 0 10px #ff3366) drop-shadow(0 0 24px #ff99bb);
+        transform: scale(1.06);
       }
+    }
+
+    @keyframes heartBeatPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
     }
 
     .heart-toy.is-full {
       border-color: #ff3366;
-      box-shadow: 0 0 15px rgba(255, 51, 102, 0.6);
+      box-shadow: 0 0 20px rgba(255, 51, 102, 0.7);
+      animation: heartBeatPulse 0.6s infinite ease-in-out;
     }
     
     .heart-toy.is-full .heart-svg {
-      animation: pinkFlash 0.8s infinite alternate;
+      animation: pinkFlash 0.6s infinite alternate;
     }
 
     .btn-cover-nav {
@@ -431,8 +438,8 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <!-- 互動愛心能量槽（含漸層定義） -->
-    <div class="heart-toy" id="heartToy" title="音樂心跳能量槽">
+    <!-- 放大一倍的動態小愛心能量槽（含女性語音頻段濾波） -->
+    <div class="heart-toy" id="heartToy" title="女性聲音起伏動態心跳能量槽">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
           <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -530,7 +537,7 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 愛心能量槽變數
+  // 愛心能量槽變數（女性語音專用）
   const clipRect = document.getElementById('clipRect');
   const heartToy = document.getElementById('heartToy');
   let heartEnergy = 0;
@@ -545,7 +552,7 @@
       source = audioCtx.createMediaElementSource(audio);
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
-      analyser.fftSize = 64;
+      analyser.fftSize = 128;
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       isAudioContextInitialized = true;
     } catch (e) {
@@ -673,7 +680,7 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
-          // 在 PiP 桌面懸浮窗右上角繪製動態心跳能量槽
+          // 在 PiP 桌面懸浮窗同步繪製放大版的動態心跳能量槽
           drawPiPHeartToy(pipCtx, heartEnergy);
 
           const currentTime = audio.currentTime;
@@ -713,33 +720,29 @@
     } catch(e) { console.error(e); }
   }
 
-  // 繪製 PiP 懸浮窗中的心跳愛心
+  // 完美同步 PiP 懸浮窗中的動態心跳愛心
   function drawPiPHeartToy(ctx, energy) {
     ctx.save();
-    // 繪製右上角背景圓圈
-    ctx.translate(940, 80);
+    // 繪製右上角背景圓圈 (配合 88px 放大)
+    ctx.translate(920, 100);
     ctx.beginPath();
-    ctx.arc(0, 0, 42, 0, Math.PI * 2);
+    ctx.arc(0, 0, 54, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(10, 10, 15, 0.7)";
     ctx.fill();
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeStyle = energy >= 29.5 ? "#ff3366" : "rgba(255, 121, 198, 0.4)";
     ctx.stroke();
 
-    // 繪製心型路徑 (縮放至適合大小)
-    ctx.translate(-26, -26);
-    ctx.scale(1.62, 1.62);
+    // 繪製心型路徑與縮放
+    ctx.translate(-32, -32);
+    ctx.scale(2.0, 2.0);
 
     const heartPath = new Path2D("M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z");
 
-    // 外框
-    ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
-    ctx.fill(heartPath);
     ctx.lineWidth = 1.2;
     ctx.strokeStyle = "#ff79c6";
     ctx.stroke(heartPath);
 
-    // 填滿高度計算 (energy 0~30)
     ctx.save();
     ctx.clip(heartPath);
     let fillHeight = (energy / 30) * 32;
@@ -796,7 +799,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V30", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V31", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -833,19 +836,47 @@
     requestAnimationFrame(updateHeartToy);
   });
 
-  // 愛心能量槽頻段驅動迴圈
+  // 專門針對女性聲音起伏與能量槽邏輯的計算迴圈
   function updateHeartToy() {
-    if (!audio.paused && analyser) {
+    if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
+      
+      // 女性語音核心頻段過濾 (通常介於 300Hz 到 3400Hz 之間，對應 Web Audio 頻段區間)
+      let startBin = Math.floor(dataArray.length * 0.1); 
+      let endBin = Math.floor(dataArray.length * 0.65);
+      
       let sum = 0;
-      for (let i = 0; i < dataArray.length; i++) {
+      let count = 0;
+      for (let i = startBin; i <= endBin; i++) {
         sum += dataArray[i];
+        count++;
       }
-      let average = sum / dataArray.length;
-      let intensityFactor = average / 35; 
-      heartEnergy += intensityFactor * 0.5;
+      let femaleVoiceAvg = count > 0 ? (sum / count) : 0;
+      
+      // 根據女性聲音音量起伏動態計算增量
+      let voiceIntensity = femaleVoiceAvg / 32; 
+      
+      if (heartEnergy < 30) {
+        // 未滿載時正常隨聲音起伏累積
+        if (femaleVoiceAvg > 12) {
+          heartEnergy += voiceIntensity * 0.6;
+        } else {
+          heartEnergy -= 0.25; // 聲音降低時自然回落
+        }
+      } else {
+        // 滿載時 (heartEnergy >= 30) 的特別防護邏輯：
+        // 如果此時女性聲音沒有停止一樣很大聲 -> 不重新計算，持續維持滿載跳動
+        // 如果聲音降低了 -> 重新開始計算 (歸零)
+        if (femaleVoiceAvg < 15) {
+          heartEnergy = 0; // 聲音降低，重置重新計算
+        } else {
+          heartEnergy = 30; // 保持滿載狀態持續跳動
+        }
+      }
     } else {
-      heartEnergy -= 0.35;
+      if (heartEnergy > 0) {
+        heartEnergy -= 0.35;
+      }
     }
 
     if (heartEnergy < 0) heartEnergy = 0;
@@ -1361,7 +1392,7 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <div class="heart-toy" id="heartToy" title="音樂心跳能量槽">
+      <div class="heart-toy" id="heartToy" title="女性聲音起伏動態心跳能量槽">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
             <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -1740,3 +1771,4 @@
 </script>
 </body>
 </html>
+```[cite: 6]
