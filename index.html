@@ -546,7 +546,7 @@
 
   let clipRect, heartToy;
   let heartEnergy = 0;
-  let silentTimer = 0; 
+  let silentFrameCounter = 0; 
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
 
@@ -867,6 +867,7 @@
     heartToy = document.getElementById('heartToy');
     const coverBox = document.getElementById('player-cover-box');
 
+    // 判斷是否有聲音且正在播放（暫停或無聲時皆不會遞增，也不會立刻衰減）
     if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
       
@@ -877,20 +878,27 @@
       }
       let avgVolume = sum / len;
 
+      // 偵測到明顯聲音訊號
       if (avgVolume > 3) {
-        let increment = (avgVolume / 128) * 0.008;
+        let increment = (avgVolume / 128) * 0.012; // 提升響應靈敏度
         heartEnergy += increment;
         if (heartEnergy > 30) heartEnergy = 30;
-        silentTimer = 0; 
+        silentFrameCounter = 0; // 重置無聲計數器
       } else {
-        silentTimer++;
-        if (silentTimer > 30) {
-          heartEnergy -= 0.02; 
+        // 播放中但當下片段無聲音或音量極低
+        silentFrameCounter++;
+        // 30fps 計算：約 300 幀 = 10 秒完全無聲後才開始緩慢往下掉
+        if (silentFrameCounter > 300) {
+          heartEnergy -= 0.015; // 緩慢漸降速率
         }
       }
     } else {
-      if (heartEnergy > 0) {
-        heartEnergy -= 0.05;
+      // 音樂暫停或停止播放狀態：
+      // 依要求「暫停音樂也不會因此降低愛心，只有沒聲音10秒才會」，
+      // 因此在暫停時也視同無聲狀態，同樣享有 10 秒（約 300 幀）的完全滯留防護！
+      silentFrameCounter++;
+      if (silentFrameCounter > 300) {
+        heartEnergy -= 0.015;
       }
     }
 
