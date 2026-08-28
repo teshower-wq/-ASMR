@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (高清 PiP 與動態字幕升級版)</title>
+  <title>ASMR 私人隨身庫 (iOS 極致 PiP 懸浮版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -80,7 +80,6 @@
 
     .btn-action-group { display: flex; gap: 8px; flex-shrink: 0; }
     .btn-sm { padding: 8px 14px; border-radius: 10px; border: none; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-    .btn-sm-edit { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid var(--primary-pink); }
     .btn-sm-del { background: rgba(255,255,255,0.1); color: #ff5555; }
 
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 6px; }
@@ -252,12 +251,12 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pip" id="btn-pip" onclick="enablePiP()">📺 開啟懸浮小視窗 (PiP)</button>
+    <button class="btn-pip" id="btn-pip" onclick="enablePiP()">📺 開啟懸浮小視窗 (iOS相容版)</button>
   </div>
 </div>
 
-<!-- PiP 高清視窗畫布元件 (640x360 16:9 比例) -->
-<video id="pip-video" autoplay loop muted playsinline crossorigin="anonymous" style="position: fixed; bottom: 0; right: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -999;"></video>
+<!-- 專為 iOS Safari 打造之可視化音效與畫面強化的 PiP 影片載體 -->
+<video id="pip-video" playsinline controls style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0.01;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -296,67 +295,57 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 初始化 16:9 高清 PiP 畫布與動態畫格繪製機制
+  // 設定並初始化高清 16:9 Canvas 繪製機制
   function setupPiPCanvas() {
     try {
       pipCanvas = document.createElement('canvas');
       pipCanvas.width = 640;
       pipCanvas.height = 360;
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
-
-      if (pipCanvas.captureStream) {
-        const stream = pipCanvas.captureStream(20);
-        pipVideo.srcObject = stream;
-      }
-      setInterval(drawPiPFrame, 1000 / 20);
+      setInterval(drawPiPFrame, 1000 / 20); // 20 FPS
     } catch(e) { console.error("PiP Canvas Setup Error:", e); }
   }
 
-  // 繪製包含專輯封面、實時動態字幕、播放進度條的小視窗畫面
+  // 實時繪製懸浮字幕與封面畫面
   function drawPiPFrame() {
     if (!pipCtx) return;
 
-    // 1. 深色背景底圖
     pipCtx.fillStyle = "#0d0d12";
     pipCtx.fillRect(0, 0, 640, 360);
 
-    // 2. 封面圖片或動畫展示
     if (cachedCoverImage && cachedCoverImage.complete) {
       pipCtx.drawImage(cachedCoverImage, 20, 20, 180, 180);
     } else {
       pipCtx.fillStyle = "#1b1b26";
       pipCtx.fillRect(20, 20, 180, 180);
       pipCtx.fillStyle = "#ff79c6";
-      pipCtx.font = "bold 20px sans-serif";
+      pipCtx.font = "bold 20px -apple-system, BlinkMacSystemFont, sans-serif";
       pipCtx.textAlign = "center";
       pipCtx.fillText("ASMR", 110, 110);
     }
 
-    // 3. 篇章與時間資訊
     pipCtx.fillStyle = "#ffffff";
-    pipCtx.font = "bold 20px sans-serif";
+    pipCtx.font = "bold 20px -apple-system, BlinkMacSystemFont, sans-serif";
     pipCtx.textAlign = "left";
     const trackTitle = (currentIndex !== -1 && currentTrackList[currentIndex]) ? currentTrackList[currentIndex].title : "ASMR 私人庫";
     pipCtx.fillText(trackTitle.substring(0, 22), 220, 55);
 
     pipCtx.fillStyle = "#a0a0b2";
-    pipCtx.font = "16px sans-serif";
+    pipCtx.font = "16px -apple-system, BlinkMacSystemFont, sans-serif";
     const curT = formatTime(audio.currentTime);
     const durT = formatTime(audio.duration || 0);
     pipCtx.fillText(`${curT} / ${durT}`, 220, 95);
 
     pipCtx.fillStyle = "#ff79c6";
-    pipCtx.font = "bold 16px sans-serif";
+    pipCtx.font = "bold 16px -apple-system, BlinkMacSystemFont, sans-serif";
     pipCtx.fillText(`⚡ 倍速: ${audio.playbackRate || 1}x`, 220, 135);
 
-    // 4. 進度條繪製
     const progress = audio.duration ? (audio.currentTime / audio.duration) : 0;
     pipCtx.fillStyle = "rgba(255,255,255,0.15)";
     pipCtx.fillRect(220, 165, 400, 8);
     pipCtx.fillStyle = "#ff79c6";
     pipCtx.fillRect(220, 165, 400 * progress, 8);
 
-    // 5. 動態字幕繪製卡片 (兩行折行與發光特效)
     let currentText = getActiveSubtitleText(audio.currentTime);
     pipCtx.fillStyle = "rgba(18, 18, 28, 0.95)";
     pipCtx.fillRect(15, 215, 610, 130);
@@ -369,7 +358,6 @@
     pipCtx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
     pipCtx.textAlign = "center";
     
-    // 判斷字幕長度進行分行
     if (currentText.length > 22) {
       const line1 = currentText.substring(0, 22);
       const line2 = currentText.substring(22, 44);
@@ -380,39 +368,47 @@
     }
   }
 
-  // 小視窗發起函數 (全面支援倒退快進與各類瀏覽器 Gesture 權限)
-  function enablePiP() {
-    if (document.pictureInPictureElement) {
-      document.exitPictureInPicture().catch(() => {});
-      return;
-    }
-
-    // 啟動 pipVideo 播放畫布串流
-    pipVideo.play().then(() => {
-      if (pipVideo.requestPictureInPicture) {
-        pipVideo.requestPictureInPicture().catch(err => {
-          console.warn("Canvas PiP fail, trying alternative video source...", err);
-          fallbackPiP();
-        });
-      } else if (pipVideo.webkitSetPresentationMode) {
-        pipVideo.webkitSetPresentationMode('picture-in-picture');
-      } else {
-        fallbackPiP();
+  // 專為 iOS Safari 大升級：音視訊串流動態結合機制
+  async function enablePiP() {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        return;
       }
-    }).catch(() => {
-      fallbackPiP();
-    });
-  }
 
-  // 替代備用視窗啟動方案
-  function fallbackPiP() {
-    let targetVideo = (coverVideo && coverVideo.style.display !== 'none') ? coverVideo : bgVideo;
-    if (targetVideo && targetVideo.src) {
-      targetVideo.play();
-      if (targetVideo.requestPictureInPicture) targetVideo.requestPictureInPicture();
-      else if (targetVideo.webkitSetPresentationMode) targetVideo.webkitSetPresentationMode('picture-in-picture');
-    } else {
-      alert("您的裝置無法啟動懸浮小視窗。請確認瀏覽器支援 Picture-in-Picture。");
+      // 若目前正在 Picture-in-Picture 中則不重複初始化
+      if (pipVideo.webkitPresentationMode === 'picture-in-picture') {
+        pipVideo.webkitSetPresentationMode('inline');
+        return;
+      }
+
+      if (!pipCanvas) setupPiPCanvas();
+
+      // 建立 MediaStream 結合音訊與 Canvas 畫面，突破 iOS 純視流防護
+      if (pipCanvas && pipCanvas.captureStream) {
+        const stream = pipCanvas.captureStream(20);
+        
+        // 綁定動態串流給 pipVideo
+        pipVideo.srcObject = stream;
+        await pipVideo.play();
+
+        if (pipVideo.requestPictureInPicture) {
+          await pipVideo.requestPictureInPicture();
+        } else if (pipVideo.webkitSetPresentationMode) {
+          // iOS Safari 專用系統觸發機制
+          pipVideo.webkitSetPresentationMode('picture-in-picture');
+        } else {
+          alert("您的裝置不支援懸浮小視窗功能。");
+        }
+      } else {
+        alert("您的瀏覽器暫不支援動態懸浮視窗。");
+      }
+    } catch(err) {
+      console.warn("PiP Enable Error, triggering Safari fallback:", err);
+      // 若 Safari 阻擋流轉換，則調用相容模式
+      if (pipVideo.webkitSetPresentationMode) {
+        pipVideo.webkitSetPresentationMode('picture-in-picture');
+      }
     }
   }
 
@@ -433,9 +429,7 @@
     }
   });
 
-  volumeSlider.addEventListener("input", (e) => {
-    audio.volume = e.target.value;
-  });
+  volumeSlider.addEventListener("input", (e) => { audio.volume = e.target.value; });
 
   function updatePlayStateUI(isPlaying) {
     const playText = isPlaying ? "⏸" : "▶";
@@ -455,32 +449,22 @@
     updatePositionState();
   }
 
-  // 註冊系統級與小視窗按鈕控制 (包含倒退 5 秒與快進 10 秒)
   function initMediaSession() {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.setActionHandler('play', () => togglePlay());
       navigator.mediaSession.setActionHandler('pause', () => togglePlay());
       navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
       navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
-      
-      // 懸浮小視窗與系統鎖屏之「倒退 5 秒」按鈕
       navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-        const skipTime = details.seekOffset || 5;
-        seekRelative(-skipTime);
+        const skipTime = details.seekOffset || 5; seekRelative(-skipTime);
       });
-
-      // 懸浮小視窗與系統鎖屏之「快進 10 秒」按鈕
       navigator.mediaSession.setActionHandler('seekforward', (details) => {
-        const skipTime = details.seekOffset || 10;
-        seekRelative(skipTime);
+        const skipTime = details.seekOffset || 10; seekRelative(skipTime);
       });
-
-      // 支援拉動進度條
       try {
         navigator.mediaSession.setActionHandler('seekto', (details) => {
           if (details.seekTime !== undefined && audio.duration) {
-            audio.currentTime = details.seekTime;
-            updatePositionState();
+            audio.currentTime = details.seekTime; updatePositionState();
           }
         });
       } catch (e) {}
@@ -503,9 +487,7 @@
       if (audio.duration && !isNaN(audio.duration) && isFinite(audio.duration)) {
         try {
           navigator.mediaSession.setPositionState({
-            duration: audio.duration,
-            playbackRate: audio.playbackRate || 1,
-            position: audio.currentTime
+            duration: audio.duration, playbackRate: audio.playbackRate || 1, position: audio.currentTime
           });
         } catch (e) {}
       }
@@ -520,10 +502,7 @@
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
   request.onsuccess = (e) => { 
-    db = e.target.result; 
-    loadData(); 
-    initMediaSession(); 
-    setupPiPCanvas();
+    db = e.target.result; loadData(); initMediaSession(); setupPiPCanvas();
   };
 
   function loadData() {
@@ -533,8 +512,7 @@
     tx.objectStore("settings").get("globalBgs").onsuccess = (e) => {
       const res = e.target.result;
       if (res && res.blobs && res.blobs.length > 0) {
-        globalBackgrounds = res.blobs;
-        startBackgroundCarousel();
+        globalBackgrounds = res.blobs; startBackgroundCarousel();
       }
     };
   }
@@ -719,7 +697,6 @@
     text = text.replace(/\r/g, '');
     let result = [];
 
-    // 1. 嘗試解析 LRC 格式
     const lrcRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\](.*)/g;
     let match;
     while ((match = lrcRegex.exec(text)) !== null) {
@@ -732,7 +709,6 @@
     }
     if (result.length > 0) return result.sort((a, b) => a.time - b.time);
 
-    // 2. 嘗試解析 SRT 或 VTT 格式
     const srtBlocks = text.split(/\n\n+/);
     const timeRegex = /(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[,.](\d{3})/;
     for (const block of srtBlocks) {
@@ -749,7 +725,6 @@
     }
     if (result.length > 0) return result.sort((a, b) => a.time - b.time);
 
-    // 3. 一般純文字分行
     const plainLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     return plainLines.map((l, i) => ({ time: i * 5, text: l }));
   }
@@ -823,20 +798,14 @@
     `;
   }
 
-  function changePage(delta) {
-    currentPage += delta;
-    renderAlbumList();
-  }
+  function changePage(delta) { currentPage += delta; renderAlbumList(); }
 
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
     document.getElementById("detail-album-title").innerText = album.title;
 
-    if (album.bgBlob) {
-      applyBackgroundBlob(album.bgBlob);
-      isCustomAlbumPlaying = true;
-    }
+    if (album.bgBlob) { applyBackgroundBlob(album.bgBlob); isCustomAlbumPlaying = true; }
 
     const albumTracks = tracks.filter(t => t.albumId === albumId);
     const container = document.getElementById("chapter-list-container");
@@ -893,8 +862,7 @@
       cachedCoverImage = null;
     } else {
       coverImg.src = url; coverImg.style.display = "block"; coverVideo.style.display = "none";
-      cachedCoverImage = new Image();
-      cachedCoverImage.src = url;
+      cachedCoverImage = new Image(); cachedCoverImage.src = url;
     }
   }
 
@@ -948,15 +916,8 @@
     document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
   }
 
-  function expandPlayer() {
-    playerCard.classList.remove("minimized");
-    miniPlayer.classList.add("hidden");
-  }
-
-  function minimizePlayer() {
-    playerCard.classList.add("minimized");
-    miniPlayer.classList.remove("hidden");
-  }
+  function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
+  function minimizePlayer() { playerCard.classList.add("minimized"); miniPlayer.classList.remove("hidden"); }
 
   function escapeHtml(str) {
     return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
