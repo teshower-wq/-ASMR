@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (內建動態小愛心優化能量槽)</title>
+  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -188,15 +188,7 @@
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
-      transition: box-shadow 0.3s ease;
     }
-    
-    /* 封面完全填滿時的粉紅色特效 */
-    .cover-box.is-full-pink-effect {
-      box-shadow: 0 0 30px rgba(255, 51, 102, 0.8), inset 0 0 25px rgba(255, 121, 198, 0.6);
-      border: 2px solid #ff3366;
-    }
-
     .cover-box img { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
@@ -204,74 +196,6 @@
     .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; 
       position: absolute; top: 0; left: 0; border-radius: 12px;
-    }
-
-    /* 放大一倍的動態小愛心能量槽（88px） */
-    .heart-toy {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 88px;
-      height: 88px;
-      background: rgba(10, 10, 15, 0.55);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 121, 198, 0.3);
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-      cursor: pointer;
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-
-    .heart-toy:hover {
-      transform: scale(1.08);
-      border-color: var(--primary-pink);
-    }
-
-    .heart-svg {
-      width: 54px;
-      height: 54px;
-      overflow: visible;
-    }
-
-    .heart-outline {
-      fill: none;
-      stroke: #ff79c6;
-      stroke-width: 1.8;
-      transition: stroke 0.2s ease;
-    }
-
-    .heart-fill {
-      fill: url(#heartGradient);
-      filter: drop-shadow(0 0 6px rgba(255, 51, 102, 0.8));
-    }
-
-    @keyframes pinkFlash {
-      0%, 100% {
-        filter: drop-shadow(0 0 4px #ff3366) drop-shadow(0 0 12px #ff6699);
-        transform: scale(1);
-      }
-      50% {
-        filter: drop-shadow(0 0 10px #ff3366) drop-shadow(0 0 24px #ff99bb);
-        transform: scale(1.06);
-      }
-    }
-
-    @keyframes heartBeatPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.12); }
-    }
-
-    .heart-toy.is-full {
-      border-color: #ff3366;
-      box-shadow: 0 0 20px rgba(255, 51, 102, 0.7);
-      animation: heartBeatPulse 0.6s infinite ease-in-out;
-    }
-    
-    .heart-toy.is-full .heart-svg {
-      animation: pinkFlash 0.6s infinite alternate;
     }
 
     .btn-cover-nav {
@@ -446,23 +370,6 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <!-- 放大一倍的動態小愛心能量槽 -->
-    <div class="heart-toy" id="heartToy" title="女性聲音起伏動態心跳能量槽">
-      <svg class="heart-svg" viewBox="0 0 32 29.6">
-        <defs>
-          <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-            <stop offset="0%" stop-color="#ff2a6d" />
-            <stop offset="50%" stop-color="#ff5e99" />
-            <stop offset="100%" stop-color="#ff99cc" />
-          </linearGradient>
-          <clipPath id="heartClip">
-            <rect id="clipRect" x="0" y="30" width="32" height="32" />
-          </clipPath>
-        </defs>
-        <path class="heart-outline" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-        <path class="heart-fill" clip-path="url(#heartClip)" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-      </svg>
-    </div>
     <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
     <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
     <div class="cover-indicator" id="cover-indicator">1 / 1</div>
@@ -545,29 +452,6 @@
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
 
-  // 愛心能量槽變數與延遲計時器
-  let clipRect, heartToy;
-  let heartEnergy = 0;
-  let silentTimer = 0; // 持續無聲音的計時（frame 單位）
-  let audioCtx, analyser, source, dataArray;
-  let isAudioContextInitialized = false;
-
-  function initAudioContextForHeart() {
-    if (isAudioContextInitialized) return;
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = audioCtx.createAnalyser();
-      source = audioCtx.createMediaElementSource(audio);
-      source.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      analyser.fftSize = 128;
-      dataArray = new Uint8Array(analyser.frequencyBinCount);
-      isAudioContextInitialized = true;
-    } catch (e) {
-      console.log("Web Audio API not supported or blocked");
-    }
-  }
-
   let touchStartY = 0;
   let touchCurrentY = 0;
   let isDragging = false;
@@ -618,7 +502,7 @@
   dragHandleArea.addEventListener("touchend", () => {
     if (!isDragging) return;
     isDragging = false;
-    playerCard.style.transform = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+    playerCard.style.transition = 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
     if (diff > 80) {
       minimizePlayer();
@@ -688,9 +572,6 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
-          // 在 PiP 桌面懸浮窗同步繪製與封面完全一致的動態心跳能量槽特效
-          drawPiPHeartToy(pipCtx, heartEnergy);
-
           const currentTime = audio.currentTime;
           let currentText = getActiveSubtitleText(currentTime);
 
@@ -726,51 +607,6 @@
       pipVideo.play();
       isPiPInitialized = true;
     } catch(e) { console.error(e); }
-  }
-
-  // 完美同步 PiP 懸浮窗中的動態心跳愛心與激烈震動閃爍特效
-  function drawPiPHeartToy(ctx, energy) {
-    ctx.save();
-    ctx.translate(920, 100);
-    ctx.beginPath();
-    ctx.arc(0, 0, 54, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(10, 10, 15, 0.7)";
-    ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = energy >= 29.5 ? "#ff3366" : "rgba(255, 121, 198, 0.4)";
-    ctx.stroke();
-
-    ctx.translate(-32, -32);
-    
-    // 當滿載時在 PiP 內模擬心跳 Pulse 放大與發光效果
-    let scaleFactor = 2.0;
-    if (energy >= 29.5) {
-      let pulse = 1 + 0.08 * Math.sin(Date.now() / 120);
-      scaleFactor = 2.0 * pulse;
-      ctx.translate(32 - 32 * pulse, 32 - 32 * pulse);
-    }
-    ctx.scale(scaleFactor, scaleFactor);
-
-    const heartPath = new Path2D("M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z");
-
-    ctx.lineWidth = 1.2;
-    ctx.strokeStyle = "#ff79c6";
-    ctx.stroke(heartPath);
-
-    ctx.save();
-    ctx.clip(heartPath);
-    let fillHeight = (energy / 30) * 32;
-    let fillY = 32 - fillHeight;
-    
-    let grad = ctx.createLinearGradient(0, 32, 0, 0);
-    grad.addColorStop(0, "#ff2a6d");
-    grad.addColorStop(0.5, "#ff5e99");
-    grad.addColorStop(1, "#ff99cc");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, fillY, 32, fillHeight);
-    ctx.restore();
-
-    ctx.restore();
   }
 
   function drawCoverToCanvas(ctx, source, size, isVideo) {
@@ -813,7 +649,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V32", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V30", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -826,6 +662,7 @@
     initMediaSession(); 
   };
 
+  // 立即套用 LocalStorage 暫存背景，避免打開網頁時瞬間空白或閃爍
   window.addEventListener('DOMContentLoaded', () => {
     try {
       const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
@@ -846,84 +683,7 @@
         }
       }
     } catch(err) { console.error(err); }
-
-    requestAnimationFrame(updateHeartToy);
   });
-
-  // 更新動態愛心能量槽：填滿與變化的速度大幅放慢，且滿載時聲音減弱後才往下掉
-  function updateHeartToy() {
-    clipRect = document.getElementById('clipRect');
-    heartToy = document.getElementById('heartToy');
-    const coverBox = document.getElementById('player-cover-box');
-
-    if (!audio.paused && analyser && dataArray) {
-      analyser.getByteFrequencyData(dataArray);
-      
-      let startBin = Math.floor(dataArray.length * 0.1); 
-      let endBin = Math.floor(dataArray.length * 0.65);
-      
-      let sum = 0;
-      let count = 0;
-      for (let i = startBin; i <= endBin; i++) {
-        sum += dataArray[i];
-        count++;
-      }
-      let femaleVoiceAvg = count > 0 ? (sum / count) : 0;
-      
-      // 優化調整：讓填滿速度與變化速度慢很多（係數大幅調降至 0.02）
-      let voiceIntensity = femaleVoiceAvg / 32; 
-      
-      if (heartEnergy < 30) {
-        if (femaleVoiceAvg > 12) {
-          heartEnergy += voiceIntensity * 0.02; 
-          silentTimer = 0; // 有聲音重置無聲緩衝計時
-        } else {
-          silentTimer++;
-          // 聲音減弱或無聲需持續一段較長時間（約 5 秒 = 300 個 frame）才開始緩慢往下掉
-          if (silentTimer > 300) {
-            heartEnergy -= 0.08;
-          }
-        }
-      } else {
-        // 達到 100% 填滿後，即使還有激烈的聲音，心跳一樣維持滿載狀態
-        // 必須直到聲音明顯減弱衰退（持續大段無聲或音量降低）後，計時器達標才往下掉
-        if (femaleVoiceAvg < 14) {
-          silentTimer++;
-          if (silentTimer > 350) { // 延長等待聲音減弱的時間
-            heartEnergy -= 0.08;
-          }
-        } else {
-          silentTimer = 0;
-          heartEnergy = 30; // 聲音激烈時保持 100% 滿載
-        }
-      }
-    } else {
-      if (heartEnergy > 0) {
-        heartEnergy -= 0.1;
-      }
-    }
-
-    if (heartEnergy < 0) heartEnergy = 0;
-    if (heartEnergy > 30) heartEnergy = 30;
-
-    let currentY = 30 - heartEnergy;
-    if (clipRect) {
-      clipRect.setAttribute('y', currentY);
-      clipRect.setAttribute('height', heartEnergy);
-    }
-
-    if (heartToy) {
-      if (heartEnergy >= 29.5) {
-        heartToy.classList.add('is-full');
-        if (coverBox) coverBox.classList.add('is-full-pink-effect'); // 完美同步封面粉紅色特效
-      } else {
-        heartToy.classList.remove('is-full');
-        if (coverBox) coverBox.classList.remove('is-full-pink-effect');
-      }
-    }
-
-    requestAnimationFrame(updateHeartToy);
-  }
 
   function loadData() {
     if (!db) return;
@@ -980,6 +740,7 @@
     let blobs = [];
     for (let f of input.files) blobs.push(f);
     
+    // 同步儲存至 LocalStorage 備用快取 (轉成 Base64 以供下次開網頁秒載)
     if (blobs.length > 0) {
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -988,7 +749,7 @@
             url: e.target.result,
             type: blobs[0].type
           }));
-        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖"); }
+        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖，將僅依賴資料庫"); }
       };
       reader.readAsDataURL(blobs[0]);
     }
@@ -1358,13 +1119,13 @@
         console.error(err);
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        alert("❌ 批量匯入寫入資料庫失敗。");
+        alert("❌ 批量匯入寫入資料庫失敗，可能是檔案過大或容量不足。");
       };
     } catch(e) {
       console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      alert("❌ 發生未預期的錯誤。");
+      alert("❌ 發生未預期的錯誤，請重新整理頁面後再試。");
     }
   }
 
@@ -1418,27 +1179,10 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <div class="heart-toy" id="heartToy" title="女性聲音起伏動態心跳能量槽">
-        <svg class="heart-svg" viewBox="0 0 32 29.6">
-          <defs>
-            <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
-              <stop offset="0%" stop-color="#ff2a6d" />
-              <stop offset="50%" stop-color="#ff5e99" />
-              <stop offset="100%" stop-color="#ff99cc" />
-            </linearGradient>
-            <clipPath id="heartClip">
-              <rect id="clipRect" x="0" y="30" width="32" height="32" />
-            </clipPath>
-          </defs>
-          <path class="heart-outline" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-          <path class="heart-fill" clip-path="url(#heartClip)" d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4 c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-11.8,16-21.2C32,3.8,28.2,0,23.6,0z"/>
-        </svg>
-      </div>
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     `;
-
     coverElements = [];
     cachedCoverElement = null;
 
@@ -1520,11 +1264,6 @@
   }
 
   function loadAndPlayCurrentTrack(track, album) {
-    initAudioContextForHeart();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
     audio.play().then(() => {
@@ -1584,11 +1323,6 @@
 
   function togglePlay() {
     if (currentIndex === -1) return;
-    initAudioContextForHeart();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-
     if (audio.paused) {
       audio.play();
       document.getElementById("btn-play").innerText = "⏸";
@@ -1771,7 +1505,7 @@
           alert("✅ 跨裝置備份還原成功！");
         };
       } catch (err) {
-        alert("❌ 備份檔案解析失敗。");
+        alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
       }
     };
     reader.readAsText(file);
