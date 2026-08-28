@@ -186,7 +186,7 @@
     .drag-handle-area { width: 100%; padding: 12px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 🌸 YouTube 風格全螢幕影片與字幕容器 (支援獨立元素全螢幕，非網站全螢幕) */
+    /* 🌸 YouTube 風格全螢幕影片與字幕容器 (支援獨立元素全螢幕，非網站全螢幕)[cite: 5] */
     #media-display-container {
       width: 100%;
       position: relative;
@@ -373,9 +373,9 @@
 
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
-      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
+      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)[cite: 5]</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
+        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！[cite: 5]
       </div>
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
@@ -385,9 +385,9 @@
     </div>
 
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
-      <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
+      <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)[cite: 5]</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        設定後，在「動態影音專區」觸發高潮時將自動暫停主音樂，顯示專屬特效圖片並播放此音效。結束後自動恢復！
+        設定後，在「動態影音專區」觸發高潮時將自動暫停主音樂，顯示專屬特效圖片並播放此音效。結束後自動恢復！[cite: 5]
       </div>
       <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
       <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
@@ -395,13 +395,13 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒自動輪播)</div>
+      <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒自動輪播)[cite: 5]</div>
       <div class="form-group"><label>選取多張圖片或 MP4 影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (支援 MP3 輕量專區與 MP4 動態影音專區)</div>
+      <div class="card-title">📁 建立作品分區 (支援 MP3 輕量專區與 MP4 動態影音專區)[cite: 5]</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
       <div class="form-group">
         <label>分區類型選擇</label>
@@ -416,14 +416,14 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">⚡ 一鍵自動配對音檔與字幕</div>
+      <div class="card-title">⚡ 一鍵自動配對音檔與字幕[cite: 5]</div>
       <div class="form-group">
         <label>選擇目標作品分區</label>
         <select id="select-album"><option value="">-- 請先建立分區 --</option></select>
       </div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (LRC/VTT/SRT 全解鎖)</div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (LRC/VTT/SRT 全解鎖)[cite: 5]</div>
         <div class="form-group">
           <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
           <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
@@ -478,7 +478,7 @@
     <div class="drag-handle"></div>
   </div>
 
-  <!-- 🌸 YouTube 風格全螢幕專用容器 (影片/封面 + 字幕同步放大全螢幕) -->
+  <!-- 🌸 YouTube 風格全螢幕專用容器 (影片/封面 + 字幕同步放大全螢幕)[cite: 5] -->
   <div id="media-display-container">
     <div class="cover-box" id="player-cover-box">
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
@@ -947,7 +947,7 @@
     
     unlockAutoplayConstraints();
     
-    // 🌸 升級：MP3 與 MP4 專區皆能完整開啟桌面懸浮 (PiP) 顯示畫面與字幕
+    // 🌸 升級：MP3 與 MP4 專區皆能完整開啟桌面懸浮 (PiP) 顯示畫面與字幕[cite: 5]
     if (currentAlbumType === 'mp4') {
       initAudioAnalysis();
     }
@@ -973,7 +973,7 @@
     }
   }
 
-  // 🌸 升級：YouTube 風格影片與字幕全螢幕 (只讓影片與字幕容器全螢幕，非整個網頁)
+  // 🌸 升級：YouTube 風格影片與字幕全螢幕 (只讓影片與字幕容器全螢幕，非整個網頁)[cite: 5]
   function toggleFullScreen() {
     const container = document.getElementById("media-display-container");
     if (!container) return;
