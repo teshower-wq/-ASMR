@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極速穩定版)</title>
+  <title>ASMR 私人隨身庫 (極致效能升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -47,6 +47,13 @@
     .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
     .top-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
     .app-logo { font-size: 1.4rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 20px var(--pink-glow); cursor: pointer; letter-spacing: 0.5px; }
+    .top-actions { display: flex; gap: 8px; }
+    .btn-clean-mem {
+      background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4);
+      color: #50fa7b; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease; backdrop-filter: blur(10px);
+    }
+    .btn-clean-mem:hover { background: rgba(80, 250, 123, 0.3); box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
     .btn-toggle-admin {
       background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
       color: var(--primary-pink); padding: 10px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
@@ -83,18 +90,20 @@
       box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
-    .btn-pink:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
 
     .btn-blue {
       width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
       box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.25s ease;
     }
-    .btn-clean {
+    .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5); }
+
+    .btn-green {
       width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
       box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.25s ease;
     }
+    .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
 
     .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
     .page-view.active { display: block; }
@@ -116,6 +125,10 @@
     .album-grid-count { font-size: 0.85rem; color: var(--primary-pink); font-weight: 600; }
     
     .btn-action-col { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; z-index: 2; }
+    .btn-album-action {
+      background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
+      color: var(--primary-pink); padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
     .btn-album-del {
       background: rgba(255, 85, 85, 0.1); border: 1px solid rgba(255, 85, 85, 0.25);
       color: #ff6b6b; padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
@@ -138,10 +151,13 @@
       width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%;
       display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.95rem; flex-shrink: 0;
     }
+    .chapter-meta-text { overflow: hidden; }
     .chapter-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; margin-bottom: 2px; color: #fff; font-size: 0.92rem; }
+    .chapter-duration-sub { font-size: 0.78rem; color: var(--text-sub); }
 
     .btn-action-group { display: flex; gap: 6px; flex-shrink: 0; }
     .btn-sm { padding: 5px 10px; border-radius: 9px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .btn-sm-edit { background: rgba(255, 121, 198, 0.15); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.3); }
     .btn-sm-del { background: rgba(255,255,255,0.06); color: #ff6b6b; border: 1px solid rgba(255,85,85,0.15); }
 
     .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
@@ -166,6 +182,7 @@
     .drag-handle-area { width: 100%; padding: 8px 0 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
+    /* 封面展示區塊（支援手動切換按鈕） */
     .cover-box { 
       width: 100%; height: 260px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
@@ -183,6 +200,7 @@
       position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
+    /* 手動切換封面按鈕樣式 */
     .btn-cover-nav {
       position: absolute; top: 50%; transform: translateY(-50%);
       background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -258,24 +276,17 @@
 <div class="container">
   <div class="top-bar">
     <div class="app-logo" onclick="switchPage('home')">🌸 ASMR 隨身庫</div>
-    <button class="btn-toggle-admin" onclick="toggleAdminDrawer()">⚙️ 管理選單</button>
+    <div class="top-actions">
+      <button class="btn-clean-mem" onclick="cleanMemoryAndGC()">⚡ 清理記憶體</button>
+      <button class="btn-toggle-admin" onclick="toggleAdminDrawer()">⚙️ 管理選單</button>
+    </div>
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
-    <!-- 一鍵清理按鈕 -->
-    <div class="glass-card" style="border: 1px solid rgba(16, 185, 129, 0.4); background: rgba(6, 78, 59, 0.2);">
-      <div class="card-title" style="color: #34d399;">⚡ 系統效能加速</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        一鍵釋放系統記憶體暫存 (Blob URLs)，並優化網頁渲染，避免手機高溫發燙與卡頓！
-      </div>
-      <button class="btn-clean" onclick="clearMemoryCache()">🚀 一鍵清理暫存 & 降溫</button>
-    </div>
-
-    <!-- 跨裝置同步 -->
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步！
+        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置（手機或電腦），再點擊下方「匯入備份檔案」即可完整同步所有作品、音訊、封面與字幕！
       </div>
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
@@ -284,41 +295,39 @@
       </div>
     </div>
 
-    <!-- 建立作品分區 -->
     <div class="glass-card">
-      <div class="card-title">📁 1. 建立作品分區</div>
-      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：日系 ASMR 系列"></div>
+      <div class="card-title">🖼️ 設定預設全域背景</div>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
+      <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-title">📁 建立作品分區 (支援多張封面圖/影片手動切換)</div>
+      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：系列名稱"></div>
       <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
-    <!-- 一鍵批次匯入配對 -->
-    <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5);">
-      <div class="card-title">⚡ 2. 智慧一鍵批次配對匯入</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        已全面解鎖 iOS 檔案選擇器！您現在可以全選資料夾內的所有音檔與字幕檔（.lrc/.srt/.vtt），系統會在背景自動完成精準配對！
+    <!-- 升級：單集手動匯入與一鍵智慧批量配對匯入 -->
+    <div class="glass-card">
+      <div class="card-title">⚡ 一鍵自動配對音檔與字幕</div>
+      <div class="form-group"><label>選擇目標作品分區</label><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
+      
+      <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (最省時)</div>
+        <div class="form-group"><label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label><input type="file" id="batch-audios" accept="audio/*" multiple></div>
+        <div class="form-group"><label>複選所有字幕檔 (可一次選多個 .lrc/.srt/.txt)</label><input type="file" id="batch-lrcs" accept=".lrc,.srt,.vtt,.txt" multiple></div>
+        <button class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
       </div>
-      <div class="form-group"><label>選擇作品分區</label><select id="batch-select-album"><option value="">-- 請選擇分區 --</option></select></div>
-      <div class="form-group"><label>選取所有檔案 (不限副檔名，可全選)</label><input type="file" id="batch-files" multiple></div>
-      <button class="btn-pink" id="btn-batch-import" onclick="batchAddTracks()">⚡ 一鍵配對並自動匯入</button>
-    </div>
 
-    <!-- 單篇匯入 -->
-    <div class="glass-card">
-      <div class="card-title">🎵 3. 單篇手動匯入</div>
-      <div class="form-group"><label>選擇作品分區</label><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
-      <div class="form-group"><label>篇章名稱 (選填，預設同檔名)</label><input type="text" id="track-title-input" placeholder="例如：01_耳語安慰"></div>
-      <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*"></div>
-      <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc"></div>
-      <button class="btn-pink" id="btn-single-import" onclick="addTrack()">新增篇章至分區</button>
-    </div>
-
-    <!-- 全域背景 -->
-    <div class="glass-card">
-      <div class="card-title">🖼️ 設定預設全域背景</div>
-      <div class="form-group"><label>選取多張圖片或 MP4 影片（可匯入多個，隨時手動切換）</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
-      <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
+      <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
+        <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
+        <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
+        <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*"></div>
+        <div class="form-group"><label>字幕檔案 (.lrc / .srt / .vtt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.srt,.vtt,.txt"></div>
+        <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
+      </div>
     </div>
   </div>
 
@@ -355,6 +364,7 @@
     <div class="drag-handle"></div>
   </div>
 
+  <!-- 封面顯示區塊（內建左右手動切換按鈕） -->
   <div class="cover-box" id="player-cover-box">
     <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
     <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
@@ -424,7 +434,9 @@
 
   let currentPage = 1;
   const itemsPerPage = 4;
-  let objectUrlsToRevoke = [];
+
+  // 記憶體與 Blob URL 追蹤清理陣列
+  let activeCreatedUrls = [];
 
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
@@ -440,18 +452,38 @@
   let isDragging = false;
   const dragHandleArea = document.getElementById("drag-handle-area");
 
-  function createTrackObjectURL(blob) {
+  // 輔助函式：建立安全且可註銷的 ObjectURL
+  function createTrackedObjectURL(blob) {
+    if (!blob) return "";
     const url = URL.createObjectURL(blob);
-    objectUrlsToRevoke.push(url);
+    activeCreatedUrls.push(url);
     return url;
   }
 
-  function clearMemoryCache() {
-    objectUrlsToRevoke.forEach(url => URL.revokeObjectURL(url));
-    objectUrlsToRevoke = [];
-    if (pipCtx) pipCtx.clearRect(0, 0, 1080, 1080);
-    alert("⚡ 一鍵清理完畢！已釋放暫存記憶體，網頁已重設至極速狀態。");
+  // 手機降溫與一鍵清理快取記憶體
+  function cleanMemoryAndGC() {
+    activeCreatedUrls.forEach(url => {
+      try { URL.revokeObjectURL(url); } catch(e){}
+    });
+    activeCreatedUrls = [];
+    
+    // 清理圖片快取
+    if (bgVideo.paused) {
+      bgVideo.removeAttribute('src');
+      bgVideo.load();
+    }
+    
+    alert("⚡ 已完成快取釋放與記憶體清理！手機負載與熱量已降低。");
   }
+
+  // 智慧監聽背景視窗分頁：切換背景時暫停背景影片渲染，節省手機 CPU/GPU 資源
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (bgVideo && !bgVideo.paused) bgVideo.pause();
+    } else {
+      if (bgVideo && bgVideo.src && audio && !audio.paused) bgVideo.play().catch(()=>{});
+    }
+  });
 
   dragHandleArea.addEventListener("click", () => { minimizePlayer(); });
   playerCard.addEventListener("touchstart", (e) => {
@@ -503,7 +535,7 @@
       pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
       function renderPiPFrame() {
-        if (pipCtx && document.pictureInPictureElement) {
+        if (pipCtx) {
           pipCtx.fillStyle = "#07070a";
           pipCtx.fillRect(0, 0, 1080, 1080);
 
@@ -551,7 +583,7 @@
       }
       requestAnimationFrame(renderPiPFrame);
 
-      const stream = pipCanvas.captureStream(24);
+      const stream = pipCanvas.captureStream(30);
       pipVideo.srcObject = stream;
       pipVideo.play();
       isPiPInitialized = true;
@@ -630,613 +662,703 @@
   }
 
   async function exportDataBackup() {
-    try {
-      const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-      let exportAlbums = await new Promise(res => tx.objectStore("albums").getAll().onsuccess = e => res(e.target.result));
-      let exportTracks = await new Promise(res => tx.objectStore("tracks").getAll().onsuccess = e => res(e.target.result));
+    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+    let exportAlbums = await new Promise(res => tx.objectStore("albums").getAll().onsuccess = e => res(e.target.result));
+    let exportTracks = await new Promise(res => tx.objectStore("tracks").getAll().onsuccess = e => res(e.target.result));
+    let exportSettings = await new Promise(res => tx.objectStore("settings").getAll().onsuccess = e => res(e.target.result));
 
-      let totalBytes = 0;
-      exportTracks.forEach(t => { if(t.audioBlob) totalBytes += t.audioBlob.size; });
-      exportAlbums.forEach(a => { 
-        if(a.coverBlobs) a.coverBlobs.forEach(b => totalBytes += b.size);
-        if(a.bgBlobs) a.bgBlobs.forEach(b => totalBytes += b.size);
+    async function blobToBase64(blob) {
+      if (!blob) return null;
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
       });
+    }
 
-      const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
-
-      if (totalBytes > 100 * 1024 * 1024) {
-        const includeMedia = confirm(`當前資料庫容量較大（約 ${totalMB} MB），完整打包可能導致瀏覽器記憶體不足。\n\n【確定】：匯出完整影音檔案\n【取消】：僅匯出「作品結構與字幕」（傳輸極快）`);
-        if (!includeMedia) {
-          let cleanAlbums = exportAlbums.map(a => ({ id: a.id, title: a.title }));
-          let cleanTracks = exportTracks.map(t => ({ id: t.id, albumId: t.albumId, title: t.title, lrcText: t.lrcText }));
-          downloadJson({ albums: cleanAlbums, tracks: cleanTracks, settings: [] }, `ASMR_Structure_Backup.json`);
-          return;
-        }
+    let cleanAlbums = [];
+    for (let alb of exportAlbums) {
+      let cBlobs = [];
+      if (alb.coverBlobs) {
+        for (let b of alb.coverBlobs) cBlobs.push(await blobToBase64(b));
+      } else if (alb.coverBlob) {
+        cBlobs.push(await blobToBase64(alb.coverBlob));
       }
-
-      async function blobToBase64(blob) {
-        if (!blob) return null;
-        return new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.readAsDataURL(blob);
-        });
+      let bBlobs = [];
+      if (alb.bgBlobs) {
+        for (let b of alb.bgBlobs) bBlobs.push(await blobToBase64(b));
       }
+      cleanAlbums.push({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
+    }
 
-      let cleanAlbums = [];
-      for (let alb of exportAlbums) {
-        let cBlobs = [];
-        if (alb.coverBlobs) for (let b of alb.coverBlobs) cBlobs.push(await blobToBase64(b));
-        let bBlobs = [];
-        if (alb.bgBlobs) for (let b of alb.bgBlobs) bBlobs.push(await blobToBase64(b));
-        cleanAlbums.push({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
+    let cleanTracks = [];
+    for (let trk of exportTracks) {
+      cleanTracks.push({
+        id: trk.id,
+        albumId: trk.albumId,
+        title: trk.title,
+        audioBase64: await blobToBase64(trk.audioBlob),
+        lrcText: trk.lrcText
+      });
+    }
+
+    let cleanSettings = [];
+    for (let st of exportSettings) {
+      if (st.key === 'globalBgs' && st.blobs) {
+        let gBlobs = [];
+        for (let b of st.blobs) gBlobs.push(await blobToBase64(b));
+        cleanSettings.push({ key: 'globalBgs', blobs: gBlobs });
+      } else {
+        cleanSettings.push(st);
       }
+    }
 
-      let cleanTracks = [];
-      for (let trk of exportTracks) {
-        cleanTracks.push({
-          id: trk.id, albumId: trk.albumId, title: trk.title,
-          audioBase64: await blobToBase64(trk.audioBlob), lrcText: trk.lrcText
-        });
-      }
-
-      downloadJson({ version: 1, albums: cleanAlbums, tracks: cleanTracks }, `ASMR_Full_Backup.json`);
-    } catch (e) { alert("匯出失敗：" + e.message); }
+    const backupData = { version: 1, albums: cleanAlbums, tracks: cleanTracks, settings: cleanSettings };
+    const jsonStr = JSON.stringify(backupData);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = createTrackedObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    alert("備份檔案已成功匯出！");
   }
 
-  function downloadJson(data, filename) {
-    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = filename; a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  async function importDataBackup(e) {
-    const file = e.target.files[0];
+  async function importDataBackup(event) {
+    const file = event.target.files[0];
     if (!file) return;
+    if (!confirm("匯入備份將會覆蓋當前裝置的所有資料，確定要繼續嗎？")) {
+      event.target.value = '';
+      return;
+    }
+
     const reader = new FileReader();
-    reader.onload = async (evt) => {
+    reader.onload = async (e) => {
       try {
-        const data = JSON.parse(evt.target.result);
-        if (!data.albums || !data.tracks) return alert("無效的備份檔案格式！");
-
-        function base64ToBlob(base64) {
-          if (!base64) return null;
-          const arr = base64.split(',');
-          const mime = arr[0].match(/:(.*?);/)[1];
-          const bstr = atob(arr[1]);
-          let n = bstr.length;
-          const u8arr = new Uint8Array(n);
-          while (n--) u8arr[n] = bstr.charCodeAt(n);
-          return new Blob([u8arr], { type: mime });
+        const data = JSON.parse(e.target.result);
+        
+        function base64ToBlob(base64Data) {
+          if (!base64Data) return null;
+          const parts = base64Data.split(';base64,');
+          const contentType = parts[0].split(':')[1];
+          const raw = window.atob(parts[1]);
+          const rawLength = raw.length;
+          const uInt8Array = new Uint8Array(rawLength);
+          for (let i = 0; i < rawLength; ++i) {
+            uInt8Array[i] = raw.charCodeAt(i);
+          }
+          return new Blob([uInt8Array], { type: contentType });
         }
 
-        const tx = db.transaction(["albums", "tracks"], "readwrite");
-        for (let a of data.albums) {
-          let cBlobs = a.coverBlobs ? a.coverBlobs.map(b => base64ToBlob(b)).filter(Boolean) : [];
-          let bBlobs = a.bgBlobs ? a.bgBlobs.map(b => base64ToBlob(b)).filter(Boolean) : [];
-          tx.objectStore("albums").put({ id: a.id, title: a.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
+        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        tx.objectStore("albums").clear();
+        tx.objectStore("tracks").clear();
+        tx.objectStore("settings").clear();
+
+        for (let alb of data.albums) {
+          let cBlobs = [];
+          if (alb.coverBlobs) {
+            for (let bStr of alb.coverBlobs) cBlobs.push(base64ToBlob(bStr));
+          }
+          let bBlobs = [];
+          if (alb.bgBlobs) {
+            for (let bStr of alb.bgBlobs) bBlobs.push(base64ToBlob(bStr));
+          }
+          tx.objectStore("albums").add({ id: alb.id, title: alb.title, coverBlobs: cBlobs, bgBlobs: bBlobs });
         }
-        for (let t of data.tracks) {
-          let aBlob = t.audioBase64 ? base64ToBlob(t.audioBase64) : t.audioBlob;
-          tx.objectStore("tracks").put({ id: t.id, albumId: t.albumId, title: t.title, audioBlob: aBlob, lrcText: t.lrcText });
+
+        for (let trk of data.tracks) {
+          tx.objectStore("tracks").add({
+            id: trk.id,
+            albumId: trk.albumId,
+            title: trk.title,
+            audioBlob: base64ToBlob(trk.audioBase64),
+            lrcText: trk.lrcText
+          });
         }
-        tx.oncomplete = () => { alert("🎉 備份資料匯入成功！"); loadData(); };
-      } catch (err) { alert("匯入失敗：" + err.message); }
+
+        for (let st of data.settings) {
+          if (st.key === 'globalBgs' && st.blobs) {
+            let gBlobs = [];
+            for (let bStr of st.blobs) gBlobs.push(base64ToBlob(bStr));
+            tx.objectStore("settings").add({ key: 'globalBgs', blobs: gBlobs });
+          } else {
+            tx.objectStore("settings").add(st);
+          }
+        }
+
+        tx.oncomplete = () => {
+          alert("資料成功匯入並同步！");
+          location.reload();
+        };
+      } catch (err) {
+        console.error(err);
+        alert("匯入失敗：檔案格式錯誤或損毀。");
+      }
     };
     reader.readAsText(file);
   }
 
-  /* 智慧一鍵批次配對（非同步隊列優化 & 狀態反饋） */
-  async function batchAddTracks() {
-    const btn = document.getElementById("btn-batch-import");
-    const albumSelect = document.getElementById("batch-select-album");
-    let albumId = parseInt(albumSelect.value);
-
-    // 防呆：若使用者未手動選取，預設自動帶入第一個存在的作品集
-    if (!albumId && albums.length > 0) {
-      albumId = albums[0].id;
-      albumSelect.value = albumId;
-    }
-
-    if (!albumId) return alert("請先建立作品分區！");
-
-    const files = Array.from(document.getElementById("batch-files").files).filter(f => !f.name.startsWith('.'));
-    if (files.length === 0) return alert("請選取檔案！");
-
-    btn.disabled = true;
-    btn.innerText = "⏳ 處理中，請稍候...";
-
-    try {
-      const audioMap = new Map();
-      const lrcMap = new Map();
-
-      files.forEach(f => {
-        const fileName = f.name;
-        const lastDotIndex = fileName.lastIndexOf('.');
-        if (lastDotIndex === -1) return;
-
-        const ext = fileName.substring(lastDotIndex).toLowerCase();
-        let baseName = fileName.substring(0, lastDotIndex).trim();
-
-        const lrcExtensions = ['.lrc', '.srt', '.vtt', '.txt'];
-
-        if (lrcExtensions.includes(ext)) {
-          if (baseName.toLowerCase().endsWith('.mp3')) {
-            baseName = baseName.substring(0, baseName.length - 4).trim();
-          }
-          lrcMap.set(baseName, f);
-        } else {
-          audioMap.set(baseName, f);
-        }
-      });
-
-      if (audioMap.size === 0) {
-        alert("未在選取的檔案中找到音樂檔，請確認有選擇音樂！");
-        btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入";
-        return;
-      }
-
-      let count = 0;
-      for (let [baseName, audioFile] of audioMap.entries()) {
-        let lrcText = "";
-        if (lrcMap.has(baseName)) {
-          lrcText = await lrcMap.get(baseName).text().catch(() => "");
-        }
-        await new Promise((resolve, reject) => {
-          const tx = db.transaction(["tracks"], "readwrite");
-          tx.objectStore("tracks").add({ albumId, title: baseName, audioBlob: audioFile, lrcText });
-          tx.oncomplete = () => resolve();
-          tx.onerror = (e) => reject(e);
-        });
-        count++;
-      }
-
-      alert(`⚡ 智慧配對成功！已自動新增 ${count} 個篇章！`);
-      document.getElementById("batch-files").value = "";
-      loadData();
-    } catch (err) {
-      alert("匯入過程出錯：" + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerText = "⚡ 一鍵配對並自動匯入";
+  function switchPage(viewName, albumId) {
+    document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+    if (viewName === 'home') {
+      document.getElementById('view-home').classList.add('active');
+      currentActiveAlbumId = null; isCustomAlbumPlaying = false;
+      if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
+    } else if (viewName === 'detail') {
+      document.getElementById('view-detail').classList.add('active');
+      currentActiveAlbumId = albumId; renderDetailView(albumId);
     }
   }
 
-  function toggleAdminDrawer() {
-    document.getElementById("admin-drawer").classList.toggle("open");
-  }
-
+  function toggleAdminDrawer() { document.getElementById("admin-drawer").classList.toggle("open"); }
   function updateAlbumDropdown() {
-    const sel1 = document.getElementById("select-album");
-    const sel2 = document.getElementById("batch-select-album");
-    sel1.innerHTML = '<option value="">-- 請選擇分區 --</option>';
-    sel2.innerHTML = '<option value="">-- 請選擇分區 --</option>';
+    const select = document.getElementById("select-album");
+    select.innerHTML = albums.length ? "" : '<option value="">-- 請先建立分區 --</option>';
     albums.forEach(a => {
-      sel1.innerHTML += `<option value="${a.id}">${a.title}</option>`;
-      sel2.innerHTML += `<option value="${a.id}">${a.title}</option>`;
+      const opt = document.createElement("option"); opt.value = a.id; opt.innerText = a.title; select.appendChild(opt);
     });
-    if (albums.length > 0) {
-      sel1.value = albums[0].id;
-      sel2.value = albums[0].id;
+  }
+
+  async function saveGlobalBackgrounds() {
+    const files = document.getElementById("global-bg-input").files;
+    if (!files || files.length === 0) return alert("請選擇背景檔案！");
+    const blobsArray = Array.from(files);
+    const tx = db.transaction(["settings"], "readwrite");
+    tx.objectStore("settings").put({ key: "globalBgs", blobs: blobsArray });
+    tx.oncomplete = () => {
+      globalBackgrounds = blobsArray; bgIndex = 0; isCustomAlbumPlaying = false;
+      if(globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
+      alert(`成功儲存 ${blobsArray.length} 張全域背景！`);
+      document.getElementById("global-bg-input").value = "";
+    };
+  }
+
+  function applyBackgroundBlob(blob) {
+    if (!blob) return;
+    const url = createTrackedObjectURL(blob);
+    if (blob.type && blob.type.startsWith('video/')) {
+      bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play().catch(()=>{}); bgImg.style.display = "none";
+    } else {
+      bgImg.src = url; bgImg.style.display = "block"; bgVideo.style.display = "none"; bgVideo.pause();
     }
   }
 
-  function createAlbum() {
+  async function createAlbum() {
     const title = document.getElementById("album-title").value.trim();
-    const covers = Array.from(document.getElementById("album-covers").files);
-    const bgs = Array.from(document.getElementById("album-bgs").files);
     if (!title) return alert("請輸入分區名稱！");
-
+    const coverFiles = Array.from(document.getElementById("album-covers").files);
+    const bgFiles = Array.from(document.getElementById("album-bgs").files);
+    
     const tx = db.transaction(["albums"], "readwrite");
-    tx.objectStore("albums").add({ title, coverBlobs: covers, bgBlobs: bgs });
+    tx.objectStore("albums").add({ title, coverBlobs: coverFiles, bgBlobs: bgFiles });
     tx.oncomplete = () => {
       document.getElementById("album-title").value = "";
       document.getElementById("album-covers").value = "";
       document.getElementById("album-bgs").value = "";
-      loadData();
-      alert("✅ 建立作品分區成功！");
+      loadData(); toggleAdminDrawer();
+      alert("作品分區建立成功！");
     };
   }
 
-  /* 單篇手動匯入修復 */
-  async function addTrack() {
-    const btn = document.getElementById("btn-single-import");
-    const albumSelect = document.getElementById("select-album");
-    let albumId = parseInt(albumSelect.value);
+  async function editAlbumCovers(albumId, event) {
+    event.stopPropagation();
+    const album = albums.find(a => a.id === albumId);
+    if (!album) return;
+    const newTitle = prompt("修改作品分區名稱：", album.title);
+    if (newTitle === null) return;
+    
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*,video/*';
+    fileInput.multiple = true;
+    fileInput.onchange = (e) => {
+      const newCovers = Array.from(e.target.files);
+      const tx = db.transaction(["albums"], "readwrite");
+      const store = tx.objectStore("albums");
+      store.get(albumId).onsuccess = (ev) => {
+        let alb = ev.target.result;
+        alb.title = newTitle.trim() || alb.title;
+        if (newCovers.length > 0) alb.coverBlobs = newCovers;
+        store.put(alb);
+      };
+      tx.oncomplete = () => { loadData(); alert("作品分區與封面已成功更新！"); };
+    };
+    fileInput.click();
+  }
 
-    if (!albumId && albums.length > 0) {
-      albumId = albums[0].id;
-      albumSelect.value = albumId;
+  async function deleteAlbum(albumId, event) {
+    event.stopPropagation();
+    const album = albums.find(a => a.id === albumId);
+    if (!album) return;
+    if (!confirm(`確定要刪除作品集「${album.title}」嗎？`)) return;
+
+    const tx = db.transaction(["albums", "tracks"], "readwrite");
+    tx.objectStore("albums").delete(albumId);
+    tx.objectStore("tracks").getAll().onsuccess = (e) => {
+      e.target.result.forEach(t => { if (t.albumId === albumId) tx.objectStore("tracks").delete(t.id); });
+    };
+    tx.oncomplete = () => {
+      if (currentActiveAlbumId === albumId) switchPage('home');
+      loadData();
+      alert("作品集已刪除！");
+    };
+  }
+
+  function readFileTextSmart(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let text = e.target.result;
+        if (text.includes('\uFFFD')) {
+          const readerSJIS = new FileReader();
+          readerSJIS.onload = (e2) => resolve(e2.target.result);
+          readerSJIS.readAsText(file, 'shift-jis');
+        } else { resolve(text); }
+      };
+      reader.readAsText(file, 'utf-8');
+    });
+  }
+
+  // 取出純檔名 (去掉副檔名) 用於智慧配對
+  function getFileNameWithoutExtension(filename) {
+    return filename.substring(0, filename.lastIndexOf('.')) || filename;
+  }
+
+  // 升級：一鍵批量上傳與智慧檔名自動配對
+  async function batchUploadAndPair() {
+    const albumId = parseInt(document.getElementById("select-album").value);
+    if (!albumId) return alert("請先選擇目標作品分區！");
+
+    const audioFiles = Array.from(document.getElementById("batch-audios").files);
+    if (audioFiles.length === 0) return alert("請至少選取一個音訊檔案！");
+
+    const lrcFiles = Array.from(document.getElementById("batch-lrcs").files);
+    
+    // 建立字幕檔 Mapping: Key為無副檔名檔名(全小寫)
+    const lrcMap = new Map();
+    for (let lrcFile of lrcFiles) {
+      let baseName = getFileNameWithoutExtension(lrcFile.name).toLowerCase().trim();
+      lrcMap.set(baseName, lrcFile);
     }
 
-    if (!albumId) return alert("請先建立作品分區！");
+    let pairedCount = 0;
+    const tx = db.transaction(["tracks"], "readwrite");
+    const store = tx.objectStore("tracks");
 
-    const audioFile = document.getElementById("track-audio").files[0];
-    const lrcFile = document.getElementById("track-lrc").files[0];
-    let title = document.getElementById("track-title-input").value.trim();
-
-    if (!audioFile) return alert("請選取音訊檔案！");
-    if (!title) {
-      const lastDot = audioFile.name.lastIndexOf('.');
-      title = lastDot !== -1 ? audioFile.name.substring(0, lastDot) : audioFile.name;
-    }
-
-    btn.disabled = true;
-    btn.innerText = "⏳ 寫入中...";
-
-    try {
+    for (let audioFile of audioFiles) {
+      let audioBaseName = getFileNameWithoutExtension(audioFile.name);
+      let lookupName = audioBaseName.toLowerCase().trim();
+      
       let lrcText = "";
-      if (lrcFile) {
-        lrcText = await lrcFile.text().catch(() => "");
+      if (lrcMap.has(lookupName)) {
+        let matchedLrcFile = lrcMap.get(lookupName);
+        lrcText = await readFileTextSmart(matchedLrcFile);
+        pairedCount++;
       }
 
-      await new Promise((resolve, reject) => {
-        const tx = db.transaction(["tracks"], "readwrite");
-        tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
-        tx.oncomplete = () => resolve();
-        tx.onerror = (e) => reject(e);
+      store.add({
+        albumId: albumId,
+        title: audioBaseName,
+        audioBlob: audioFile,
+        lrcText: lrcText
       });
+    }
 
-      alert("✅ 單篇新增成功！");
+    tx.oncomplete = () => {
+      alert(`✨ 批量上傳完成！\n共匯入 ${audioFiles.length} 個音訊，其中 ${pairedCount} 個成功自動配對對應字幕！`);
+      document.getElementById("batch-audios").value = "";
+      document.getElementById("batch-lrcs").value = "";
+      loadData();
+    };
+  }
+
+  async function addTrack() {
+    const albumId = parseInt(document.getElementById("select-album").value);
+    if (!albumId) return alert("請先選擇作品分區！");
+    const audioFile = document.getElementById("track-audio").files[0];
+    if (!audioFile) return alert("請選擇音訊檔案！");
+    const title = document.getElementById("track-title-input").value.trim() || getFileNameWithoutExtension(audioFile.name);
+    const lrcFile = document.getElementById("track-lrc").files[0];
+    let lrcText = lrcFile ? await readFileTextSmart(lrcFile) : "";
+
+    const tx = db.transaction(["tracks"], "readwrite");
+    tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
+    tx.oncomplete = () => {
+      alert("篇章新增成功！");
       document.getElementById("track-title-input").value = "";
       document.getElementById("track-audio").value = "";
       document.getElementById("track-lrc").value = "";
       loadData();
-    } catch (err) {
-      alert("新增失敗：" + err.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerText = "新增篇章至分區";
-    }
+    };
+  }
+
+  async function saveTrackSubtitle(trackId, lrcText) {
+    return new Promise((resolve) => {
+      const tx = db.transaction(["tracks"], "readwrite");
+      const store = tx.objectStore("tracks");
+      store.get(trackId).onsuccess = (e) => {
+        const track = e.target.result;
+        if (track) { track.lrcText = lrcText; store.put(track); }
+      };
+      tx.oncomplete = () => {
+        const t = tracks.find(item => item.id === trackId);
+        if (t) t.lrcText = lrcText;
+        if (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === trackId) {
+          currentTrackList[currentIndex].lrcText = lrcText;
+          currentLrc = parseSubtitles(lrcText, audio.duration);
+        }
+        loadData(); resolve(true);
+      };
+    });
+  }
+
+  async function uploadCurrentTrackLrc(event) {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
+    const file = event.target.files[0];
+    if (!file) return;
+    const text = await readFileTextSmart(file);
+    await saveTrackSubtitle(currentTrackList[currentIndex].id, text);
+    alert("字幕匯入成功！"); event.target.value = "";
+  }
+
+  async function pasteCurrentTrackLrc() {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
+    const text = prompt("請貼上字幕內容：");
+    if (text && text.trim()) { await saveTrackSubtitle(currentTrackList[currentIndex].id, text.trim()); alert("字幕更新成功！"); }
+  }
+
+  async function inspectCurrentTrackLrc() {
+    if (currentIndex === -1 || !currentTrackList[currentIndex]) return alert("請先選擇篇章！");
+    const track = currentTrackList[currentIndex];
+    const newText = prompt(`【${track.title}】字幕內容：`, track.lrcText || "");
+    if (newText !== null) { await saveTrackSubtitle(track.id, newText.trim()); alert("字幕已儲存！"); }
+  }
+
+  async function editTrackLrc(trackId) {
+    const track = tracks.find(t => t.id === trackId);
+    if (!track) return;
+    const newText = prompt(`編輯【${track.title}】字幕：`, track.lrcText || "");
+    if (newText !== null) { await saveTrackSubtitle(trackId, newText.trim()); alert("字幕已儲存！"); }
+  }
+
+  async function deleteTrack(trackId, event) {
+    event.stopPropagation();
+    if (!confirm("確定要刪除這個篇章嗎？")) return;
+    const tx = db.transaction(["tracks"], "readwrite");
+    tx.objectStore("tracks").delete(trackId);
+    tx.oncomplete = () => { loadData(); alert("篇章已刪除！"); };
   }
 
   function renderAlbumList() {
-    const container = document.getElementById("album-list");
+    const listEl = document.getElementById("album-list");
+    const paginationEl = document.getElementById("pagination-container");
+    listEl.innerHTML = ""; paginationEl.innerHTML = "";
     if (albums.length === 0) {
-      container.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">尚無作品分區，請從管理選單新增。</div>`;
+      listEl.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0; text-align:center;'>目前沒有作品分區，請從右上角管理選單新增。</div>";
       return;
     }
-
+    const totalPages = Math.ceil(albums.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
     const start = (currentPage - 1) * itemsPerPage;
-    const pageAlbums = albums.slice(start, start + itemsPerPage);
+    const paginatedAlbums = albums.slice(start, start + itemsPerPage);
 
-    let html = "";
-    pageAlbums.forEach(a => {
-      const trackCount = tracks.filter(t => t.albumId === a.id).length;
-      let thumbSrc = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
-      if (a.coverBlobs && a.coverBlobs.length > 0) {
-        thumbSrc = createTrackObjectURL(a.coverBlobs[0]);
+    paginatedAlbums.forEach(album => {
+      const albumTracks = tracks.filter(t => t.albumId === album.id);
+      const card = document.createElement("div");
+      card.className = "album-grid-card";
+      card.onclick = () => {
+        if (album.bgBlobs && album.bgBlobs.length > 0) {
+          isCustomAlbumPlaying = true;
+          currentAlbumBgBlobs = album.bgBlobs;
+          albumBgIndex = 0;
+          applyBackgroundBlob(currentAlbumBgBlobs[albumBgIndex]);
+        } else {
+          isCustomAlbumPlaying = false;
+          if (globalBackgrounds.length > 0) applyBackgroundBlob(globalBackgrounds[bgIndex]);
+        }
+        switchPage('detail', album.id);
+      };
+      
+      let thumbHtml = '<div class="album-grid-thumb" style="display:flex; align-items:center; justify-content:center; color:#555; font-size:1.4rem;">📁</div>';
+      let covers = album.coverBlobs || (album.coverBlob ? [album.coverBlob] : []);
+      if (covers.length > 0) {
+        let thumbUrl = createTrackedObjectURL(covers[0]);
+        if (covers[0].type && covers[0].type.startsWith('video/')) {
+          thumbHtml = `<video src="${thumbUrl}" class="album-grid-thumb" autoplay loop muted playsinline style="object-fit:cover;"></video>`;
+        } else {
+          thumbHtml = `<img src="${thumbUrl}" class="album-grid-thumb" style="object-fit:cover;">`;
+        }
       }
-      html += `
-        <div class="album-grid-card" onclick="openAlbumDetail(${a.id})">
-          <img class="album-grid-thumb" src="${thumbSrc}">
-          <div class="album-grid-info">
-            <div class="album-grid-title">${a.title}</div>
-            <div class="album-grid-count">🎵 ${trackCount} 個篇章</div>
-          </div>
-          <div class="btn-action-col">
-            <button class="btn-album-del" onclick="event.stopPropagation(); deleteAlbum(${a.id});">刪除</button>
-          </div>
+
+      card.innerHTML = `
+        ${thumbHtml}
+        <div class="album-grid-info">
+          <div class="album-grid-title">${album.title}</div>
+          <div class="album-grid-count">包含 ${albumTracks.length} 個篇章 ▶</div>
+        </div>
+        <div class="btn-action-col" onclick="event.stopPropagation()">
+          <button class="btn-album-action" onclick="editAlbumCovers(${album.id}, event)">✏️ 修改封面</button>
+          <button class="btn-album-del" onclick="deleteAlbum(${album.id}, event)">🗑️ 刪除</button>
         </div>
       `;
+      listEl.appendChild(card);
     });
 
-    container.innerHTML = html;
-    renderPagination();
+    if (totalPages > 1) {
+      paginationEl.innerHTML = `
+        <div class="pagination-bar">
+          <button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">◀ 上一頁</button>
+          <span class="page-info">第 ${currentPage} / ${totalPages} 頁</span>
+          <button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁 ▶</button>
+        </div>
+      `;
+    }
   }
 
-  function renderPagination() {
-    const totalPages = Math.ceil(albums.length / itemsPerPage);
-    const container = document.getElementById("pagination-container");
-    if (totalPages <= 1) { container.innerHTML = ""; return; }
-
-    container.innerHTML = `
-      <div class="pagination-bar">
-        <button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(-1)">◀ 上一頁</button>
-        <span class="page-info">${currentPage} / ${totalPages}</span>
-        <button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(1)">下一頁 ▶</button>
-      </div>
-    `;
-  }
-
-  function changePage(delta) {
-    currentPage += delta;
-    renderAlbumList();
-  }
-
-  function deleteAlbum(id) {
-    if (!confirm("確定要刪除此作品分區及其所有篇章嗎？")) return;
-    const tx = db.transaction(["albums", "tracks"], "readwrite");
-    tx.objectStore("albums").delete(id);
-    tracks.filter(t => t.albumId === id).forEach(t => tx.objectStore("tracks").delete(t.id));
-    tx.oncomplete = () => loadData();
-  }
-
-  function openAlbumDetail(albumId) {
-    currentActiveAlbumId = albumId;
-    switchPage('detail');
-    renderDetailView(albumId);
-  }
+  function changePage(page) { currentPage = page; renderAlbumList(); }
 
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
-
     document.getElementById("detail-album-title").innerText = album.title;
     const container = document.getElementById("chapter-list-container");
+    container.innerHTML = "";
     const albumTracks = tracks.filter(t => t.albumId === albumId);
-
     if (albumTracks.length === 0) {
-      container.innerHTML = `<div style="text-align:center; color:var(--text-sub); padding:20px;">此分區暫無篇章，請至管理選單匯入。</div>`;
+      container.innerHTML = "<div style='color:var(--text-sub); font-size:0.9rem; padding:10px 0; text-align:center;'>此分區目前沒有篇章。</div>";
       return;
     }
-
-    let html = "";
-    albumTracks.forEach((t, idx) => {
-      html += `
-        <div class="chapter-file-item" onclick="playTrackFromList(${albumId}, ${idx})">
-          <div class="chapter-info-left">
-            <div class="play-icon-circle">▶</div>
-            <div class="chapter-name">${t.title}</div>
-          </div>
-          <div class="btn-action-group">
-            <button class="btn-sm btn-sm-del" onclick="event.stopPropagation(); deleteTrack(${t.id})">刪除</button>
+    albumTracks.forEach(track => {
+      const item = document.createElement("div");
+      item.className = "chapter-file-item";
+      item.onclick = () => playTrack(album.id, track.id);
+      item.innerHTML = `
+        <div class="chapter-info-left">
+          <div class="play-icon-circle">▶</div>
+          <div class="chapter-meta-text">
+            <div class="chapter-name">${track.title}</div>
+            <div class="chapter-duration-sub">${(track.lrcText && track.lrcText.trim()) ? '💬 有動態字幕' : '⚪ 無動態字幕'}</div>
           </div>
         </div>
+        <div class="btn-action-group" onclick="event.stopPropagation()">
+          <button class="btn-sm btn-sm-edit" onclick="editTrackLrc(${track.id})">字幕</button>
+          <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id}, event)">刪除</button>
+        </div>
       `;
+      container.appendChild(item);
     });
-    container.innerHTML = html;
   }
 
-  function deleteTrack(id) {
-    if (!confirm("確定刪除此篇章？")) return;
-    const tx = db.transaction(["tracks"], "readwrite");
-    tx.objectStore("tracks").delete(id);
-    tx.oncomplete = () => loadData();
-  }
-
-  function playTrackFromList(albumId, index) {
-    currentPlayingAlbumId = albumId;
+  function playTrack(albumId, trackId) {
+    const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
-    currentIndex = index;
-    loadTrack(currentIndex);
+    currentIndex = currentTrackList.findIndex(t => t.id === trackId);
+    if (currentIndex === -1) return;
+
+    const track = currentTrackList[currentIndex];
+    currentPlayingAlbumId = albumId;
+
+    audio.src = createTrackedObjectURL(track.audioBlob);
+    audio.play();
+
+    document.getElementById("btn-play").innerText = "⏸";
+    document.getElementById("mini-btn-play").innerText = "⏸";
+
+    document.getElementById("mini-title").innerText = track.title;
+    document.getElementById("mini-lrc").innerText = album ? album.title : "ASMR 隨身庫";
+    document.getElementById("album-tag").innerText = album ? `📁 ${album.title}` : "";
+
+    activeAlbumCoverBlobs = album && album.coverBlobs ? album.coverBlobs : (album && album.coverBlob ? [album.coverBlob] : []);
+    activeCoverIndex = 0;
+    setupPlayerCovers();
+
+    let firstCoverUrl = activeAlbumCoverBlobs.length > 0 ? createTrackedObjectURL(activeAlbumCoverBlobs[0]) : "";
+    document.getElementById("mini-thumb").src = firstCoverUrl || "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
+
+    updateMediaSessionMetadata(track.title, album ? album.title : "ASMR 隨身庫", firstCoverUrl);
+    currentLrc = parseSubtitles(track.lrcText, audio.duration);
+
+    miniPlayer.classList.remove("hidden");
     expandPlayer();
   }
 
-  function loadTrack(idx) {
-    if (idx < 0 || idx >= currentTrackList.length) return;
-    const track = currentTrackList[idx];
-    const album = albums.find(a => a.id === track.albumId);
+  function setupPlayerCovers() {
+    const coverBox = document.getElementById("player-cover-box");
+    const navButtons = coverBox.querySelectorAll('.btn-cover-nav, .cover-indicator');
+    coverBox.innerHTML = "";
+    navButtons.forEach(btn => coverBox.appendChild(btn));
 
-    if (track.audioBlob) {
-      audio.src = createTrackObjectURL(track.audioBlob);
-    }
-
-    document.getElementById("mini-title").innerText = track.title;
-    document.getElementById("album-tag").innerText = album ? album.title : "ASMR 隨身庫";
-    
-    currentLrc = parseLRC(track.lrcText || "");
-    updateSubtitleDisplay(0);
-
-    if (album) {
-      setupAlbumCovers(album.coverBlobs);
-      if (album.bgBlobs && album.bgBlobs.length > 0) {
-        isCustomAlbumPlaying = true;
-        currentAlbumBgBlobs = album.bgBlobs;
-        albumBgIndex = 0;
-        applyBackgroundBlob(currentAlbumBgBlobs[albumBgIndex]);
-      }
-    }
-
-    audio.play().then(() => {
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
-    }).catch(e => console.log("Auto-play prevented", e));
-
-    miniPlayer.classList.remove("hidden");
-  }
-
-  function setupAlbumCovers(coverBlobs) {
-    const box = document.getElementById("player-cover-box");
-    box.querySelectorAll("img, video").forEach(el => el.remove());
     coverElements = [];
-    activeAlbumCoverBlobs = coverBlobs || [];
-    activeCoverIndex = 0;
 
-    if (!coverBlobs || coverBlobs.length === 0) {
-      document.getElementById("cover-indicator").innerText = "1 / 1";
+    if (activeAlbumCoverBlobs.length === 0) {
+      cachedCoverElement = null;
+      isCoverVideoActive = false;
+      document.getElementById("cover-indicator").innerText = "0 / 0";
       return;
     }
 
-    coverBlobs.forEach((blob, idx) => {
-      const url = createTrackObjectURL(blob);
+    activeAlbumCoverBlobs.forEach((blob, idx) => {
+      let url = createTrackedObjectURL(blob);
       let el;
-      if (blob.type.startsWith("video/")) {
-        el = document.createElement("video");
-        el.src = url; el.autoplay = true; el.loop = true; el.muted = true; el.playsinline = true;
+      if (blob.type && blob.type.startsWith('video/')) {
+        el = document.createElement('video');
+        el.src = url;
+        el.autoplay = true;
+        el.loop = true;
+        el.muted = true;
+        el.playsInline = true;
       } else {
-        el = document.createElement("img");
+        el = document.createElement('img');
         el.src = url;
       }
       el.style.display = idx === 0 ? "block" : "none";
-      box.appendChild(el);
+      coverBox.appendChild(el);
       coverElements.push(el);
     });
 
-    cachedCoverElement = coverElements[0] || null;
-    isCoverVideoActive = cachedCoverElement ? cachedCoverElement.tagName === 'VIDEO' : false;
-    document.getElementById("cover-indicator").innerText = `1 / ${coverBlobs.length}`;
+    updateCoverDisplay();
   }
 
-  function prevCover() {
-    if (coverElements.length <= 1) return;
-    coverElements[activeCoverIndex].style.display = "none";
-    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
-    cachedCoverElement = coverElements[activeCoverIndex];
-    cachedCoverElement.style.display = "block";
-    isCoverVideoActive = cachedCoverElement.tagName === 'VIDEO';
+  function updateCoverDisplay() {
+    if (coverElements.length === 0) return;
+    coverElements.forEach((el, idx) => {
+      if (idx === activeCoverIndex) {
+        el.style.display = "block";
+        cachedCoverElement = el;
+        isCoverVideoActive = el.tagName === 'VIDEO';
+        if (isCoverVideoActive) el.play().catch(() => {});
+      } else {
+        el.style.display = "none";
+        if (el.tagName === 'VIDEO') el.pause();
+      }
+    });
     document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
   }
 
   function nextCover() {
     if (coverElements.length <= 1) return;
-    coverElements[activeCoverIndex].style.display = "none";
     activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
-    cachedCoverElement = coverElements[activeCoverIndex];
-    cachedCoverElement.style.display = "block";
-    isCoverVideoActive = cachedCoverElement.tagName === 'VIDEO';
-    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
+    updateCoverDisplay();
   }
 
-  function applyBackgroundBlob(blob) {
-    if (!blob) return;
-    const url = createTrackObjectURL(blob);
-    if (blob.type.startsWith("video/")) {
-      bgImg.style.display = "none";
-      bgVideo.src = url; bgVideo.style.display = "block"; bgVideo.play().catch(()=>{});
-    } else {
-      bgVideo.style.display = "none";
-      bgImg.src = url; bgImg.style.display = "block";
-    }
+  function prevCover() {
+    if (coverElements.length <= 1) return;
+    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
+    updateCoverDisplay();
   }
-
-  function saveGlobalBackgrounds() {
-    const files = Array.from(document.getElementById("global-bg-input").files);
-    if (files.length === 0) return alert("請先選擇背景素材！");
-
-    const tx = db.transaction(["settings"], "readwrite");
-    tx.objectStore("settings").put({ key: "globalBgs", blobs: files });
-    tx.oncomplete = () => {
-      globalBackgrounds = files;
-      bgIndex = 0;
-      applyBackgroundBlob(globalBackgrounds[0]);
-      alert("✅ 全域背景設定成功！");
-    };
-  }
-
-  function parseLRC(text) {
-    if (!text) return [];
-    const lines = text.split('\n');
-    const result = [];
-    const timeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
-
-    lines.forEach(line => {
-      const match = timeReg.exec(line);
-      if (match) {
-        const min = parseInt(match[1]);
-        const sec = parseInt(match[2]);
-        const ms = parseInt(match[3]);
-        const time = min * 60 + sec + (ms > 99 ? ms / 1000 : ms / 100);
-        const str = line.replace(timeReg, '').trim();
-        if (str) result.push({ time, text: str });
-      }
-    });
-
-    return result.sort((a, b) => a.time - b.time);
-  }
-
-  function getActiveSubtitleText(currentTime) {
-    if (!currentLrc || currentLrc.length === 0) return "♪ 無字幕資訊 ♪";
-    let active = "♪ ASMR 隨身庫 ♪";
-    for (let i = 0; i < currentLrc.length; i++) {
-      if (currentTime >= currentLrc[i].time) active = currentLrc[i].text;
-      else break;
-    }
-    return active;
-  }
-
-  function updateSubtitleDisplay(currentTime) {
-    const text = getActiveSubtitleText(currentTime);
-    document.getElementById("lrc-box").innerText = text;
-    document.getElementById("mini-lrc").innerText = text;
-  }
-
-  audio.addEventListener("timeupdate", () => {
-    if (!isNaN(audio.duration)) {
-      seekSlider.value = (audio.currentTime / audio.duration) * 100;
-      document.getElementById("time-current").innerText = formatTime(audio.currentTime);
-      document.getElementById("time-duration").innerText = formatTime(audio.duration);
-    }
-    updateSubtitleDisplay(audio.currentTime);
-  });
-
-  audio.addEventListener("ended", () => nextTrack());
-
-  seekSlider.addEventListener("input", (e) => {
-    if (!isNaN(audio.duration)) audio.currentTime = (e.target.value / 100) * audio.duration;
-  });
-
-  volumeSlider.addEventListener("input", (e) => {
-    audio.volume = e.target.value;
-    lastVolume = e.target.value;
-  });
 
   function togglePlay() {
     if (currentIndex === -1) return;
     if (audio.paused) {
       audio.play();
+      if (isCoverVideoActive && cachedCoverElement) cachedCoverElement.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     } else {
       audio.pause();
+      if (isCoverVideoActive && cachedCoverElement) cachedCoverElement.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
     }
   }
 
-  function prevTrack() { if (currentIndex > 0) loadTrack(--currentIndex); }
-  function nextTrack() { if (currentIndex < currentTrackList.length - 1) loadTrack(++currentIndex); }
-  function seekRelative(sec) { audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + sec)); }
+  function prevTrack() { if (currentIndex > 0) playTrack(currentPlayingAlbumId, currentTrackList[currentIndex - 1].id); }
+  function nextTrack() { if (currentIndex < currentTrackList.length - 1) playTrack(currentPlayingAlbumId, currentTrackList[currentIndex + 1].id); }
+  function seekRelative(seconds) { if (!audio.duration) return; audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration); }
 
   function toggleMute() {
-    if (audio.volume > 0) { lastVolume = audio.volume; audio.volume = 0; volumeSlider.value = 0; }
-    else { audio.volume = lastVolume || 1; volumeSlider.value = audio.volume; }
-  }
-
-  function expandPlayer() { playerCard.classList.remove("minimized"); }
-  function minimizePlayer() { playerCard.classList.add("minimized"); }
-  function switchPage(page) {
-    document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
-    document.getElementById(`view-${page}`).classList.add("active");
-  }
-
-  function formatTime(sec) {
-    let m = Math.floor(sec / 60);
-    let s = Math.floor(sec % 60);
-    return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
-  }
-
-  function uploadCurrentTrackLrc(e) {
-    const file = e.target.files[0];
-    if (!file || currentIndex === -1) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      currentTrackList[currentIndex].lrcText = evt.target.result;
-      currentLrc = parseLRC(evt.target.result);
-      const tx = db.transaction(["tracks"], "readwrite");
-      tx.objectStore("tracks").put(currentTrackList[currentIndex]);
-      alert("✅ 字幕更新成功！");
-    };
-    reader.readAsText(file);
-  }
-
-  function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return;
-    const text = prompt("請貼上 LRC 字幕文字：");
-    if (text !== null) {
-      currentTrackList[currentIndex].lrcText = text;
-      currentLrc = parseLRC(text);
-      const tx = db.transaction(["tracks"], "readwrite");
-      tx.objectStore("tracks").put(currentTrackList[currentIndex]);
-      alert("✅ 字幕貼上並更新成功！");
+    if (audio.muted) {
+      audio.muted = false; document.getElementById("btn-mute").innerText = "🔈"; volumeSlider.value = lastVolume;
+    } else {
+      lastVolume = audio.volume; audio.muted = true; document.getElementById("btn-mute").innerText = "🔇"; volumeSlider.value = 0;
     }
   }
 
-  function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return;
-    alert(currentTrackList[currentIndex].lrcText || "目前無字幕內容。");
+  volumeSlider.addEventListener("input", (e) => {
+    audio.volume = e.target.value; audio.muted = (e.target.value == 0);
+    document.getElementById("btn-mute").innerText = (e.target.value == 0) ? "🔇" : "🔈";
+  });
+
+  seekSlider.addEventListener("input", (e) => {
+    if (!audio.duration) return;
+    audio.currentTime = (e.target.value / 100) * audio.duration;
+  });
+
+  audio.addEventListener("timeupdate", () => {
+    if (!audio.duration) return;
+    seekSlider.value = (audio.currentTime / audio.duration) * 100;
+    document.getElementById("time-current").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration").innerText = formatTime(audio.duration);
+
+    let activeText = getActiveSubtitleText(audio.currentTime);
+    document.getElementById("lrc-box").innerText = activeText;
+    document.getElementById("mini-lrc").innerText = activeText !== "♪ 選擇小篇章開始收聽 ♪" ? activeText : "♪ 播放中...";
+    updatePositionState();
+  });
+
+  audio.addEventListener("ended", () => {
+    if (currentIndex < currentTrackList.length - 1) { nextTrack(); }
+    else { document.getElementById("btn-play").innerText = "▶"; document.getElementById("mini-btn-play").innerText = "▶"; }
+  });
+
+  function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function expandPlayer() {
+    playerCard.style.transform = 'translateY(0)';
+    playerCard.classList.remove("minimized");
+    miniPlayer.classList.add("hidden");
+  }
+
+  function minimizePlayer() {
+    playerCard.style.transform = 'translateY(105%)';
+    playerCard.classList.add("minimized");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
+  }
+
+  function parseSubtitles(rawText, duration) {
+    if (!rawText || !rawText.trim()) return [];
+    const lines = rawText.split('\n');
+    let parsed = [];
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) continue;
+      const lrcMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)/);
+      if (lrcMatch) {
+        const m = parseInt(lrcMatch[1], 10);
+        const s = parseInt(lrcMatch[2], 10);
+        const msStr = lrcMatch[3];
+        const ms = parseInt(msStr.length === 2 ? msStr * 10 : msStr, 10);
+        parsed.push({ time: m * 60 + s + ms / 1000, text: lrcMatch[4].trim() });
+        continue;
+      }
+      const srtMatch = line.match(/(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[,.](\d{3})/);
+      if (srtMatch) {
+        parsed.push({ time: parseInt(srtMatch[1])*3600 + parseInt(srtMatch[2])*60 + parseInt(srtMatch[3]) + parseInt(srtMatch[4])/1000, text: "" });
+        continue;
+      }
+      if (parsed.length > 0 && !line.match(/^\d+$/) && !line.includes('-->')) {
+        if (!parsed[parsed.length - 1].text) parsed[parsed.length - 1].text = line;
+        else parsed[parsed.length - 1].text += " " + line;
+      }
+    }
+    return parsed.sort((a, b) => a.time - b.time);
+  }
+
+  function getActiveSubtitleText(currentTime) {
+    if (!currentLrc || currentLrc.length === 0) return "♪ 享受純淨的 ASMR 時光 ♪";
+    let active = "♪ 享受純淨的 ASMR 時光 ♪";
+    for (let item of currentLrc) {
+      if (currentTime >= item.time) active = item.text || active;
+      else break;
+    }
+    return active;
   }
 
   function initMediaSession() {
@@ -1247,6 +1369,24 @@
       navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
     }
   }
+
+  function updateMediaSessionMetadata(title, albumTitle, coverUrl) {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: title || 'ASMR 篇章',
+        artist: albumTitle || 'ASMR 隨身庫',
+        album: albumTitle || 'ASMR 隨身庫',
+        artwork: coverUrl ? [{ src: coverUrl, sizes: '512x512', type: 'image/png' }] : []
+      });
+    }
+  }
+
+  function updatePositionState() {
+    if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && audio.duration) {
+      try { navigator.mediaSession.setPositionState({ duration: audio.duration, playbackRate: audio.playbackRate || 1, position: audio.currentTime }); } catch (e) {}
+    }
+  }
 </script>
+
 </body>
 </html>
