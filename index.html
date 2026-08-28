@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (內建動態小愛心優化能量槽)</title>
+  <title>ASMR 私人隨身庫 (內建高潮上癮愛心能量槽)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -194,7 +194,7 @@
     }
     
     .cover-box.is-full-pink-effect {
-      box-shadow: 0 0 30px rgba(255, 51, 102, 0.8), inset 0 0 25px rgba(255, 121, 198, 0.6);
+      box-shadow: 0 0 35px rgba(255, 51, 102, 0.9), inset 0 0 30px rgba(255, 121, 198, 0.7);
       border: 2px solid #ff3366;
     }
 
@@ -250,28 +250,38 @@
 
     @keyframes pinkFlash {
       0%, 100% {
-        filter: drop-shadow(0 0 4px #ff3366) drop-shadow(0 0 12px #ff6699);
+        filter: drop-shadow(0 0 6px #ff3366) drop-shadow(0 0 16px #ff6699);
         transform: scale(1);
       }
       50% {
-        filter: drop-shadow(0 0 10px #ff3366) drop-shadow(0 0 24px #ff99bb);
-        transform: scale(1.06);
+        filter: drop-shadow(0 0 14px #ff3366) drop-shadow(0 0 30px #ff99bb);
+        transform: scale(1.10);
       }
     }
 
     @keyframes heartBeatPulse {
       0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.12); }
+      50% { transform: scale(1.18); }
     }
 
-    .heart-toy.is-full {
+    /* 前三次滿載閃爍 5 秒的特效樣式 */
+    .heart-toy.is-flashing {
       border-color: #ff3366;
-      box-shadow: 0 0 20px rgba(255, 51, 102, 0.7);
-      animation: heartBeatPulse 0.6s infinite ease-in-out;
+      box-shadow: 0 0 25px rgba(255, 51, 102, 0.8);
+      animation: heartBeatPulse 0.4s infinite ease-in-out;
     }
-    
-    .heart-toy.is-full .heart-svg {
-      animation: pinkFlash 0.6s infinite alternate;
+    .heart-toy.is-flashing .heart-svg {
+      animation: pinkFlash 0.4s infinite alternate;
+    }
+
+    /* 第四次滿載永久鎖定高潮的特效樣式 */
+    .heart-toy.is-orgasm-lock {
+      border-color: #ff0055;
+      box-shadow: 0 0 35px rgba(255, 0, 85, 0.95), inset 0 0 15px rgba(255, 121, 198, 0.8);
+      animation: heartBeatPulse 0.3s infinite ease-in-out;
+    }
+    .heart-toy.is-orgasm-lock .heart-svg {
+      animation: pinkFlash 0.3s infinite alternate;
     }
 
     .btn-cover-nav {
@@ -446,7 +456,7 @@
   </div>
 
   <div class="cover-box" id="player-cover-box">
-    <div class="heart-toy" id="heartToy" title="女性呻吟起伏動態心跳能量槽">
+    <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
       <svg class="heart-svg" viewBox="0 0 32 29.6">
         <defs>
           <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -549,6 +559,11 @@
   let silentFrameCounter = 0; 
   let audioCtx, analyser, source, dataArray;
   let isAudioContextInitialized = false;
+
+  // 愛心能量循環與高潮上癮機制變數
+  let fillCycleCount = 0;         // 記錄已被填滿幾次
+  let flashEndTime = 0;           // 前3次填滿時的 5 秒閃爍結束時間點
+  let isPermanentlyFull = false;  // 第四次滿載後是否永久鎖定
 
   function initAudioContextForHeart() {
     if (isAudioContextInitialized) return;
@@ -729,13 +744,17 @@
     ctx.save();
     ctx.translate(920, 100);
     
-    if (energy >= 29.5) {
-      let flashAlpha = 0.6 + 0.4 * Math.sin(Date.now() / 150);
-      ctx.shadowColor = "#ff3366";
-      ctx.shadowBlur = 25;
+    let now = Date.now();
+    let isFlashingNow = (now < flashEndTime);
+    let isLockedNow = isPermanentlyFull;
+
+    if (isFlashingNow || isLockedNow) {
+      let flashAlpha = 0.6 + 0.4 * Math.sin(now / 120);
+      ctx.shadowColor = isLockedNow ? "#ff0055" : "#ff3366";
+      ctx.shadowBlur = 30;
       ctx.beginPath();
       ctx.arc(0, 0, 58, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255, 51, 102, ${flashAlpha * 0.3})`;
+      ctx.fillStyle = `rgba(255, 51, 102, ${flashAlpha * 0.4})`;
       ctx.fill();
     }
 
@@ -744,14 +763,14 @@
     ctx.fillStyle = "rgba(10, 10, 15, 0.7)";
     ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = energy >= 29.5 ? "#ff3366" : "rgba(255, 121, 198, 0.4)";
+    ctx.strokeStyle = (isFlashingNow || isLockedNow) ? "#ff3366" : "rgba(255, 121, 198, 0.4)";
     ctx.stroke();
 
     ctx.translate(-32, -32);
     
     let scaleFactor = 2.0;
-    if (energy >= 29.5) {
-      let pulse = 1 + 0.08 * Math.sin(Date.now() / 120);
+    if (isFlashingNow || isLockedNow) {
+      let pulse = 1 + 0.1 * Math.sin(now / 100);
       scaleFactor = 2.0 * pulse;
       ctx.translate(32 - 32 * pulse, 32 - 32 * pulse);
     }
@@ -795,9 +814,10 @@
     let centerShiftY = (size - imgHeight * ratio) / 2;
     ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
     
-    if (heartEnergy >= 29.5) {
-      ctx.lineWidth = 16;
-      ctx.strokeStyle = "#ff3366";
+    let now = Date.now();
+    if (now < flashEndTime || isPermanentlyFull) {
+      ctx.lineWidth = 18;
+      ctx.strokeStyle = isPermanentlyFull ? "#ff0055" : "#ff3366";
       ctx.strokeRect(0, 0, size, size);
     }
     ctx.restore();
@@ -825,7 +845,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V33", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V34", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -866,8 +886,45 @@
     clipRect = document.getElementById('clipRect');
     heartToy = document.getElementById('heartToy');
     const coverBox = document.getElementById('player-cover-box');
+    let now = Date.now();
 
-    // 判斷是否有聲音且正在播放（暫停或無聲時皆不會遞增，也不會立刻衰減）
+    // 如果已經是第四次滿載永久鎖定高潮狀態，直接固定滿格並保持極限高潮特效
+    if (isPermanentlyFull) {
+      heartEnergy = 30;
+      if (clipRect) {
+        clipRect.setAttribute('y', 0);
+        clipRect.setAttribute('height', 30);
+      }
+      if (heartToy) {
+        heartToy.className = "heart-toy is-orgasm-lock";
+        if (coverBox) coverBox.classList.add('is-full-pink-effect');
+      }
+      requestAnimationFrame(updateHeartToy);
+      return;
+    }
+
+    // 判斷前3次填滿的 5 秒閃爍倒數中
+    let isFlashingActive = (now < flashEndTime);
+    if (isFlashingActive) {
+      heartEnergy = 30;
+      if (clipRect) {
+        clipRect.setAttribute('y', 0);
+        clipRect.setAttribute('height', 30);
+      }
+      if (heartToy) {
+        heartToy.className = "heart-toy is-flashing";
+        if (coverBox) coverBox.classList.add('is-full-pink-effect');
+      }
+      requestAnimationFrame(updateHeartToy);
+      return;
+    } else {
+      // 閃爍結束後，如果是剛從前3次循環結束，自動歸零重新開始計算
+      if (fillCycleCount > 0 && fillCycleCount < 4 && heartEnergy >= 29.9) {
+        heartEnergy = 0;
+      }
+    }
+
+    // 音訊播放中的累積邏輯（速度加快 50%：增幅係數乘以 1.5）
     if (!audio.paused && analyser && dataArray) {
       analyser.getByteFrequencyData(dataArray);
       
@@ -878,24 +935,30 @@
       }
       let avgVolume = sum / len;
 
-      // 偵測到明顯聲音訊號
       if (avgVolume > 3) {
-        let increment = (avgVolume / 128) * 0.012; // 提升響應靈敏度
+        let increment = (avgVolume / 128) * 0.018; // 速度提升 50% (原為 0.012)
         heartEnergy += increment;
-        if (heartEnergy > 30) heartEnergy = 30;
-        silentFrameCounter = 0; // 重置無聲計數器
+        
+        if (heartEnergy >= 30) {
+          heartEnergy = 30;
+          fillCycleCount++; // 記錄填滿次數增加
+
+          if (fillCycleCount >= 4) {
+            // 第四次填滿：永遠保持滿載，不重置
+            isPermanentlyFull = true;
+          } else {
+            // 前三次填滿：觸發 5 秒閃爍粉紅特效
+            flashEndTime = Date.now() + 5000;
+          }
+        }
+        silentFrameCounter = 0; 
       } else {
-        // 播放中但當下片段無聲音或音量極低
         silentFrameCounter++;
-        // 30fps 計算：約 300 幀 = 10 秒完全無聲後才開始緩慢往下掉
         if (silentFrameCounter > 300) {
-          heartEnergy -= 0.015; // 緩慢漸降速率
+          heartEnergy -= 0.015; // 10秒無聲後緩慢下降
         }
       }
     } else {
-      // 音樂暫停或停止播放狀態：
-      // 依要求「暫停音樂也不會因此降低愛心，只有沒聲音10秒才會」，
-      // 因此在暫停時也視同無聲狀態，同樣享有 10 秒（約 300 幀）的完全滯留防護！
       silentFrameCounter++;
       if (silentFrameCounter > 300) {
         heartEnergy -= 0.015;
@@ -916,7 +979,7 @@
         heartToy.classList.add('is-full');
         if (coverBox) coverBox.classList.add('is-full-pink-effect');
       } else {
-        heartToy.classList.remove('is-full');
+        heartToy.classList.remove('is-full', 'is-flashing', 'is-orgasm-lock');
         if (coverBox) coverBox.classList.remove('is-full-pink-effect');
       }
     }
@@ -1417,7 +1480,7 @@
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <div class="heart-toy" id="heartToy" title="女性呻吟起伏動態心跳能量槽">
+      <div class="heart-toy" id="heartToy" title="愛心高潮能量槽 (越填越滿、四次登頂上癮)">
         <svg class="heart-svg" viewBox="0 0 32 29.6">
           <defs>
             <linearGradient id="heartGradient" x1="0%" y1="100%" x2="0%" y2="0%">
