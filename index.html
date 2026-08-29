@@ -213,7 +213,6 @@
       align-items: center;
     }
 
-    /* 全螢幕樣式修正：支援 iOS 與標準全螢幕，確保愛心與字幕正常懸浮於最上層 */
     #media-display-container:fullscreen,
     #media-display-container:-webkit-full-screen {
       width: 100vw !important;
@@ -2054,57 +2053,77 @@
     currentLrc = parseUniversalLyrics(text);
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => alert("✅ 字幕更新成功！");
+    tx.oncomplete = () => alert("✅ 字幕貼上成功！");
   }
 
   function inspectCurrentTrackLrc() {
     if (currentIndex === -1) return alert("請先播放一個篇章！");
     let track = currentTrackList[currentIndex];
-    let newText = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
+    let newText = prompt("檢視或修改目前篇章的字幕內容：", track.lrcText || "");
     if (newText === null) return;
     track.lrcText = newText;
     currentLrc = parseUniversalLyrics(newText);
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => alert("✅ 字幕修改儲存成功！");
+    tx.oncomplete = () => alert("✅ 字幕更新成功！");
   }
 
-  async function exportDataBackup() {
+  function exportDataBackup() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    let exportObj = { albums: [], tracks: [], settings: [] };
-    
-    exportObj.albums = await new Promise(r => tx.objectStore("albums").getAll().onsuccess = e => r(e.target.result));
-    exportObj.tracks = await new Promise(r => tx.objectStore("tracks").getAll().onsuccess = e => r(e.target.result));
-    exportObj.settings = await new Promise(r => tx.objectStore("settings").getAll().onsuccess = e => r(e.target.result));
+    let exportData = { albums: [], tracks: [], settings: [] };
 
-    const blob = new Blob([JSON.stringify(exportObj)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    tx.objectStore("albums").getAll().onsuccess = (e) => {
+      exportData.albums = e.target.result;
+    };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => {
+      exportData.tracks = e.target.result;
+    };
+    tx.objectStore("settings").getAll().onsuccess = (e) => {
+      exportData.settings = e.target.result;
+    };
+
+    tx.oncomplete = () => {
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
   }
 
-  async function importDataBackup(event) {
+  function importDataBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
-    const text = await file.text();
-    try {
-      const data = JSON.parse(text);
-      const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
-      
-      data.albums.forEach(item => tx.objectStore("albums").put(item));
-      data.tracks.forEach(item => tx.objectStore("tracks").put(item));
-      if(data.settings) data.settings.forEach(item => tx.objectStore("settings").put(item));
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        
+        if (data.albums) {
+          const store = tx.objectStore("albums");
+          data.albums.forEach(item => store.put(item));
+        }
+        if (data.tracks) {
+          const store = tx.objectStore("tracks");
+          data.tracks.forEach(item => store.put(item));
+        }
+        if (data.settings) {
+          const store = tx.objectStore("settings");
+          data.settings.forEach(item => store.put(item));
+        }
 
-      tx.oncomplete = () => {
-        loadData();
-        alert("✅ 資料備份匯入與跨裝置同步成功！");
-      };
-    } catch(e) {
-      alert("❌ 匯入失敗，檔案格式錯誤。");
-    }
+        tx.oncomplete = () => {
+          loadData();
+          alert("✅ 跨裝置備份資料匯入成功！");
+        };
+      } catch (err) {
+        alert("❌ 匯入失敗：檔案格式錯誤或損毀。");
+      }
+    };
+    reader.readAsText(file);
   }
 </script>
 </body>
