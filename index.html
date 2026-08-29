@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (YouTube & Hanime1 極致沈浸影音升級版)</title>
+  <title>ASMR 私人隨身庫 (Hanime1 & YouTube 極致影音升級版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 引入 Plyr 開源播放器樣式 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.css" />
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -199,7 +197,7 @@
     .player-card-mp3.minimized { transform: translateY(110%); pointer-events: none; }
 
     /* ======================================================== */
-    /* YouTube & Hanime1 風格沈浸全螢幕影片面板 (結合 Plyr 開源播放器、永久同步字幕、愛心高潮特效) */
+    /* Hanime1 & YouTube 風格滿版影片專區 (完全優化、完美全螢幕橫屏、無任何冗餘網站按鈕) */
     /* ======================================================== */
     .player-card-mp4 {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; width: 100vw; height: 100vh;
@@ -210,28 +208,21 @@
     }
     .player-card-mp4.minimized { transform: translateY(110%); pointer-events: none; }
     
-    /* 仿 YouTube / lurl 沉浸式全螢幕 (iOS / 萬能版) */
-    .player-card-mp4.ios-immersive-fullscreen {
+    .player-card-mp4.ios-fullscreen {
       position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;
       max-width: none !important; max-height: none !important; z-index: 2147483647 !important; border-radius: 0 !important;
     }
 
-    .drag-handle-area { width: 100%; padding: 8px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; background: rgba(0,0,0,0.4); }
+    .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 頂部沉浸全螢幕與關閉按鈕列 */
+    /* 頂部控制列 (僅保留全螢幕與關閉，完全乾淨) */
     .mp4-top-bar {
       position: absolute; top: 0; left: 0; right: 0; height: 64px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
-      display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 120;
+      display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; z-index: 120;
       transition: opacity 0.3s ease;
     }
-    .ios-fs-btn {
-      background: rgba(255, 64, 129, 0.85); color: #fff; border: none;
-      padding: 8px 16px; border-radius: 20px; font-weight: 700; cursor: pointer; font-size: 0.85rem;
-      box-shadow: 0 4px 15px rgba(255, 64, 129, 0.4); backdrop-filter: blur(6px); transition: all 0.2s;
-    }
-    .ios-fs-btn:hover { background: rgba(255, 64, 129, 1); transform: scale(1.05); }
     .mp4-top-actions { display: flex; gap: 12px; align-items: center; }
     .mp4-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
 
@@ -242,31 +233,36 @@
     .video-fullscreen-box video {
       width: 100%; height: 100%; object-fit: contain; background: #000; outline: none; position: absolute; top: 0; left: 0;
     }
-    .player-card-mp4.ios-immersive-fullscreen .video-fullscreen-box video {
+    .player-card-mp4.ios-fullscreen .video-fullscreen-box video {
       object-fit: cover;
     }
 
     /* 永久同步字幕：絕對不隨控制列隱藏，永遠同步顯示在影片下方 */
     .video-subtitle-overlay {
-      position: absolute; bottom: 110px; left: 20px; right: 20px; text-align: center;
-      font-size: 1.35rem; font-weight: 800; color: var(--primary-pink);
+      position: absolute; bottom: 85px; left: 20px; right: 20px; text-align: center;
+      font-size: 1.4rem; font-weight: 800; color: var(--primary-pink);
       text-shadow: 0 0 18px rgba(0,0,0,0.98), 0 2px 8px rgba(0,0,0,0.95);
       pointer-events: none; z-index: 130; line-height: 1.4;
       transition: opacity 0.3s ease;
     }
 
-    /* 愛心互動特效面板：大幅降低填滿速度，支援點擊與語音音訊即時高潮互動 */
-    .heart-climax-panel {
-      position: absolute; top: 70px; right: 20px; display: flex; align-items: center; gap: 8px;
-      background: rgba(16, 16, 22, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 121, 198, 0.3);
-      padding: 6px 14px; border-radius: 24px; z-index: 130; pointer-events: auto;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    /* 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方且隨呻吟音訊即時高潮互動 (大幅提升/大幅降低優化) */
+    .heart-toy-container {
+      position: absolute; top: 75px; right: 20px; width: 54px; height: 54px;
+      z-index: 130; cursor: pointer; user-select: none;
+      filter: drop-shadow(0 0 12px rgba(255, 121, 198, 0.95));
+      transition: transform 0.15s ease; pointer-events: auto;
     }
-    .heart-icon { font-size: 1.3rem; cursor: pointer; transition: transform 0.15s; user-select: none; }
-    .heart-icon:active { transform: scale(1.35); }
-    .heart-progress-bar { width: 90px; height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; }
-    .heart-progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff79c6, #ff1493); transition: width 0.1s linear; }
-    .heart-percentage { font-size: 0.8rem; font-weight: 700; color: var(--primary-pink); min-width: 34px; text-align: right; }
+    .heart-toy-container:active { transform: scale(1.3); }
+    .heart-svg { width: 100%; height: 100%; overflow: visible; }
+    .heart-bg { fill: rgba(10, 10, 16, 0.6); stroke: #ff79c6; stroke-width: 2.8; }
+    .heart-fill { fill: url(#heart-gradient); }
+    
+    .heart-full-beat { animation: heartFullBeat 0.4s infinite alternate ease-in-out !important; }
+    @keyframes heartFullBeat {
+      0% { transform: scale(1); filter: drop-shadow(0 0 15px #ff79c6); }
+      100% { transform: scale(1.45); filter: drop-shadow(0 0 35px #ff1493); }
+    }
 
     .cover-climax-shake-pink {
       animation: climaxPinkGlowShake 0.35s infinite alternate ease-in-out !important;
@@ -279,17 +275,23 @@
       100% { box-shadow: 0 0 80px rgba(255, 20, 147, 1), inset 0 0 70px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px) rotate(0deg); }
     }
 
-    /* 底部 Plyr 控制列區塊 */
+    /* 底部控制器列：僅此區塊在點擊時隱藏 (只隱藏進度條與左右換集) */
     .mp4-bottom-controls {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%);
-      padding: 12px 16px; z-index: 120;
+      position: absolute; bottom: 0; left: 0; right: 0; height: 70px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 120;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
+    .mp4-controls-left { display: flex; align-items: center; gap: 16px; }
+    .mp4-controls-right { display: flex; align-items: center; gap: 14px; }
+    .mp4-time-display { font-size: 0.85rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .mp4-seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.25); position: absolute; top: -6px; left: 0; right: 0; }
 
-    /* 全螢幕狀態下隱藏特定元素與按鈕，只留純淨畫面與 Plyr 控制項 */
-    .player-card-mp4.ios-immersive-fullscreen .ios-fs-btn { display: none !important; }
-    .player-card-mp4.ios-immersive-fullscreen .drag-handle-area { display: none !important; }
+    /* 控制列隱藏時，只隱藏頂部欄與底部控制列，字幕與愛心特效永不隱藏 */
+    .player-card-mp4.controls-hidden .mp4-top-bar,
+    .player-card-mp4.controls-hidden .mp4-bottom-controls {
+      opacity: 0; pointer-events: none;
+    }
 
     .cover-box { 
       width: 100%; height: 240px; border-radius: 16px; overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
@@ -358,9 +360,6 @@
       animation: toastIn 0.3s ease forwards; text-align: center; pointer-events: auto;
     }
     @keyframes toastIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* 自訂 Plyr 顏色風格符合粉紅主題 */
-    .plyr { --plyr-color-main: #ff79c6; }
   </style>
 </head>
 <body>
@@ -384,7 +383,7 @@
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
       <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        設定後，在「YouTube & Hanime1 影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
+        設定後，在「YouTube 影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
       </div>
       <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
       <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
@@ -398,13 +397,13 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 YouTube/Hanime1 影片專區)</div>
+      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 YouTube 影片專區)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
       <div class="form-group">
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
           <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、面板設置省電功能)</option>
-          <option value="mp4">🌸 YouTube & Hanime1 滿版影片專區 (影片完全無聲音、內嵌 Plyr 開源播放器、自動循環、永久同步字幕與大幅降低的高潮愛心特效)</option>
+          <option value="mp4">🌸 Hanime1 風格滿版影片專區 (影片完全無聲音、內嵌專屬高音質音檔、自動循環、永久同步字幕與愛心高潮特效)</option>
         </select>
       </div>
       <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
@@ -449,7 +448,7 @@
 
   <div id="view-home" class="page-view active">
     <div class="glass-card">
-      <div class="card-title">📚 選擇作品集 (MP3 與 YouTube/Hanime1 影片專區獨立呈現)</div>
+      <div class="card-title">📚 選擇作品集 (MP3 與 Hanime1 滿版影片專區獨立呈現)</div>
       <div id="album-list">載入中...</div>
       <div id="pagination-container"></div>
     </div>
@@ -518,52 +517,62 @@
   </div>
 </div>
 
-<!-- 2. YouTube & Hanime1 風格滿版影片專區播放面板 (結合 Plyr 開源播放器、無原音影片循環、同步字幕與大幅降低的高潮愛心) -->
+<!-- 2. Hanime1 & YouTube 風格滿版影片專區播放面板 (完全無原音、影片無聲且循環、音檔驅動、字幕與愛心永不隱藏) -->
 <div id="player-card-mp4" class="player-card-mp4 minimized">
-  <div class="drag-handle-area" id="drag-handle-area-mp4" title="向下滑動關閉面板">
-    <div class="drag-handle"></div>
-  </div>
-
   <div class="video-fullscreen-box" id="video-fullscreen-box">
-    <!-- 主影片播放器：強制靜音且設定 loop 與 playsinline -->
-    <video id="asmr-video" muted loop playsinline crossorigin="anonymous"></video>
+    <!-- 主影片播放器：強制靜音且設定 loop 與 playsinline，完全拔掉聲音避免衝突與卡死 -->
+    <video id="main-video-player" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
 
-    <!-- 頂部沉浸全螢幕按鈕與關閉按鈕 -->
+    <!-- 獨立頂部資訊列 (僅保留全螢幕切換與關閉按鈕，無任何網站按鈕) -->
     <div class="mp4-top-bar" id="mp4-top-bar">
-      <button type="button" class="ios-fs-btn" onclick="triggerImmersiveFullscreen()">開啟極致沈浸全螢幕</button>
       <div class="mp4-top-actions">
+        <button class="mp4-icon-btn" onclick="event.stopPropagation(); toggleFullScreen();" title="全螢幕 / 橫向填滿">⛶</button>
         <button class="mp4-icon-btn" onclick="event.stopPropagation(); minimizePlayer();" title="縮小關閉">✕</button>
       </div>
     </div>
 
-    <!-- 永久同步字幕：絕對不隨控制列隱藏，永遠跟隨影片與音檔時間同步顯示在影片下方 -->
+    <!-- 永久同步字幕：絕對不隨控制列隱藏，永遠跟隨影片與音檔時間同步顯示 -->
     <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入影片字幕中... ♪</div>
 
-    <!-- 愛心高潮特效面板：大幅降低填滿速度，支援點擊與即時語音高潮互動 -->
-    <div class="heart-climax-panel">
-      <div class="heart-icon" onclick="chargeHeart(event)" title="點擊充電愛心">❤️</div>
-      <div class="heart-progress-bar">
-        <div class="heart-progress-fill" id="heartFill"></div>
-      </div>
-      <div class="heart-percentage" id="heartText">0%</div>
+    <!-- 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方，女聲呻吟交配音訊越激烈提升越快、降低大幅化 -->
+    <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); triggerInstantOrgasm();" title="點擊一鍵高潮">
+      <svg class="heart-svg" viewBox="0 0 32 32">
+        <defs>
+          <linearGradient id="heart-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#ff1493" />
+            <stop offset="100%" stop-color="#ff79c6" />
+          </linearGradient>
+          <clipPath id="heart-clip">
+            <rect id="heart-clip-rect" x="0" y="32" width="32" height="0" />
+          </clipPath>
+        </defs>
+        <path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+        <path class="heart-fill" clip-path="url(#heart-clip)" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+      </svg>
     </div>
 
     <!-- 高潮特效圖片覆蓋 -->
     <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:135; object-fit:cover;">
 
-    <!-- 底部 Plyr 控制器列 -->
-    <div class="mp4-bottom-controls" id="mp4-bottom-controls">
-      <!-- 引入 Plyr 開源播放器綁定在此 audio 上 -->
-      <audio id="asmr-audio" controls crossorigin="anonymous" preload="auto"></audio>
+    <!-- 底部控制器列：點按只隱藏此區塊（進度條與左右換集） -->
+    <div class="mp4-bottom-controls" id="mp4-bottom-controls" onclick="event.stopPropagation()">
+      <input type="range" id="seek-slider-mp4" class="mp4-seek-slider" value="0" min="0" max="100" step="0.1">
+      <div class="mp4-controls-left">
+        <button class="btn-ctrl" onclick="togglePlay()" id="btn-play-mp4" style="color:#fff; font-size:1.4rem;">⏸</button>
+        <div class="mp4-time-display"><span id="time-current-mp4">00:00</span> / <span id="time-duration-mp4">00:00</span></div>
+      </div>
+      <div class="mp4-controls-right">
+        <button class="btn-ctrl" onclick="prevTrack()" style="color:#fff; font-size:1.2rem;" title="上一集">⏮</button>
+        <button class="btn-ctrl" onclick="nextTrack()" style="color:#fff; font-size:1.2rem;" title="下一集">⏭</button>
+      </div>
     </div>
   </div>
 </div>
 
 <video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<audio id="main-audio" crossorigin="anonymous" playsinline preload="auto"></audio>
 <audio id="climax-audio-el" crossorigin="anonymous" playsinline preload="auto"></audio>
 
-<!-- 引入 Plyr JS 庫 -->
-<script src="https://cdn.jsdelivr.net/npm/plyr@3.7.8/dist/plyr.polyfilled.js"></script>
 <script>
   let db;
   let albums = [];
@@ -581,6 +590,7 @@
   let currentAlbumBgBlobs = [];
   let albumBgIndex = 0;
 
+  let activeAlbumCoverBlobs = [];
   let activeCoverIndex = 0;
   let coverElements = [];
   let cachedCoverElement = null;
@@ -599,8 +609,7 @@
   let analyser = null;
   let audioSourceNode = null;
   let climaxAudioSourceNode = null;
-  
-  let currentHeartPercent = 0;
+  let heartFillPercent = 0;
   let isClimaxState = false;
   let climaxResetTimer = null;
   
@@ -614,10 +623,8 @@
   const AUDIO_FPS = 25;
   const AUDIO_INTERVAL = 1000 / AUDIO_FPS;
 
-  let plyrPlayer = null;
-
-  const audio = document.getElementById("asmr-audio");
-  const mainVideoPlayer = document.getElementById("asmr-video");
+  const audio = document.getElementById("main-audio");
+  const mainVideoPlayer = document.getElementById("main-video-player");
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
   const pipVideo = document.getElementById("pip-video");
@@ -625,6 +632,7 @@
   const playerCardMp4 = document.getElementById("player-card-mp4");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
+  const seekSliderMp4 = document.getElementById("seek-slider-mp4");
   const volumeSlider = document.getElementById("volume-slider");
   const climaxAudioEl = document.getElementById("climax-audio-el");
   const videoFullscreenBox = document.getElementById("video-fullscreen-box");
@@ -633,7 +641,6 @@
   let touchCurrentY = 0;
   let isDragging = false;
   const dragHandleAreaMp3 = document.getElementById("drag-handle-area-mp3");
-  const dragHandleAreaMp4 = document.getElementById("drag-handle-area-mp4");
 
   function showToast(message, duration = 3000) {
     const container = document.getElementById("toast-container");
@@ -671,111 +678,53 @@
     };
   }
 
-  // 初始化 Plyr 播放器
-  document.addEventListener('DOMContentLoaded', () => {
-    plyrPlayer = new Plyr('#asmr-audio', {
-      controls: ['play-large', 'play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'fullscreen'],
-      tooltips: { controls: true, seek: true }
-    });
+  let controlsHideTimer = null;
+  let isControlsVisible = true;
 
-    initAudioVideoSync();
-    onAlbumTypeChange();
-
-    try {
-      const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
-      if (cachedBgData) {
-        const bgObj = JSON.parse(cachedBgData);
-        if (bgObj && bgObj.url) {
-          if (bgObj.type.startsWith("video")) {
-            bgImg.style.display = "none"; bgVideo.style.display = "block";
-            bgVideo.src = bgObj.url; bgVideo.muted = true; bgVideo.play().catch(()=>{});
-          } else {
-            bgVideo.style.display = "none"; bgImg.style.display = "block"; bgImg.src = bgObj.url;
-          }
-        }
+  function resetControlsHideTimer() {
+    const playerMp4 = document.getElementById("player-card-mp4");
+    playerMp4.classList.remove("controls-hidden");
+    isControlsVisible = true;
+    if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    controlsHideTimer = setTimeout(() => {
+      let m = getActiveMedia();
+      if (m && !m.paused && !isClimaxState) {
+        playerMp4.classList.add("controls-hidden");
+        isControlsVisible = false;
       }
-    } catch(err) {}
-  });
+    }, 4000);
+  }
 
-  // 影音高頻幀率精準同步與控制
-  function initAudioVideoSync() {
-    audio.addEventListener('play', () => {
-      if (mainVideoPlayer.paused) mainVideoPlayer.play().catch(()=>{});
-      syncPlayButtons(true);
-    });
-    audio.addEventListener('pause', () => {
-      if (!mainVideoPlayer.paused) mainVideoPlayer.pause();
-      syncPlayButtons(false);
-    });
+  function toggleControlsVisibility() {
+    const playerMp4 = document.getElementById("player-card-mp4");
+    if (isControlsVisible) {
+      playerMp4.classList.add("controls-hidden");
+      isControlsVisible = false;
+      if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    } else {
+      playerMp4.classList.remove("controls-hidden");
+      isControlsVisible = true;
+      resetControlsHideTimer();
+    }
+  }
 
-    audio.addEventListener('timeupdate', () => {
-      if (isNaN(audio.duration)) return;
-      
-      // 同步 MP3 / 通用播放器面板進度
-      let progress = (audio.currentTime / audio.duration) * 100;
-      seekSlider.value = progress;
-
-      document.getElementById("time-current").innerText = formatTime(audio.currentTime);
-      document.getElementById("time-duration").innerText = formatTime(audio.duration);
-
-      let currentText = getActiveSubtitleText(audio.currentTime);
-      document.getElementById("lrc-box").innerText = currentText;
-      document.getElementById("mini-lrc").innerText = currentText;
-      const subOverlay = document.getElementById("video-subtitle-overlay");
-      if (subOverlay) subOverlay.innerText = currentText;
-
-      // 如果影片和音檔的時間差大於 0.3 秒，強制將影片拉回音檔的時間（透過迴圈維持循環播放）
-      if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
-        let expectedVideoTime = audio.currentTime % mainVideoPlayer.duration;
-        if (Math.abs(mainVideoPlayer.currentTime - expectedVideoTime) > 0.3) {
-          mainVideoPlayer.currentTime = expectedVideoTime;
-        }
-      }
-    });
-
-    audio.addEventListener('ended', () => {
-      if (currentIndex < currentTrackList.length - 1) {
-        nextTrack();
+  if (videoFullscreenBox) {
+    let lastTapTime = 0;
+    videoFullscreenBox.addEventListener("click", (e) => {
+      let currentTime = new Date().getTime();
+      let tapLength = currentTime - lastTapTime;
+      if (tapLength < 350 && tapLength > 0) {
+        toggleControlsVisibility();
+        e.stopPropagation();
       } else {
-        syncPlayButtons(false);
-        showToast("播放完畢！");
+        if (!isControlsVisible) {
+          toggleControlsVisibility();
+        } else {
+          resetControlsHideTimer();
+        }
       }
+      lastTapTime = currentTime;
     });
-  }
-
-  // 仿 YouTube / lurl 沉浸式全螢幕切換邏輯
-  function triggerImmersiveFullscreen() {
-    const cardMp4 = document.getElementById("player-card-mp4");
-    if (!cardMp4) return;
-    cardMp4.classList.toggle('ios-immersive-fullscreen');
-    showToast(cardMp4.classList.contains('ios-immersive-fullscreen') ? "📺 已進入極致沈浸全螢幕模式" : "📺 已退出全螢幕");
-  }
-
-  // 雙擊退出沉浸全螢幕
-  document.getElementById('player-card-mp4').addEventListener('dblclick', () => {
-    const cardMp4 = document.getElementById('player-card-mp4');
-    if (cardMp4.classList.contains('ios-immersive-fullscreen')) {
-      cardMp4.classList.remove('ios-immersive-fullscreen');
-      showToast("📺 已退出全螢幕");
-    }
-  });
-
-  // 大幅降低愛心填滿速度與高潮觸發
-  function chargeHeart(event) {
-    if (event) event.stopPropagation();
-    // 每次點擊或能量增長隨機增加 0.5% ~ 1.5%（大幅降低提升速度）
-    const increment = parseFloat((Math.random() * 1.0 + 0.5).toFixed(2));
-    currentHeartPercent = Math.min(100, currentHeartPercent + increment);
-
-    const heartFill = document.getElementById('heartFill');
-    const heartText = document.getElementById('heartText');
-    if (heartFill) heartFill.style.width = currentHeartPercent + '%';
-    if (heartText) heartText.innerText = Math.floor(currentHeartPercent) + '%';
-
-    if (currentHeartPercent >= 100) {
-      currentHeartPercent = 100;
-      triggerClimaxEffect();
-    }
   }
 
   function getActiveMedia() {
@@ -805,39 +754,35 @@
     if (document.hidden) {
       if (bgVideo && !bgVideo.paused) bgVideo.pause();
     } else {
-      if (bgVideo && bgVideo.src && !audio.paused && !isClimaxState) bgVideo.play().catch(()=>{});
+      let m = getActiveMedia();
+      if (bgVideo && bgVideo.src && m && !m.paused && !isClimaxState) bgVideo.play().catch(()=>{});
     }
   });
 
-  // 下滑手動關閉面板支援
-  function setupDragHandlers(element, isMp4 = false) {
-    if (!element) return;
-    element.addEventListener("touchstart", (e) => {
+  if (dragHandleAreaMp3) {
+    dragHandleAreaMp3.addEventListener("touchstart", (e) => {
       touchStartY = e.touches[0].clientY;
       isDragging = true;
-      (isMp4 ? playerCardMp4 : playerCardMp3).style.transition = 'none';
+      playerCardMp3.style.transition = 'none';
     }, { passive: true });
 
-    element.addEventListener("touchmove", (e) => {
+    dragHandleAreaMp3.addEventListener("touchmove", (e) => {
       if (!isDragging) return;
       touchCurrentY = e.touches[0].clientY;
       let diff = touchCurrentY - touchStartY;
-      if (diff > 0) (isMp4 ? playerCardMp4 : playerCardMp3).style.transform = `translateY(${diff}px)`;
+      if (diff > 0) playerCardMp3.style.transform = `translateY(${diff}px)`;
     }, { passive: true });
 
-    element.addEventListener("touchend", () => {
+    dragHandleAreaMp3.addEventListener("touchend", () => {
       if (!isDragging) return;
       isDragging = false;
-      let card = isMp4 ? playerCardMp4 : playerCardMp3;
-      card.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+      playerCardMp3.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
       let diff = touchCurrentY - touchStartY;
       if (diff > 80) minimizePlayer();
-      else card.style.transform = 'translateY(0)';
+      else playerCardMp3.style.transform = 'translateY(0)';
       touchStartY = 0; touchCurrentY = 0;
     });
   }
-  setupDragHandlers(dragHandleAreaMp3, false);
-  setupDragHandlers(dragHandleAreaMp4, true);
 
   function initAudioAnalysis() {
     if (currentAlbumType !== 'mp4') return;
@@ -878,34 +823,42 @@
     for (let i = 0; i < bufferLength; i++) totalSum += dataArray[i];
     let avgEnergy = totalSum / bufferLength;
 
-    // 聲音越激烈愛心自動提升速度加快，平緩時大幅降低
-    if (avgEnergy > 6) {
-      let boostFactor = Math.pow(avgEnergy / 35, 1.3);
-      currentHeartPercent += (0.25 * boostFactor);
+    if (avgEnergy > 5) {
+      let boostFactor = Math.pow(avgEnergy / 32, 1.35);
+      heartFillPercent += (0.5 * boostFactor);
     } else {
-      currentHeartPercent -= 1.8;
+      heartFillPercent -= 3.8;
     }
 
-    if (currentHeartPercent < 0) currentHeartPercent = 0;
-    if (currentHeartPercent >= 100) {
-      currentHeartPercent = 100;
+    if (heartFillPercent < 0) heartFillPercent = 0;
+    if (heartFillPercent >= 100) {
+      heartFillPercent = 100;
       triggerClimaxEffect();
     }
-    
-    const heartFill = document.getElementById('heartFill');
-    const heartText = document.getElementById('heartText');
-    if (heartFill) heartFill.style.width = currentHeartPercent + '%';
-    if (heartText) heartText.innerText = Math.floor(currentHeartPercent) + '%';
+    updateHeartDisplay();
+  }
+
+  function updateHeartDisplay() {
+    const clipRect = document.getElementById("heart-clip-rect");
+    if (clipRect) {
+      let fillHeight = (heartFillPercent / 100) * 32;
+      let yPos = 32 - fillHeight;
+      clipRect.setAttribute("y", yPos);
+      clipRect.setAttribute("height", fillHeight);
+    }
   }
 
   async function triggerClimaxEffect() {
     if (currentAlbumType !== 'mp4' || isClimaxState) return;
     isClimaxState = true;
-    currentHeartPercent = 100;
+    heartFillPercent = 100;
+    updateHeartDisplay();
 
+    const heartEl = document.getElementById("heart-toy");
     const videoBox = document.getElementById("video-fullscreen-box");
     const climaxOverlay = document.getElementById("climax-overlay-img");
 
+    if (heartEl) heartEl.classList.add("heart-full-beat");
     if (videoBox) videoBox.classList.add("cover-climax-shake-pink");
 
     if (window.customClimaxData && window.customClimaxData.audioBlob && window.customClimaxData.imgBlob) {
@@ -921,18 +874,20 @@
           syncPlayButtons(false);
         }
       } catch (e) {
-        endClimax(climaxOverlay, videoBox);
+        endClimax(climaxOverlay, heartEl, videoBox);
         return;
       }
-      climaxAudioEl.onended = () => endClimax(climaxOverlay, videoBox);
+      climaxAudioEl.onended = () => endClimax(climaxOverlay, heartEl, videoBox);
     } else {
       if (climaxResetTimer) clearTimeout(climaxResetTimer);
-      climaxResetTimer = setTimeout(() => endClimax(null, videoBox), 10000);
+      climaxResetTimer = setTimeout(() => endClimax(null, heartEl, videoBox), 10000);
     }
   }
 
-  function endClimax(climaxOverlay, videoBox) {
-    currentHeartPercent = 0;
+  function endClimax(climaxOverlay, heartEl, videoBox) {
+    heartFillPercent = 0;
+    updateHeartDisplay();
+    if (heartEl) heartEl.classList.remove("heart-full-beat");
     if (videoBox) videoBox.classList.remove("cover-climax-shake-pink");
     isClimaxState = false;
     
@@ -947,6 +902,47 @@
         syncPlayButtons(true);
       }).catch(e=>{});
     }
+  }
+
+  function triggerInstantOrgasm() {
+    if (currentAlbumType !== 'mp4') return;
+    if (climaxResetTimer) clearTimeout(climaxResetTimer);
+    isClimaxState = false;
+    triggerClimaxEffect();
+  }
+
+  async function saveClimaxSettings() {
+    const imgInput = document.getElementById("climax-img-input");
+    const audioInput = document.getElementById("climax-audio-input");
+    let imgBlob = imgInput.files[0] || null;
+    let audioBlob = audioInput.files[0] || null;
+
+    if (!imgBlob || !audioBlob) return showToast("請必須同時選擇「特效圖片」與「特效音效」兩項素材才能儲存！");
+
+    const tx = db.transaction("settings", "readwrite");
+    const climaxData = { key: "climaxCustomData", imgBlob, audioBlob };
+    tx.objectStore("settings").put(climaxData);
+    tx.oncomplete = () => {
+      window.customClimaxData = climaxData;
+      climaxAudioEl.src = URL.createObjectURL(audioBlob);
+      climaxAudioEl.load();
+      showToast("✅ 動態影音專區自訂高潮特效素材儲存成功！");
+      imgInput.value = ""; audioInput.value = "";
+    };
+  }
+
+  function drawCoverToCanvas(ctx, element, size, isVideo) {
+    if (!element) return;
+    try {
+      let sw = isVideo ? element.videoWidth : element.naturalWidth;
+      let sh = isVideo ? element.videoHeight : element.naturalHeight;
+      if (!sw || !sh) { sw = size; sh = size; }
+      let aspect = sw / sh;
+      let dw = size, dh = size, dx = 0, dy = 0;
+      if (aspect > 1) { dw = size * aspect; dh = size; dx = (size - dw) / 2; }
+      else { dw = size; dh = size / aspect; dy = (size - dh) / 2; }
+      ctx.drawImage(element, dx, dy, dw, dh);
+    } catch(e) {}
   }
 
   function initPiPEngine() {
@@ -1007,22 +1003,9 @@
     } catch(e) {}
   }
 
-  function drawCoverToCanvas(ctx, element, size, isVideo) {
-    if (!element) return;
-    try {
-      let sw = isVideo ? element.videoWidth : element.naturalWidth;
-      let sh = isVideo ? element.videoHeight : element.naturalHeight;
-      if (!sw || !sh) { sw = size; sh = size; }
-      let aspect = sw / sh;
-      let dw = size, dh = size, dx = 0, dy = 0;
-      if (aspect > 1) { dw = size * aspect; dh = size; dx = (size - dw) / 2; }
-      else { dw = size; dh = size / aspect; dy = (size - dh) / 2; }
-      ctx.drawImage(element, dx, dy, dw, dh);
-    } catch(e) {}
-  }
-
   async function enablePiP() {
     if (currentIndex === -1) return showToast("請先播放一個篇章才能開啟桌面懸浮窗！");
+    unlockAutoplayConstraints();
     if (currentAlbumType === 'mp4') initAudioAnalysis();
     initPiPEngine();
 
@@ -1040,7 +1023,36 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
+  function toggleFullScreen() {
+    const cardMp4 = document.getElementById("player-card-mp4");
+    if (!cardMp4) return;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+      cardMp4.classList.toggle("ios-fullscreen");
+      showToast(cardMp4.classList.contains("ios-fullscreen") ? "📺 已切換滿版橫向全螢幕模式" : "📺 已恢復一般播放視窗");
+    } else {
+      const container = document.getElementById("video-fullscreen-box");
+      if (!container) return;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (container.requestFullscreen) container.requestFullscreen().catch(err => {});
+        else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      }
+    }
+  }
+
+  function unlockAutoplayConstraints() {
+    if (window.customClimaxData && window.customClimaxData.audioBlob && climaxAudioEl.paused) {
+      if (!climaxAudioEl.src) climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
+      climaxAudioEl.play().then(() => { if (!isClimaxState) climaxAudioEl.pause(); }).catch(()=>{});
+    }
+  }
+
+  const request = indexedDB.open("ASMR_Categorized_DB_V44", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1048,6 +1060,24 @@
     if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
   request.onsuccess = (e) => { db = e.target.result; loadData(); };
+
+  window.addEventListener('DOMContentLoaded', () => {
+    onAlbumTypeChange();
+    try {
+      const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
+      if (cachedBgData) {
+        const bgObj = JSON.parse(cachedBgData);
+        if (bgObj && bgObj.url) {
+          if (bgObj.type.startsWith("video")) {
+            bgImg.style.display = "none"; bgVideo.style.display = "block";
+            bgVideo.src = bgObj.url; bgVideo.muted = true; bgVideo.play().catch(()=>{});
+          } else {
+            bgVideo.style.display = "none"; bgImg.style.display = "block"; bgImg.src = bgObj.url;
+          }
+        }
+      }
+    } catch(err) {}
+  });
 
   function onAlbumTypeChange() {
     const typeSel = document.getElementById("album-type");
@@ -1132,7 +1162,7 @@
     albums.forEach(a => {
       let opt = document.createElement("option");
       opt.value = a.id;
-      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? 'YouTube & Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
+      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
       sel.appendChild(opt);
     });
   }
@@ -1208,7 +1238,7 @@
       if(coverInput) coverInput.value = "";
       bgInput.value = "";
       loadData();
-      showToast(`✅ ${albumType === 'mp4' ? 'YouTube & Hanime1 滿版影片專區' : '純音訊 MP3 專區'} 建立成功！`);
+      showToast(`✅ ${albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'} 建立成功！`);
     };
   }
 
@@ -1233,7 +1263,7 @@
       let albumTracks = tracks.filter(t => t.albumId === album.id);
 
       if (album.albumType === 'mp4') {
-        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>YouTube & Hanime1 滿版影片專區</text></svg>";
+        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>Hanime1 滿版影片專區</text></svg>";
         if (albumTracks.length > 0 && albumTracks[0].videoBlob) {
           ytThumbUrl = createTrackedObjectURL(albumTracks[0].videoBlob);
         }
@@ -1248,7 +1278,7 @@
           <div class="album-youtube-info">
             <div>
               <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
-              <span class="album-badge badge-mp4">🌸 YouTube & Hanime1 滿版影片專區 (無原音、音檔驅動循環、永久同步字幕與高潮愛心)</span>
+              <span class="album-badge badge-mp4">🌸 Hanime1 滿版影片專區 (無原音、音檔驅動循環、永久同步字幕與愛心)</span>
             </div>
             <div class="btn-action-col">
               <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
@@ -1323,7 +1353,7 @@
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
-    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? 'YouTube & Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
+    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
 
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
@@ -1574,6 +1604,7 @@
     let track = currentTrackList[currentIndex];
 
     currentLrc = parseUniversalLyrics(track.lrcText);
+    unlockAutoplayConstraints();
 
     if (album.backgrounds && album.backgrounds.length > 0) {
       isCustomAlbumPlaying = true;
@@ -1588,23 +1619,13 @@
     audio.pause();
     mainVideoPlayer.pause();
 
-    let audioUrl = createTrackedObjectURL(track.audioBlob);
-    
-    // 更新 Plyr 音源
-    if (plyrPlayer) {
-      plyrPlayer.source = {
-        type: 'audio',
-        sources: [{ src: audioUrl, type: 'audio/mp3' }]
-      };
-    } else {
-      audio.src = audioUrl;
-      audio.load();
-    }
+    audio.src = createTrackedObjectURL(track.audioBlob);
+    audio.load();
 
     if (currentAlbumType === 'mp4') {
       if (track.videoBlob) {
         mainVideoPlayer.src = createTrackedObjectURL(track.videoBlob);
-        mainVideoPlayer.muted = true; // 徹底靜音影片
+        mainVideoPlayer.muted = true;
         mainVideoPlayer.loop = true;
         mainVideoPlayer.load();
         mainVideoPlayer.play().catch(()=>{});
@@ -1621,11 +1642,7 @@
     }
 
     try {
-      if (plyrPlayer) {
-        await plyrPlayer.play();
-      } else {
-        await audio.play();
-      }
+      await audio.play();
       syncPlayButtons(true);
       updateMiniPlayerInfo(track, album.title);
       showToast(`▶ 正在播放：${track.title}`);
@@ -1689,15 +1706,18 @@
   function togglePlay() {
     if (currentIndex === -1) return;
     if (audio.paused) {
-      if (plyrPlayer) plyrPlayer.play();
-      else audio.play();
-      syncPlayButtons(true);
-      if (currentAlbumType === 'mp4') mainVideoPlayer.play().catch(()=>{});
+      audio.play().then(() => {
+        syncPlayButtons(true);
+        if (currentAlbumType === 'mp4') {
+          mainVideoPlayer.play().catch(()=>{});
+        }
+      });
     } else {
-      if (plyrPlayer) plyrPlayer.pause();
-      else audio.pause();
+      audio.pause();
       syncPlayButtons(false);
-      if (currentAlbumType === 'mp4') mainVideoPlayer.pause();
+      if (currentAlbumType === 'mp4') {
+        mainVideoPlayer.pause();
+      }
     }
   }
 
@@ -1705,6 +1725,8 @@
     const symbol = isPlaying ? "❚❚" : "▶";
     document.getElementById("btn-play-mp3").innerText = symbol;
     document.getElementById("mini-btn-play").innerText = symbol;
+    const btnMp4 = document.getElementById("btn-play-mp4");
+    if (btnMp4) btnMp4.innerText = symbol;
   }
 
   function prevTrack() {
@@ -1720,8 +1742,10 @@
   function seekRelative(seconds) {
     if (isNaN(audio.duration)) return;
     audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration);
-    if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
-      mainVideoPlayer.currentTime = audio.currentTime % mainVideoPlayer.duration;
+    if (currentAlbumType === 'mp4') {
+      if (mainVideoPlayer.duration) {
+        mainVideoPlayer.currentTime = audio.currentTime % mainVideoPlayer.duration;
+      }
     }
   }
 
@@ -1733,7 +1757,6 @@
   function minimizePlayer() {
     playerCardMp3.classList.add("minimized");
     playerCardMp4.classList.add("minimized");
-    document.getElementById("player-card-mp4").classList.remove("ios-immersive-fullscreen");
     if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
   }
 
@@ -1741,6 +1764,7 @@
     miniPlayer.classList.add("hidden");
     if (currentAlbumType === 'mp4') {
       playerCardMp4.classList.remove("minimized");
+      resetControlsHideTimer();
     } else {
       playerCardMp3.classList.remove("minimized");
     }
@@ -1778,7 +1802,46 @@
     return activeText;
   }
 
+  audio.addEventListener("timeupdate", () => {
+    if (isNaN(audio.duration)) return;
+    let progress = (audio.currentTime / audio.duration) * 100;
+    seekSlider.value = progress;
+    seekSliderMp4.value = progress;
+
+    document.getElementById("time-current").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration").innerText = formatTime(audio.duration);
+    document.getElementById("time-current-mp4").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration-mp4").innerText = formatTime(audio.duration);
+
+    let currentText = getActiveSubtitleText(audio.currentTime);
+    document.getElementById("lrc-box").innerText = currentText;
+    document.getElementById("mini-lrc").innerText = currentText;
+    document.getElementById("video-subtitle-overlay").innerText = currentText;
+
+    if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
+      let expectedVideoTime = audio.currentTime % mainVideoPlayer.duration;
+      if (Math.abs(mainVideoPlayer.currentTime - expectedVideoTime) > 0.4) {
+        mainVideoPlayer.currentTime = expectedVideoTime;
+      }
+    }
+  });
+
+  audio.addEventListener("ended", () => {
+    if (currentIndex < currentTrackList.length - 1) {
+      nextTrack();
+    } else {
+      syncPlayButtons(false);
+      showToast("播放完畢！");
+    }
+  });
+
   seekSlider.addEventListener("input", (e) => {
+    if (!isNaN(audio.duration)) {
+      audio.currentTime = (e.target.value / 100) * audio.duration;
+    }
+  });
+
+  seekSliderMp4.addEventListener("input", (e) => {
     if (!isNaN(audio.duration)) {
       audio.currentTime = (e.target.value / 100) * audio.duration;
     }
@@ -1815,7 +1878,6 @@
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => {
-      loadData();
       showToast("✅ 字幕貼上並更新成功！");
     };
   }
@@ -1830,10 +1892,7 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      loadData();
-      showToast("✅ 字幕已成功更新！");
-    };
+    tx.oncomplete = () => showToast("✅ 字幕已成功更新！");
   }
 </script>
 </body>
