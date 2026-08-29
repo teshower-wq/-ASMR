@@ -223,10 +223,15 @@
       display: flex; align-items: center; justify-content: center;
       transition: all 0.25s ease;
     }
+    .cover-box img, .cover-box video { 
+      width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
+      top: 0; left: 0; border-radius: 12px;
+    }
 
+    /* MP4 專區專屬：無任何裝飾，只有純 MP4 畫面與愛心特效及透明字幕背景 */
     .video-player-box {
       width: 100%;
-      height: 320px;
+      height: 360px;
       background: #000000;
       border-radius: 16px;
       overflow: hidden;
@@ -253,35 +258,31 @@
       margin-bottom: 0 !important;
     }
 
-    .cover-box img, .cover-box video { 
-      width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
-      top: 0; left: 0; border-radius: 12px;
-    }
-
-    /* 影片專區專屬：字幕內嵌在影片下方 */
+    /* 透明背景字幕樣式（去除黑色底） */
     .video-subtitle-overlay {
       position: absolute;
-      bottom: 12px;
-      left: 12px;
-      right: 12px;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
       text-align: center;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       font-weight: 800;
       color: var(--primary-pink);
       text-shadow: 0 0 16px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.9);
       pointer-events: none;
       z-index: 20;
-      line-height: 1.35;
-      padding: 4px 8px;
-      background: rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(4px);
-      border-radius: 8px;
+      line-height: 1.4;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.15); /* 完全通透毛玻璃感 */
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     #media-display-container:fullscreen .video-subtitle-overlay,
     #media-display-container:-webkit-full-screen .video-subtitle-overlay {
       font-size: 1.6rem !important;
       bottom: 24px !important;
-      text-shadow: 0 0 25px rgba(0,0,0,0.98), 0 4px 8px rgba(0,0,0,0.95) !important;
     }
 
     .heart-toy-container {
@@ -440,11 +441,11 @@
       <div class="form-group">
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
-          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、懸浮全功能支援)</option>
-          <option value="mp4">🌸 動態影音 MP4 專區 (專屬影音播放 + 影片內嵌字幕 + 全螢幕橫向)</option>
+          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、封面支援影片/圖片)</option>
+          <option value="mp4">🌸 動態影音 MP4 專區 (純影片全螢幕、愛心特效、透明字幕背景)</option>
         </select>
       </div>
-      <div class="form-group" id="group-album-covers"><label>封面素材 (MP3專區封面圖片)</label><input type="file" id="album-covers" accept="image/*" multiple></div>
+      <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面，具備省電省流機制)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
@@ -514,14 +515,14 @@
   </div>
 
   <div id="media-display-container">
-    <!-- MP3 專區專屬封面面板 -->
+    <!-- MP3 專區專屬封面面板 (支援省電影片或圖片輪播) -->
     <div class="cover-box" id="player-cover-box" style="display:none;">
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     </div>
 
-    <!-- MP4 動態影音專區專屬面板 (無封面，純影片 + 內嵌字幕在影片下方) -->
+    <!-- MP4 動態影音專區專屬面板 (純 MP4 畫面 + 愛心特效 + 透明字幕背景) -->
     <div class="video-player-box" id="video-player-box" style="display:none;">
       <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous"></video>
       <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 選擇小篇章開始播放 ♪</div>
@@ -673,9 +674,16 @@
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       if (bgVideo && !bgVideo.paused) bgVideo.pause();
+      // 省電功能：當切換至背景時，若 MP3 封面有影片播放則暫停以省電
+      coverElements.forEach(el => {
+        if (el.tagName === 'VIDEO' && !el.paused) el.pause();
+      });
     } else {
       let m = getActiveMedia();
       if (bgVideo && bgVideo.src && m && !m.paused && !isClimaxState) bgVideo.play().catch(()=>{});
+      coverElements.forEach(el => {
+        if (el.tagName === 'VIDEO' && el.style.display === 'block' && m && !m.paused) el.play().catch(()=>{});
+      });
     }
   });
 
@@ -1017,7 +1025,7 @@
     }
   }
 
-  // 完美支援 iOS 原生全螢幕與橫向播放
+  // 完美支援 iOS 原生全螢幕與橫向填滿播放
   function toggleFullScreen() {
     if (currentAlbumType === 'mp4' && mainVideoPlayer.webkitEnterFullscreen) {
       try {
@@ -1055,7 +1063,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V34", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V35", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1299,14 +1307,19 @@
       let albumTracks = tracks.filter(t => t.albumId === album.id);
       let thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
       if (album.albumType === 'mp3' && album.covers && album.covers.length > 0) {
-        thumbUrl = createTrackedObjectURL(album.covers[0]);
+        let firstCover = album.covers[0];
+        if (firstCover.type && firstCover.type.startsWith("video")) {
+          thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14' font-weight='bold'>封面影片</text></svg>";
+        } else {
+          thumbUrl = createTrackedObjectURL(firstCover);
+        }
       } else if (album.albumType === 'mp4') {
         thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='16' font-weight='bold'>MP4</text></svg>";
       }
 
       let typeBadge = album.albumType === 'mp4' 
         ? '<span class="album-badge badge-mp4">🌸 動態影音 MP4 專區</span>' 
-        : '<span class="album-badge badge-mp3">🎵 純音訊 MP3 專區</span>';
+        : '<span class="album-badge badge-mp3">🎵 純音訊 MP3 專區 (支援封面影片)</span>';
 
       let card = document.createElement("div");
       card.className = "album-grid-card";
@@ -1379,7 +1392,7 @@
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
-            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.audioBlob && album.albumType === 'mp4' ? ' | 🎙️ 含外接音檔' : ''}</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1677,14 +1690,25 @@
 
     activeAlbumCoverBlobs.forEach((blob, i) => {
       let url = createTrackedObjectURL(blob);
-      let img = document.createElement("img");
-      img.src = url;
-      img.style.display = (i === 0) ? "block" : "none";
-      box.appendChild(img);
-      coverElements.push(img);
+      let el;
+      if (blob.type && blob.type.startsWith("video")) {
+        el = document.createElement("video");
+        el.src = url;
+        el.autoplay = true;
+        el.loop = true;
+        el.muted = true;
+        el.playsInline = true;
+        el.setAttribute("webkit-playsinline", "");
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+      }
+      el.style.display = (i === 0) ? "block" : "none";
+      box.appendChild(el);
+      coverElements.push(el);
       if (i === 0) {
-        cachedCoverElement = img;
-        isCoverVideoActive = false;
+        cachedCoverElement = el;
+        isCoverVideoActive = (el.tagName === 'VIDEO');
       }
     });
     updateCoverDisplay();
@@ -1696,8 +1720,11 @@
       if (i === activeCoverIndex) {
         el.style.display = "block";
         cachedCoverElement = el;
+        isCoverVideoActive = (el.tagName === 'VIDEO');
+        if (isCoverVideoActive && el.paused) el.play().catch(()=>{});
       } else {
         el.style.display = "none";
+        if (el.tagName === 'VIDEO' && !el.paused) el.pause(); // 省電省資源：切換封面時自動暫停背景未顯示的影片
       }
     });
     document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
@@ -1762,7 +1789,12 @@
     document.getElementById("mini-player").classList.remove("hidden");
 
     if (currentAlbumType === 'mp3' && album && album.covers && album.covers.length > 0) {
-      document.getElementById("mini-thumb").src = createTrackedObjectURL(album.covers[0]);
+      let firstCover = album.covers[0];
+      if (firstCover.type && firstCover.type.startsWith("video")) {
+        document.getElementById("mini-thumb").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='12'>影片封面</text></svg>";
+      } else {
+        document.getElementById("mini-thumb").src = createTrackedObjectURL(firstCover);
+      }
     } else {
       document.getElementById("mini-thumb").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14'>MP4</text></svg>";
     }
@@ -1772,7 +1804,7 @@
         title: track.title,
         artist: album ? album.title : "ASMR 隨身庫",
         album: "ASMR 私人隨身庫",
-        artwork: (currentAlbumType === 'mp3' && album && album.covers && album.covers.length > 0) ? [{ src: createTrackedObjectURL(album.covers[0]) }] : []
+        artwork: (currentAlbumType === 'mp3' && album && album.covers && album.covers.length > 0 && !album.covers[0].type.startsWith("video")) ? [{ src: createTrackedObjectURL(album.covers[0]) }] : []
       });
     }
   }
@@ -2158,38 +2190,23 @@
         }
 
         const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
-        if (importedAlbums.length) {
-          let store = tx.objectStore("albums");
-          importedAlbums.forEach(item => store.put(item));
-        }
-        if (importedTracks.length) {
-          let store = tx.objectStore("tracks");
-          importedTracks.forEach(item => store.put(item));
-        }
-        if (importedSettings.length) {
-          let store = tx.objectStore("settings");
-          importedSettings.forEach(item => store.put(item));
-        }
+        tx.objectStore("albums").clear();
+        tx.objectStore("tracks").clear();
+        tx.objectStore("settings").clear();
+
+        importedAlbums.forEach(a => tx.objectStore("albums").add(a));
+        importedTracks.forEach(t => tx.objectStore("tracks").add(t));
+        importedSettings.forEach(s => tx.objectStore("settings").add(s));
 
         tx.oncomplete = () => {
           loadData();
-          alert("✅ 跨裝置備份還原成功！所有影音與封面素材已完整同步。");
+          alert("✅ 資料匯入與同步成功！");
         };
-      } catch (err) {
-        console.error(err);
-        alert("❌ 備份檔案解析失敗。");
+      } catch(err) {
+        alert("❌ 匯入失敗，檔案格式錯誤。");
       }
     };
     reader.readAsText(file);
-  }
-
-  function initMediaSession() {
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
-      navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
-      navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
-      navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
-    }
   }
 
   function escapeHTML(str) {
