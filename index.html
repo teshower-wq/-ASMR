@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (MP3 與 YouTube 風格滿版影片專區 iOS 完美升級版)</title>
+  <title>ASMR 私人隨身庫 (YouTube 風格滿版影片專區 iOS 完美升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -202,15 +202,17 @@
     }
     .player-card-mp3.minimized { transform: translateY(110%); pointer-events: none; }
 
+    /* YouTube 風格滿版影片專區播放面板：完美實現圖1的效果與iOS全螢幕橫向切換 */
     .player-card-mp4 {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 100vw; width: 100%; 
-      height: 100vh; max-height: 100vh; background: #000000;
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; width: 100vw; height: 100vh;
+      max-width: 100vw; max-height: 100vh; background: #000000;
       z-index: 10000; display: flex; flex-direction: column; justify-content: space-between;
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       transform: translateZ(0); overflow: hidden;
     }
     .player-card-mp4.minimized { transform: translateY(110%); pointer-events: none; }
-    /* iOS Immersive Fullscreen Mode */
+    
+    /* iOS Immersive Fullscreen / Landscape Fit Mode */
     .player-card-mp4.ios-fullscreen {
       position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;
       max-width: none !important; max-height: none !important; z-index: 2147483647 !important; border-radius: 0 !important;
@@ -219,26 +221,28 @@
     .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* YouTube-style top bar with auto-hide capability */
+    /* 頂部資訊列 (刪除篇章名稱顯示，保留返回/縮小與全螢幕按鈕) */
     .mp4-top-bar {
       position: absolute; top: 0; left: 0; right: 0; height: 64px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
-      display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 120;
+      display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; z-index: 120;
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .mp4-title-text { font-size: 1.1rem; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
     .mp4-top-actions { display: flex; gap: 12px; align-items: center; }
     .mp4-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
 
-    /* Video Fullscreen Box */
+    /* 影片滿版對齊框 (依照圖1效果：影片適中、不盲目超大，支援橫向滿版與全螢幕) */
     .video-fullscreen-box {
       width: 100%; height: 100%; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
     }
     .video-fullscreen-box video {
-      width: 100%; height: 100%; object-fit: cover; background: #000; outline: none; position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%; object-fit: contain; background: #000; outline: none; position: absolute; top: 0; left: 0;
+    }
+    .player-card-mp4.ios-fullscreen .video-fullscreen-box video {
+      object-fit: cover; /* 進入全螢幕時完美填滿橫向畫面 */
     }
 
-    /* Subtitle Overlay */
+    /* 影片專屬即時字幕 (跟隨全螢幕與音檔同步進入) */
     .video-subtitle-overlay {
       position: absolute; bottom: 75px; left: 20px; right: 20px; text-align: center;
       font-size: 1.35rem; font-weight: 800; color: var(--primary-pink);
@@ -247,7 +251,7 @@
       transition: opacity 0.3s ease;
     }
 
-    /* Interactive Heart Toy */
+    /* 愛心互動特效 (正確嵌入至影片內，跟隨全螢幕、點擊與高潮特效一體化) */
     .heart-toy-container {
       position: absolute; top: 75px; right: 20px; width: 50px; height: 50px;
       z-index: 120; cursor: pointer; user-select: none;
@@ -276,7 +280,7 @@
       100% { box-shadow: 0 0 70px rgba(255, 20, 147, 1), inset 0 0 60px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px) rotate(0deg); }
     }
 
-    /* YouTube-style bottom controls with auto-hide capability */
+    /* 底部控制器列：僅點擊隱藏，且包含左右換集按鈕與進度條 */
     .mp4-bottom-controls {
       position: absolute; bottom: 0; left: 0; right: 0; height: 65px;
       background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
@@ -288,7 +292,7 @@
     .mp4-time-display { font-size: 0.82rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
     .mp4-seek-slider { width: 100%; height: 5px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.2); position: absolute; top: -5px; left: 0; right: 0; }
 
-    /* Controls hidden state for auto-hide */
+    /* 自動隱藏狀態 */
     .player-card-mp4.controls-hidden .mp4-top-bar,
     .player-card-mp4.controls-hidden .mp4-bottom-controls,
     .player-card-mp4.controls-hidden .video-subtitle-overlay,
@@ -351,7 +355,6 @@
     .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
     .mini-btn { background: none; border: none; color: #fff; font-size: 1.15rem; padding: 6px; cursor: pointer; }
 
-    /* Custom Toast Notification */
     #toast-container {
       position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
       z-index: 99999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
@@ -384,32 +387,6 @@
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
-    <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
-      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載完整資料。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
-      </div>
-      <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
-      <div class="form-group" style="margin-top: 12px;">
-        <label>📥 2. 匯入備份檔案 (接收端裝置)</label>
-        <input type="file" id="import-backup-input" accept=".json,application/json" onchange="importDataBackup(event)">
-      </div>
-    </div>
-
-    <div class="glass-card" style="border: 1px solid rgba(50, 215, 75, 0.4); background: rgba(10, 25, 15, 0.85);">
-      <div class="card-title" style="color: #32d74b;">🔋 MP3 專區省電與懸浮動態設定</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        在此設定 MP3 面板的省電播放與桌面懸浮聯動。
-      </div>
-      <div class="form-group">
-        <label>MP3 專區省電模式 (自動降低背景運算與影音畫面更新率)</label>
-        <select id="mp3-power-saving-mode" onchange="saveMp3PowerSavingSetting()">
-          <option value="on">🟢 啟用智慧省電模式 (推薦：省電、防發燙)</option>
-          <option value="off">⚪ 效能全開模式 (高流暢度)</option>
-        </select>
-      </div>
-    </div>
-
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
       <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
@@ -465,7 +442,6 @@
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
         <div class="form-group"><label id="track-audio-label">媒體主檔案 (影片或音訊)</label><input type="file" id="track-audio" accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov"></div>
-        <div class="form-group" id="group-track-extra-audio"><label id="track-extra-label">專屬音訊檔案 (選填：若影片需外接獨立音檔可在此上傳)</label><input type="file" id="track-extra-audio" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
         <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
       </div>
@@ -546,27 +522,26 @@
 </div>
 
 <!-- ======================================================== -->
-<!-- 2. YouTube 風格滿版影片專區播放面板 (完全獨立，無 MP3 播放控制面板) -->
-<!-- 完美支援 iOS 手機端全螢幕音檔與字幕不跑掉，具備點擊/雙擊隱藏與顯示控制列功能 -->
+<!-- 2. YouTube 風格滿版影片專區播放面板 (完全獨立) -->
+<!-- 完美支援 iOS 手機端全螢幕橫向填滿、音檔與字幕一體嵌入、愛心特效跟隨，刪除左上方篇章名稱 -->
 <!-- ======================================================== -->
 <div id="player-card-mp4" class="player-card-mp4 minimized">
   <div class="video-fullscreen-box" id="video-fullscreen-box">
-    <!-- 主影片播放器 (支援 iOS 橫向與直向滿版填滿，音訊整合在影片內避免跑掉) -->
+    <!-- 主影片播放器 (影片內嵌音訊，完美同步) -->
     <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous"></video>
 
-    <!-- YouTube 風格獨立頂部資訊列 (支援自動隱藏與雙擊喚醒) -->
+    <!-- YouTube 風格獨立頂部資訊列 (左上方篇章名稱已直接刪除，保留全螢幕切換與關閉按鈕) -->
     <div class="mp4-top-bar" id="mp4-top-bar">
-      <div id="mp4-top-title" class="mp4-title-text">影片標題</div>
       <div class="mp4-top-actions">
         <button class="mp4-icon-btn" onclick="event.stopPropagation(); toggleFullScreen();" title="全螢幕 / 橫向填滿">⛶</button>
         <button class="mp4-icon-btn" onclick="event.stopPropagation(); minimizePlayer();" title="縮小關閉">✕</button>
       </div>
     </div>
 
-    <!-- 影片下方即時字幕 (支援自動隱藏) -->
+    <!-- 影片下方即時字幕 (跟隨全螢幕與音檔同步進入) -->
     <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入影片字幕中... ♪</div>
 
-    <!-- 影片專區全螢幕時愛心互動功能 (支援點擊與高潮互動特效) -->
+    <!-- 影片專區全螢幕時愛心互動功能 (完全嵌入至影片內，跟隨全螢幕、支援點擊與高潮互動特效) -->
     <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); triggerInstantOrgasm();" title="點擊一鍵高潮">
       <svg class="heart-svg" viewBox="0 0 32 32">
         <defs>
@@ -586,7 +561,7 @@
     <!-- 高潮自訂特效圖片覆蓋 -->
     <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:115; object-fit:cover;">
 
-    <!-- YouTube 風格獨立底部控制器列 (含進度條與檔案名稱，支援自動隱藏與雙擊喚醒) -->
+    <!-- YouTube 風格獨立底部控制器列 (含進度條與左右換集按鈕，點按隱藏的只有進度條左右換集的按鈕區) -->
     <div class="mp4-bottom-controls" id="mp4-bottom-controls" onclick="event.stopPropagation()">
       <input type="range" id="seek-slider-mp4" class="mp4-seek-slider" value="0" min="0" max="100" step="0.1">
       <div class="mp4-controls-left">
@@ -594,8 +569,8 @@
         <div class="mp4-time-display"><span id="time-current-mp4">00:00</span> / <span id="time-duration-mp4">00:00</span></div>
       </div>
       <div class="mp4-controls-right">
-        <button class="btn-ctrl" onclick="prevTrack()" style="color:#fff; font-size:1.2rem;">⏮</button>
-        <button class="btn-ctrl" onclick="nextTrack()" style="color:#fff; font-size:1.2rem;">⏭</button>
+        <button class="btn-ctrl" onclick="prevTrack()" style="color:#fff; font-size:1.2rem;" title="上一集">⏮</button>
+        <button class="btn-ctrl" onclick="nextTrack()" style="color:#fff; font-size:1.2rem;" title="下一集">⏭</button>
       </div>
     </div>
   </div>
@@ -628,7 +603,6 @@
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
   let currentAlbumType = 'mp3';
-  let mp3PowerSaving = 'on';
 
   let pipCanvas = null;
   let pipCtx = null;
@@ -689,7 +663,6 @@
   }
 
   function showConfirmModal(message, onConfirm) {
-    const container = document.getElementById("toast-container");
     const modalBg = document.createElement("div");
     modalBg.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px);";
     
@@ -747,11 +720,9 @@
       let currentTime = new Date().getTime();
       let tapLength = currentTime - lastTapTime;
       if (tapLength < 350 && tapLength > 0) {
-        // Double tap detected: Toggle Controls
         toggleControlsVisibility();
         e.stopPropagation();
       } else {
-        // Single tap: show controls or toggle play
         if (!isControlsVisible) {
           toggleControlsVisibility();
         } else {
@@ -788,15 +759,9 @@
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       if (bgVideo && !bgVideo.paused) bgVideo.pause();
-      coverElements.forEach(el => {
-        if (el.tagName === 'VIDEO' && !el.paused) el.pause();
-      });
     } else {
       let m = getActiveMedia();
       if (bgVideo && bgVideo.src && m && !m.paused && !isClimaxState) bgVideo.play().catch(()=>{});
-      coverElements.forEach(el => {
-        if (el.tagName === 'VIDEO' && el.style.display === 'block' && m && !m.paused) el.play().catch(()=>{});
-      });
     }
   });
 
@@ -824,21 +789,6 @@
       touchStartY = 0; touchCurrentY = 0;
     });
   }
-
-  pipVideo.addEventListener('pause', () => {
-    let m = getActiveMedia();
-    if (m && !m.paused && !isClimaxState) {
-      m.pause();
-      syncPlayButtons(false);
-    }
-  });
-  pipVideo.addEventListener('play', () => {
-    let m = getActiveMedia();
-    if (m && m.paused && !isClimaxState) {
-      m.play().catch(()=>{});
-      syncPlayButtons(true);
-    }
-  });
 
   function initAudioAnalysis() {
     if (currentAlbumType !== 'mp4') return;
@@ -983,17 +933,6 @@
     };
   }
 
-  async function saveMp3PowerSavingSetting() {
-    const sel = document.getElementById("mp3-power-saving-mode");
-    mp3PowerSaving = sel.value;
-    PIP_FPS = (mp3PowerSaving === 'on') ? 15 : 30;
-    PIP_INTERVAL = 1000 / PIP_FPS;
-
-    const tx = db.transaction("settings", "readwrite");
-    tx.objectStore("settings").put({ key: "mp3PowerSaving", value: mp3PowerSaving });
-    tx.oncomplete = () => showToast(`✅ 省電設置已更新`);
-  }
-
   function drawCoverToCanvas(ctx, element, size, isVideo) {
     if (!element) return;
     try {
@@ -1095,10 +1034,8 @@
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     if (isIOS) {
-      // On iOS Safari, native fullscreen API on video often takes over and drops custom audio sync / overlays.
-      // We toggle CSS Immersive Fullscreen which keeps 100% control over audio, subtitles, and interactive controls!
       cardMp4.classList.toggle("ios-fullscreen");
-      showToast(cardMp4.classList.contains("ios-fullscreen") ? "📺 已切換 iOS 滿版全螢幕模式" : "📺 已恢復一般播放視窗");
+      showToast(cardMp4.classList.contains("ios-fullscreen") ? "📺 已切換 iOS 滿版橫向全螢幕模式" : "📺 已恢復一般播放視窗");
     } else {
       const container = document.getElementById("video-fullscreen-box");
       if (!container) return;
@@ -1119,7 +1056,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V41", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V42", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1155,23 +1092,19 @@
     const batchAudioLabel = document.getElementById("batch-audio-label");
     const trackAudioInput = document.getElementById("track-audio");
     const batchAudioInput = document.getElementById("batch-audios");
-    const extraAudioGroup = document.getElementById("group-track-extra-audio");
-    const trackExtraLabel = document.getElementById("track-extra-label");
 
     if (isMp4) {
       if (coverGroup) coverGroup.style.display = "none";
-      if (trackAudioLabel) trackAudioLabel.innerText = "影片主檔案 (MP4 / MOV 滿版動態影片 - 聲音與畫面完美整合)";
-      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有影片檔 (.mp4 / .mov)";
+      if (trackAudioLabel) trackAudioLabel.innerText = "影片檔案 (MP4 / MOV 滿版動態影片 - 影片、音訊、字幕一體整合)";
+      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有影片檔案 (.mp4 / .mov)";
       if (trackAudioInput) trackAudioInput.accept = "video/*,.mp4,.mov,.webm";
       if (batchAudioInput) batchAudioInput.accept = "video/*,.mp4,.mov,.webm";
-      if (extraAudioGroup) extraAudioGroup.style.display = "none";
     } else {
       if (coverGroup) coverGroup.style.display = "block";
       if (trackAudioLabel) trackAudioLabel.innerText = "音訊檔案 (MP3 / WAV / M4A)";
-      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有音訊檔 (.mp3 / .wav / .m4a)";
+      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有音訊檔案 (.mp3 / .wav / .m4a)";
       if (trackAudioInput) trackAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.flac,.aac";
       if (batchAudioInput) batchAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.flac,.aac";
-      if (extraAudioGroup) extraAudioGroup.style.display = "none";
     }
   }
 
@@ -1200,15 +1133,6 @@
         if (!climaxAudioEl.src && window.customClimaxData.audioBlob) {
            climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
         }
-      }
-    };
-    tx.objectStore("settings").get("mp3PowerSaving").onsuccess = (e) => {
-      if (e.target.result) {
-        mp3PowerSaving = e.target.result.value;
-        const sel = document.getElementById("mp3-power-saving-mode");
-        if (sel) sel.value = mp3PowerSaving;
-        PIP_FPS = (mp3PowerSaving === 'on') ? 15 : 30;
-        PIP_INTERVAL = 1000 / PIP_FPS;
       }
     };
   }
@@ -1426,7 +1350,7 @@
   }
 
   function deleteAlbum(id) {
-    showConfirm("確定要刪除此作品分區及其所有篇章嗎？", () => {
+    showConfirmModal("確定要刪除此作品分區及其所有篇章嗎？", () => {
       const tx = db.transaction(["albums", "tracks"], "readwrite");
       tx.objectStore("albums").delete(id);
       let indexStore = tx.objectStore("tracks");
@@ -1553,7 +1477,7 @@
     const lrcInput = document.getElementById("track-lrc");
 
     if (!albumId) return showToast("請先選擇目標作品分區！");
-    if (!audioInput.files.length) return showToast("請選擇主媒體檔案！");
+    if (!audioInput.files.length) return showToast("請選擇主媒體/影片檔案！");
 
     const mainFile = audioInput.files[0];
     const lrcFile = lrcInput.files[0];
@@ -1654,7 +1578,7 @@
   }
 
   function deleteTrack(id) {
-    showConfirm("確定要刪除此篇章嗎？", () => {
+    showConfirmModal("確定要刪除此篇章嗎？", () => {
       const tx = db.transaction("tracks", "readwrite");
       tx.objectStore("tracks").delete(id);
       tx.oncomplete = () => { loadData(); showToast("已刪除！"); };
@@ -1696,7 +1620,6 @@
     if (currentAlbumType === 'mp4') {
       playerCardMp3.classList.add("minimized");
       playerCardMp4.classList.remove("minimized");
-      document.getElementById("mp4-top-title").innerText = track.title;
       resetControlsHideTimer();
     } else {
       playerCardMp4.classList.add("minimized");
@@ -1788,196 +1711,167 @@
   }
 
   function loadAndPlayCurrentTrack(track, album) {
-    if (currentAlbumType === 'mp4') {
-      audio.pause();
-      if (track.videoBlob) {
-        mainVideoPlayer.src = createTrackedObjectURL(track.videoBlob);
-      }
-      mainVideoPlayer.muted = false; // Enable video native audio for iOS compatibility!
-      mainVideoPlayer.loop = false;
-      mainVideoPlayer.load();
+    currentLrc = parseUniversalLyrics(track.lrcText);
+    document.getElementById("mini-title").innerText = track.title;
 
+    if (currentAlbumType === 'mp4') {
+      if (!track.videoBlob) {
+        showToast("錯誤：此篇章未設置影片檔案！請重新編輯或上傳影片。");
+        return;
+      }
+      const videoUrl = createTrackedObjectURL(track.videoBlob);
+      mainVideoPlayer.src = videoUrl;
+      mainVideoPlayer.load();
       mainVideoPlayer.play().then(() => {
         syncPlayButtons(true);
-      }).catch(e => {});
-
-      initAudioAnalysis();
+        initAudioAnalysis();
+      }).catch(err => {
+        showToast("點擊以授權自動播放影片");
+      });
     } else {
-      mainVideoPlayer.pause();
-      audio.src = createTrackedObjectURL(track.audioBlob);
-      audio.loop = false;
-      audio.muted = false;
+      if (!track.audioBlob) {
+        showToast("錯誤：此篇章未設置音訊檔案！");
+        return;
+      }
+      const audioUrl = createTrackedObjectURL(track.audioBlob);
+      audio.src = audioUrl;
+      audio.load();
       audio.play().then(() => {
         syncPlayButtons(true);
-      }).catch(e => {});
-    }
-
-    currentLrc = parseUniversalLyrics(track.lrcText);
-    document.getElementById("mp4-top-title").innerText = track.title;
-    document.getElementById("mini-title").innerText = track.title;
-    document.getElementById("mini-player").classList.remove("hidden");
-
-    if (currentAlbumType === 'mp3' && album && album.covers && album.covers.length > 0) {
-      let firstCover = album.covers[0];
-      if (firstCover.type && firstCover.type.startsWith("video")) {
-        document.getElementById("mini-thumb").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='12'>影片封面</text></svg>";
-      } else {
-        document.getElementById("mini-thumb").src = createTrackedObjectURL(firstCover);
-      }
-    } else {
-      document.getElementById("mini-thumb").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14'>YouTube</text></svg>";
+      }).catch(err => {});
     }
   }
-
-  function onMediaTimeUpdate() {
-    let m = getActiveMedia();
-    if (!m || !m.duration) return;
-    let pct = (m.currentTime / m.duration) * 100;
-    seekSlider.value = pct;
-    seekSliderMp4.value = pct;
-
-    document.getElementById("time-current").innerText = formatTime(m.currentTime);
-    document.getElementById("time-duration").innerText = formatTime(m.duration);
-    document.getElementById("time-current-mp4").innerText = formatTime(m.currentTime);
-    document.getElementById("time-duration-mp4").innerText = formatTime(m.duration);
-
-    let currentText = getActiveSubtitleText(m.currentTime);
-    document.getElementById("video-subtitle-overlay").innerText = currentText;
-    document.getElementById("lrc-box").innerText = currentText;
-    document.getElementById("mini-lrc").innerText = currentText;
-  }
-
-  audio.addEventListener("timeupdate", onMediaTimeUpdate);
-  mainVideoPlayer.addEventListener("timeupdate", onMediaTimeUpdate);
 
   function getActiveSubtitleText(currentTime) {
-    if (!currentLrc || currentLrc.length === 0) return "♪ 享受沉浸影音時光 ♪";
-    let activeText = "♪ 享受沉浸影音時光 ♪";
+    if (!currentLrc || currentLrc.length === 0) return "♪ 享受純淨影音饗宴 ♪";
+    let activeText = "♪ ASMR 隨身庫 ♪";
     for (let i = 0; i < currentLrc.length; i++) {
-      if (currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
-      else break;
+      if (currentTime >= currentLrc[i].time) {
+        activeText = currentLrc[i].text;
+      } else {
+        break;
+      }
     }
     return activeText;
   }
 
-  audio.addEventListener("ended", () => {
-    if (!isClimaxState) nextTrack();
-  });
-  mainVideoPlayer.addEventListener("ended", () => {
-    if (!isClimaxState) nextTrack();
-  });
-
-  function togglePlay() {
-    if (currentIndex === -1) return;
-    unlockAutoplayConstraints();
-    if (currentAlbumType === 'mp4') initAudioAnalysis();
-
-    if (isClimaxState) {
-      if (climaxAudioEl.paused) {
-        climaxAudioEl.play();
-        syncPlayButtons(true);
-      } else {
-        climaxAudioEl.pause();
-        syncPlayButtons(false);
-      }
-      return;
-    }
-
-    let m = getActiveMedia();
-    if (!m) return;
-
-    if (m.paused) {
-      m.play().then(() => {
-        syncPlayButtons(true);
-        if (currentAlbumType === 'mp4') resetControlsHideTimer();
-      }).catch(e=>{});
-    } else {
-      m.pause();
-      syncPlayButtons(false);
-      const playerMp4 = document.getElementById("player-card-mp4");
-      playerMp4.classList.remove("controls-hidden");
-      isControlsVisible = true;
-    }
+  function formatTime(secs) {
+    if (isNaN(secs)) return "00:00";
+    let m = Math.floor(secs / 60);
+    let s = Math.floor(secs % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
   function syncPlayButtons(isPlaying) {
-    document.getElementById("btn-play-mp3").innerText = isPlaying ? "❚❚" : "▶";
-    document.getElementById("mini-btn-play").innerText = isPlaying ? "❚❚" : "▶";
-    document.getElementById("btn-play-mp4").innerText = isPlaying ? "⏸" : "▶";
+    const playBtnMp3 = document.getElementById("btn-play-mp3");
+    const playBtnMp4 = document.getElementById("btn-play-mp4");
+    const miniBtnPlay = document.getElementById("mini-btn-play");
+
+    if (playBtnMp3) playBtnMp3.innerText = isPlaying ? "❚❚" : "▶";
+    if (playBtnMp4) playBtnMp4.innerText = isPlaying ? "❚❚" : "▶";
+    if (miniBtnPlay) miniBtnPlay.innerText = isPlaying ? "❚❚" : "▶";
+  }
+
+  function togglePlay() {
+    let m = getActiveMedia();
+    if (!m || currentIndex === -1) return;
+    if (m.paused) {
+      m.play().then(() => syncPlayButtons(true)).catch(()=>{});
+    } else {
+      m.pause();
+      syncPlayButtons(false);
+    }
   }
 
   function nextTrack() {
-    if (currentIndex === -1 || currentTrackList.length === 0) return;
+    if (!currentTrackList.length) return;
     currentIndex = (currentIndex + 1) % currentTrackList.length;
-    loadAndPlayCurrentTrack(currentTrackList[currentIndex], albums.find(a => a.id === currentPlayingAlbumId));
+    let album = albums.find(a => a.id === currentPlayingAlbumId);
+    playTrackFromAlbum(currentPlayingAlbumId, currentIndex);
   }
 
   function prevTrack() {
-    if (currentIndex === -1 || currentTrackList.length === 0) return;
+    if (!currentTrackList.length) return;
     currentIndex = (currentIndex - 1 + currentTrackList.length) % currentTrackList.length;
-    loadAndPlayCurrentTrack(currentTrackList[currentIndex], albums.find(a => a.id === currentPlayingAlbumId));
+    let album = albums.find(a => a.id === currentPlayingAlbumId);
+    playTrackFromAlbum(currentPlayingAlbumId, currentIndex);
   }
 
-  function seekRelative(sec) {
+  function seekRelative(seconds) {
     let m = getActiveMedia();
     if (!m) return;
-    m.currentTime = Math.max(0, Math.min(m.duration || 0, m.currentTime + sec));
+    m.currentTime = Math.max(0, Math.min(m.duration || 0, m.currentTime + seconds));
   }
 
-  seekSlider.addEventListener("input", (e) => {
-    let m = getActiveMedia();
-    if (!m || !m.duration) return;
-    m.currentTime = (e.target.value / 100) * m.duration;
-  });
-
-  seekSliderMp4.addEventListener("input", (e) => {
-    let m = getActiveMedia();
-    if (!m || !m.duration) return;
-    m.currentTime = (e.target.value / 100) * m.duration;
-  });
+  function toggleMute() {
+    audio.muted = !audio.muted;
+    mainVideoPlayer.muted = audio.muted;
+    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
+  }
 
   volumeSlider.addEventListener("input", (e) => {
     audio.volume = e.target.value;
     mainVideoPlayer.volume = e.target.value;
-    document.getElementById("btn-mute").innerText = (e.target.value == 0) ? "🔇" : "🔈";
   });
 
-  function toggleMute() {
-    audio.muted = !audio.muted;
-    mainVideoPlayer.muted = !mainVideoPlayer.muted;
-    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
-  }
+  seekSlider.addEventListener("input", (e) => {
+    if (!audio.duration) return;
+    audio.currentTime = (e.target.value / 100) * audio.duration;
+  });
+
+  seekSliderMp4.addEventListener("input", (e) => {
+    if (!mainVideoPlayer.duration) return;
+    mainVideoPlayer.currentTime = (e.target.value / 100) * mainVideoPlayer.duration;
+  });
+
+  audio.addEventListener("timeupdate", () => {
+    if (audio.duration) {
+      seekSlider.value = (audio.currentTime / audio.duration) * 100;
+      document.getElementById("time-current").innerText = formatTime(audio.currentTime);
+      document.getElementById("time-duration").innerText = formatTime(audio.duration);
+    }
+    let sub = getActiveSubtitleText(audio.currentTime);
+    document.getElementById("lrc-box").innerText = sub;
+    document.getElementById("mini-lrc").innerText = sub;
+  });
+
+  mainVideoPlayer.addEventListener("timeupdate", () => {
+    if (mainVideoPlayer.duration) {
+      seekSliderMp4.value = (mainVideoPlayer.currentTime / mainVideoPlayer.duration) * 100;
+      document.getElementById("time-current-mp4").innerText = formatTime(mainVideoPlayer.currentTime);
+      document.getElementById("time-duration-mp4").innerText = formatTime(mainVideoPlayer.duration);
+    }
+    let sub = getActiveSubtitleText(mainVideoPlayer.currentTime);
+    const subOverlay = document.getElementById("video-subtitle-overlay");
+    if (subOverlay) subOverlay.innerText = sub;
+    document.getElementById("mini-lrc").innerText = sub;
+  });
+
+  audio.addEventListener("ended", nextTrack);
+  mainVideoPlayer.addEventListener("ended", nextTrack);
 
   function expandPlayer() {
     if (currentIndex === -1) return;
+    miniPlayer.classList.add("hidden");
     if (currentAlbumType === 'mp4') {
       playerCardMp4.classList.remove("minimized");
       playerCardMp3.classList.add("minimized");
-      resetControlsHideTimer();
     } else {
       playerCardMp3.classList.remove("minimized");
       playerCardMp4.classList.add("minimized");
     }
-    miniPlayer.classList.add("hidden");
   }
 
   function minimizePlayer() {
     playerCardMp3.classList.add("minimized");
     playerCardMp4.classList.add("minimized");
-    playerCardMp4.classList.remove("ios-fullscreen");
-    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
+    miniPlayer.classList.remove("hidden");
   }
 
-  function formatTime(seconds) {
-    if (isNaN(seconds)) return "00:00";
-    let m = Math.floor(seconds / 60);
-    let s = Math.floor(seconds % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-
-  async function uploadCurrentTrackLrc(event) {
-    const file = event.target.files[0];
-    if (!file || currentIndex === -1) return;
+  async function uploadCurrentTrackLrc(e) {
+    if (currentIndex === -1) return;
+    const file = e.target.files[0];
+    if (!file) return;
     let text = await file.text();
     let track = currentTrackList[currentIndex];
     track.lrcText = text;
@@ -1985,11 +1879,11 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕更新成功！");
+    tx.oncomplete = () => showToast("✅ 字幕匯入成功！");
   }
 
   function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先選擇篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     let raw = prompt("請貼上 LRC / VTT / SRT 字幕文字：");
     if (raw === null) return;
     let track = currentTrackList[currentIndex];
@@ -1998,13 +1892,13 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕貼上並更新成功！");
+    tx.oncomplete = () => showToast("✅ 字幕更新成功！");
   }
 
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先選擇篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     let track = currentTrackList[currentIndex];
-    let newRaw = prompt("檢視與修改目前字幕文字：", track.lrcText || "");
+    let newRaw = prompt("檢視與修改目前字幕原始碼：", track.lrcText || "");
     if (newRaw === null) return;
     track.lrcText = newRaw;
     currentLrc = parseUniversalLyrics(newRaw);
@@ -2013,55 +1907,6 @@
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => showToast("✅ 字幕修改成功！");
   }
-
-  function exportDataBackup() {
-    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    let exportData = { albums: [], tracks: [], settings: [] };
-
-    tx.objectStore("albums").getAll().onsuccess = (e) => {
-      exportData.albums = e.target.result;
-    };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => {
-      exportData.tracks = e.target.result;
-    };
-    tx.objectStore("settings").getAll().onsuccess = (e) => {
-      exportData.settings = e.target.result;
-    };
-
-    tx.oncomplete = () => {
-      const jsonStr = JSON.stringify(exportData);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ASMR_Library_Backup_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast("📤 完整資料備份匯出成功！");
-    };
-  }
-
-  async function importDataBackup(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-
-      const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
-      data.albums.forEach(a => tx.objectStore("albums").put(a));
-      data.tracks.forEach(t => tx.objectStore("tracks").put(t));
-      if (data.settings) data.settings.forEach(s => tx.objectStore("settings").put(s));
-
-      tx.oncomplete = () => {
-        loadData();
-        showToast("📥 資料匯入與跨裝置同步成功！");
-      };
-    } catch(err) {
-      showToast("❌ 備份檔案解析失敗，請確認格式正確。");
-    }
-  }
 </script>
-
 </body>
 </html>
