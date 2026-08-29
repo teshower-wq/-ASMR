@@ -213,7 +213,7 @@
       align-items: center;
     }
 
-    /* 全螢幕樣式修正：將容器放大至滿版，確保愛心與字幕在全螢幕時正常懸浮於最上層 */
+    /* 全螢幕樣式完美修正：全螢幕時強制填滿全畫面並確保所有懸浮元件置頂 */
     #media-display-container:fullscreen,
     #media-display-container:-webkit-full-screen {
       width: 100vw !important;
@@ -228,7 +228,7 @@
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
-      z-index: 99999 !important;
+      z-index: 999999 !important;
     }
 
     .cover-box { 
@@ -273,7 +273,7 @@
       position: relative !important;
     }
 
-    /* 純字幕顯示修正：調整全螢幕下的字幕層級與字體大小 */
+    /* 字幕層級修正 */
     .video-subtitle-overlay {
       position: absolute;
       bottom: 20px;
@@ -285,7 +285,7 @@
       color: var(--primary-pink);
       text-shadow: 0 0 16px rgba(0,0,0,0.95), 0 2px 6px rgba(0,0,0,0.9);
       pointer-events: none;
-      z-index: 100;
+      z-index: 10000;
       line-height: 1.4;
       background: transparent;
       border: none;
@@ -294,13 +294,13 @@
     #media-display-container:-webkit-full-screen .video-subtitle-overlay {
       font-size: 2rem !important;
       bottom: 40px !important;
-      z-index: 100000 !important;
+      z-index: 1000000 !important;
     }
 
-    /* 愛心特效全螢幕懸浮修正 */
+    /* 愛心特效懸浮修正 */
     .heart-toy-container {
       position: absolute; top: 16px; right: 16px; width: 46px; height: 46px;
-      z-index: 100; cursor: pointer; user-select: none;
+      z-index: 10000; cursor: pointer; user-select: none;
       filter: drop-shadow(0 0 8px rgba(255, 121, 198, 0.8));
       transition: transform 0.15s ease;
       pointer-events: auto;
@@ -312,7 +312,7 @@
       right: 24px !important;
       width: 56px !important;
       height: 56px !important;
-      z-index: 100000 !important;
+      z-index: 1000000 !important;
     }
 
     .heart-svg { width: 100%; height: 100%; overflow: visible; }
@@ -559,7 +559,7 @@
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     </div>
 
-    <!-- MP4 動態影音專區專屬面板 (影片徹底靜音，純做背景視覺畫面) -->
+    <!-- MP4 動態影音專區專屬面板 (類似圖片1 YouTube 風格) -->
     <div class="video-player-box" id="video-player-box" style="display:none;">
       <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous" muted loop></video>
       <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 選擇小篇章開始播放 ♪</div>
@@ -578,7 +578,7 @@
           <path class="heart-fill" clip-path="url(#heart-clip)" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
         </svg>
       </div>
-      <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:25; object-fit:cover; border-radius:12px;">
+      <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:25000; object-fit:cover; border-radius:12px;">
     </div>
     
     <!-- 外部字幕框 (僅 MP3 模式顯示) -->
@@ -1079,6 +1079,7 @@
     }
   }
 
+  /* 手機端完美全螢幕控制按鈕邏輯 */
   function toggleFullScreen() {
     const container = document.getElementById("media-display-container");
     if (!container) return;
@@ -1110,7 +1111,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V37", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V38", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1120,7 +1121,6 @@
   request.onsuccess = (e) => { 
     db = e.target.result; 
     loadData(); 
-    initMediaSession(); 
   };
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -1586,10 +1586,10 @@
     };
 
     if (isMp4) {
-      trackData.videoBlob = mainFile;
-      trackData.audioBlob = extraAudioFile || mainFile;
+      trackData.videoBlob = mainFile; 
+      trackData.audioBlob = extraAudioFile || mainFile; 
     } else {
-      trackData.audioBlob = mainFile;
+      trackData.audioBlob = mainFile; 
     }
 
     const tx = db.transaction("tracks", "readwrite");
@@ -1833,8 +1833,8 @@
         const videoUrl = createTrackedObjectURL(track.videoBlob);
         mainVideoPlayer.src = videoUrl;
       }
-      mainVideoPlayer.muted = true;
-      mainVideoPlayer.loop = true;
+      mainVideoPlayer.muted = true; 
+      mainVideoPlayer.loop = true;  
       mainVideoPlayer.load();
 
       const audioSourceBlob = track.audioBlob || track.videoBlob;
@@ -2030,133 +2030,127 @@
 
   function expandPlayer() {
     playerCard.classList.remove("minimized");
-    miniPlayer.classList.add("hidden");
   }
 
   function minimizePlayer() {
     playerCard.classList.add("minimized");
-    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
   }
 
-  function formatTime(seconds) {
-    if (isNaN(seconds)) return "00:00";
-    let mins = Math.floor(seconds / 60);
-    let secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  function formatTime(sec) {
+    if (isNaN(sec)) return "00:00";
+    let m = Math.floor(sec / 60);
+    let s = Math.floor(sec % 60);
+    return `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
   }
 
   function escapeHTML(str) {
-    if (!str) return '';
     return str.replace(/[&<>'"]/g, 
       tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
     );
-  }
-
-  function uploadCurrentTrackLrc(event) {
-    const file = event.target.files[0];
-    if (!file || currentIndex === -1) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      let lrcText = e.target.result;
-      currentLrc = parseUniversalLyrics(lrcText);
-      let track = currentTrackList[currentIndex];
-      track.lrcText = lrcText;
-
-      const tx = db.transaction("tracks", "readwrite");
-      tx.objectStore("tracks").put(track);
-      tx.oncomplete = () => alert("✅ 當前篇章字幕更新成功！");
-    };
-    reader.readAsText(file);
-  }
-
-  function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
-    let raw = prompt("請貼上完整的 LRC / VTT / SRT / 文字內容：");
-    if (raw === null) return;
-    currentLrc = parseUniversalLyrics(raw);
-    let track = currentTrackList[currentIndex];
-    track.lrcText = raw;
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => alert("✅ 字幕貼上並更新成功！");
-  }
-
-  function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
-    let track = currentTrackList[currentIndex];
-    let newText = prompt("目前篇章字幕原文 (可在此直接修改儲存)：", track.lrcText || "");
-    if (newText === null) return;
-    track.lrcText = newText;
-    currentLrc = parseUniversalLyrics(newText);
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => alert("✅ 字幕修改儲存成功！");
   }
 
   function exportDataBackup() {
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
     let backupObj = { albums: [], tracks: [], settings: [] };
     
-    tx.objectStore("albums").getAll().onsuccess = (e) => { backupObj.albums = e.target.result; };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => { backupObj.tracks = e.target.result; };
-    tx.objectStore("settings").getAll().onsuccess = (e) => { backupObj.settings = e.target.result; };
-
-    tx.oncomplete = () => {
-      const jsonStr = JSON.stringify(backupObj, (key, value) => {
-        if (value instanceof Blob) return { __isBlob: true, type: value.type, data: Array.from(new Uint8Array()) }; // 簡易防呆或序列化處理
-        return value;
-      });
-      // 由於 Blob 無法直接 JSON 化，建議透過 IndexedDB 原生轉存，或使用以下完整備份 Blob 轉換
-      exportFullBinaryBackup(backupObj);
+    tx.objectStore("albums").getAll().onsuccess = (e) => {
+      backupObj.albums = e.target.result;
     };
-  }
-
-  async function exportFullBinaryBackup(backupObj) {
-    try {
-      const dataBlob = new Blob([JSON.stringify(backupObj, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(dataBlob);
-      let a = document.createElement("a");
+    tx.objectStore("tracks").getAll().onsuccess = (e) => {
+      backupObj.tracks = e.target.result;
+    };
+    tx.objectStore("settings").getAll().onsuccess = (e) => {
+      backupObj.settings = e.target.result;
+    };
+    
+    tx.oncomplete = () => {
+      const blob = new Blob([JSON.stringify(backupObj)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
       a.href = url;
       a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      alert("✅ 備份資料匯出成功！");
-    } catch(err) {
-      alert("匯出備份失敗：" + err.message);
-    }
+    };
   }
 
   function importDataBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = async function(e) {
       try {
         const data = JSON.parse(e.target.result);
         const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        
         if (data.albums) {
-          let store = tx.objectStore("albums");
-          data.albums.forEach(item => store.put(item));
+          const store = tx.objectStore("albums");
+          for (let item of data.albums) store.put(item);
         }
         if (data.tracks) {
-          let store = tx.objectStore("tracks");
-          data.tracks.forEach(item => store.put(item));
+          const store = tx.objectStore("tracks");
+          for (let item of data.tracks) store.put(item);
         }
         if (data.settings) {
-          let store = tx.objectStore("settings");
-          data.settings.forEach(item => store.put(item));
+          const store = tx.objectStore("settings");
+          for (let item of data.settings) store.put(item);
         }
+        
         tx.oncomplete = () => {
           loadData();
-          alert("✅ 跨裝置備份還原與資料同步成功！");
+          alert("✅ 備份資料匯入成功！");
         };
       } catch(err) {
-        alert("❌ 匯入失敗，檔案格式不正確。");
+        alert("❌ 匯入失敗，檔案格式錯誤。");
       }
     };
     reader.readAsText(file);
+  }
+
+  function uploadCurrentTrackLrc(event) {
+    const file = event.target.files[0];
+    if (!file || currentIndex === -1) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const text = e.target.result;
+      const track = currentTrackList[currentIndex];
+      track.lrcText = text;
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => {
+        currentLrc = parseUniversalLyrics(text);
+        alert("✅ 當前篇章字幕更新成功！");
+      };
+    };
+    reader.readAsText(file);
+  }
+
+  function pasteCurrentTrackLrc() {
+    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    let text = prompt("請貼上 LRC / VTT / SRT 字幕內容：");
+    if (text === null) return;
+    const track = currentTrackList[currentIndex];
+    track.lrcText = text;
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => {
+      currentLrc = parseUniversalLyrics(text);
+      alert("✅ 字幕貼上並更新成功！");
+    };
+  }
+
+  function inspectCurrentTrackLrc() {
+    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    const track = currentTrackList[currentIndex];
+    let newText = prompt("檢視/修改當前篇章字幕：", track.lrcText || "");
+    if (newText === null) return;
+    track.lrcText = newText;
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => {
+      currentLrc = parseUniversalLyrics(newText);
+      alert("✅ 字幕修改成功！");
+    };
   }
 </script>
 </body>
