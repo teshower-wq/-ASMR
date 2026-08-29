@@ -869,7 +869,11 @@
     };
   }
 
-  function togglePowerSavingCover() {}
+  function togglePowerSavingCover() {
+    isPowerSavingCover = !isPowerSavingCover;
+    const btn = document.getElementById("btn-power-saving");
+    if (btn) btn.innerText = `⚡ 省電模式：動態${isPowerSavingCover ? '關' : '開'}`;
+  }
 
   function drawCoverToCanvas(ctx, element, size, isVideo) {
     if (!element) return;
