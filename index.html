@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (動態影音 YouTube 風格滿版流暢升級版)</title>
+  <title>ASMR 私人隨身庫 (YouTube 風格滿版流暢升級修正版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -213,6 +213,7 @@
       align-items: center;
     }
 
+    /* 全螢幕樣式：確保 iOS Safari 與標準全螢幕完美填滿且控制項可互動 */
     #media-display-container:fullscreen,
     #media-display-container:-webkit-full-screen {
       width: 100vw !important;
@@ -476,7 +477,7 @@
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
           <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、面板設置省電功能、懸浮影片)</option>
-          <option value="mp4">🌸 動態影音 MP4 專區 (YouTube 風格靜音影片 + 音檔音源、全螢幕字幕與愛心特效)</option>
+          <option value="mp4">🌸 動態影音 MP4 專區 (YouTube 風格滿版影片 + 音檔音源、全螢幕字幕與愛心特效)</option>
         </select>
       </div>
       <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
@@ -556,7 +557,7 @@
     </div>
 
     <div class="video-player-box" id="video-player-box" style="display:none;">
-      <video id="main-video-player" playsinline webkit-playsinline x5-playsinline crossorigin="anonymous" muted loop></video>
+      <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous" muted loop></video>
       <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 選擇小篇章開始播放 ♪</div>
       <div class="heart-toy-container" id="heart-toy" onclick="triggerInstantOrgasm()" title="點擊一鍵高潮" style="display:none;">
         <svg class="heart-svg" viewBox="0 0 32 32">
@@ -661,7 +662,7 @@
   let PIP_INTERVAL = 1000 / PIP_FPS;
 
   let lastAudioAnalyzeTime = 0;
-  const AUDIO_FPS = 15; 
+  const AUDIO_FPS = 25; // 提高頻率以更靈敏識別聲音
   const AUDIO_INTERVAL = 1000 / AUDIO_FPS;
 
   const audio = document.getElementById("main-audio");
@@ -776,8 +777,7 @@
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.3;
+      analyser.fftSize = 512; // 調整 fftSize 以獲取更精確的頻段解析
       
       audioSourceNode = audioCtx.createMediaElementSource(audio);
       audioSourceNode.connect(analyser);
@@ -805,14 +805,16 @@
     const dataArray = new Uint8Array(bufferLength);
     analyser.getByteFrequencyData(dataArray);
 
-    let totalEnergy = 0;
+    let totalSum = 0;
+    // 計算全頻段能量以確保能準確識別任何音檔的聲音起伏
     for (let i = 0; i < bufferLength; i++) {
-      totalEnergy += dataArray[i];
+      totalSum += dataArray[i];
     }
-    let avgEnergy = totalEnergy / bufferLength;
+    let avgEnergy = totalSum / bufferLength;
 
-    if (avgEnergy > 2) {
-      heartFillPercent += (0.015 / 8.0) * (avgEnergy / 25);
+    // 只要偵測到聲音振幅大於閾值，愛心就會穩定累積填滿
+    if (avgEnergy > 8) {
+      heartFillPercent += (0.12 * (avgEnergy / 50));
     }
 
     if (heartFillPercent >= 100) {
@@ -1068,29 +1070,19 @@
     }
   }
 
+  /* 修復手機端及標準全螢幕按鈕反應與全螢幕播放問題 */
   function toggleFullScreen() {
-    if (currentAlbumType === 'mp4' && mainVideoPlayer && typeof mainVideoPlayer.webkitEnterFullscreen === 'function') {
-      try {
-        mainVideoPlayer.webkitEnterFullscreen();
-        return;
-      } catch (e) {}
-    }
-
     const container = document.getElementById("media-display-container");
     if (!container) return;
     
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
       if (container.requestFullscreen) {
-        container.requestFullscreen().catch(err => {
-          if (mainVideoPlayer && typeof mainVideoPlayer.webkitEnterFullscreen === 'function') {
-            try { mainVideoPlayer.webkitEnterFullscreen(); return; } catch(e){}
-          }
-          alert("無法進入全螢幕模式： " + err.message);
-        });
+        container.requestFullscreen().catch(err => { alert("無法進入全螢幕模式： " + err.message); });
       } else if (container.webkitRequestFullscreen) {
         container.webkitRequestFullscreen();
-      } else if (mainVideoPlayer && typeof mainVideoPlayer.webkitEnterFullscreen === 'function') {
-        try { mainVideoPlayer.webkitEnterFullscreen(); } catch(e) {}
+      } else if (mainVideoPlayer && mainVideoPlayer.webkitEnterFullscreen) {
+        // 針對 iOS Safari 專用影片全螢幕備用支援
+        mainVideoPlayer.webkitEnterFullscreen();
       }
     } else {
       if (document.exitFullscreen) {
@@ -1113,7 +1105,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V38", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V37", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -2017,8 +2009,117 @@
       audio.volume = lastVolume;
       climaxAudioEl.volume = lastVolume;
       volumeSlider.value = lastVolume;
-      document.getElementById("btn-mute").innerText = "🔇";
+      document.getElementById("btn-mute").innerText = "🔈";
     }
+  }
+
+  function expandPlayer() { playerCard.classList.remove("minimized"); }
+  function minimizePlayer() { playerCard.classList.add("minimized"); }
+
+  function formatTime(sec) {
+    if (isNaN(sec)) return "00:00";
+    let m = Math.floor(sec / 60);
+    let s = Math.floor(sec % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+  }
+
+  function uploadCurrentTrackLrc(event) {
+    const file = event.target.files[0];
+    if (!file || currentIndex === -1) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let text = e.target.result;
+      let track = currentTrackList[currentIndex];
+      track.lrcText = text;
+      currentLrc = parseUniversalLyrics(text);
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => alert("✅ 字幕更新成功！");
+    };
+    reader.readAsText(file);
+  }
+
+  function pasteCurrentTrackLrc() {
+    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    let text = prompt("請貼上您的字幕內容 (支援 LRC / VTT / SRT / 一般文字)：");
+    if (text === null) return;
+    let track = currentTrackList[currentIndex];
+    track.lrcText = text;
+    currentLrc = parseUniversalLyrics(text);
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => alert("✅ 字幕貼上並更新成功！");
+  }
+
+  function inspectCurrentTrackLrc() {
+    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    let track = currentTrackList[currentIndex];
+    let currentText = track.lrcText || "目前尚無字幕內容。";
+    let newText = prompt("目前篇章的字幕源碼 (可在此檢視或直接編輯修改)：", currentText);
+    if (newText === null) return;
+    track.lrcText = newText;
+    currentLrc = parseUniversalLyrics(newText);
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => alert("✅ 字幕內容已成功更新！");
+  }
+
+  function exportDataBackup() {
+    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+    let backupData = { albums: [], tracks: [], settings: [] };
+    
+    tx.objectStore("albums").getAll().onsuccess = (e) => { backupData.albums = e.target.result; };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => { backupData.tracks = e.target.result; };
+    tx.objectStore("settings").getAll().onsuccess = (e) => { backupData.settings = e.target.result; };
+
+    tx.oncomplete = () => {
+      const blob = new Blob([JSON.stringify(backupData)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ASMR_Library_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+  }
+
+  function importDataBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        
+        if (data.albums) {
+          const store = tx.objectStore("albums");
+          data.albums.forEach(item => store.put(item));
+        }
+        if (data.tracks) {
+          const store = tx.objectStore("tracks");
+          data.tracks.forEach(item => store.put(item));
+        }
+        if (data.settings) {
+          const store = tx.objectStore("settings");
+          data.settings.forEach(item => store.put(item));
+        }
+
+        tx.oncomplete = () => {
+          loadData();
+          alert("✅ 備份資料匯入與跨裝置同步成功！");
+        };
+      } catch(err) {
+        alert("❌ 匯入失敗：檔案格式不正確或損毀。");
+      }
+    };
+    reader.readAsText(file);
   }
 </script>
 </body>
