@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (動態影音與MP3雙專區極速優化流暢升級版)</title>
+  <title>ASMR 私人隨身庫 (動態影音 YouTube 風格滿版流暢升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -110,7 +110,6 @@
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* 首頁作品清單卡片：為 MP4 專區設計獨立精緻的 YouTube 風格滿版縮圖樣式，與 MP3 嚴格區隔 */
     .album-grid-card {
       background: var(--card-glass); backdrop-filter: blur(16px);
       border: 1px solid var(--border-glass); border-radius: 20px; padding: 14px; margin-bottom: 12px;
@@ -123,7 +122,6 @@
     }
     .album-grid-thumb { width: 76px; height: 76px; border-radius: 14px; object-fit: cover; margin-right: 14px; flex-shrink: 0; background: #121218; }
     
-    /* MP4 專區首頁專屬 YouTube 風格大圖卡片 (點進去直接展開影片) */
     .album-youtube-card {
       background: var(--card-glass); backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 121, 198, 0.3); border-radius: 20px; overflow: hidden; margin-bottom: 16px;
@@ -222,7 +220,7 @@
       flex-direction: column !important;
       justify-content: center !important;
       align-items: center !important;
-      padding: 10px !important;
+      padding: 0 !important;
       box-sizing: border-box !important;
     }
     #media-display-container:-webkit-full-screen {
@@ -233,7 +231,7 @@
       flex-direction: column !important;
       justify-content: center !important;
       align-items: center !important;
-      padding: 10px !important;
+      padding: 0 !important;
       box-sizing: border-box !important;
     }
 
@@ -249,10 +247,10 @@
       top: 0; left: 0; border-radius: 12px;
     }
 
-    /* MP4 專區專屬：無任何裝飾，純 MP4 畫面與愛心特效及透明字幕背景 */
+    /* 升級版：YouTube 風格純影片滿版播放面板 (object-fit: cover 填滿無黑邊，愛心與字幕完整包覆在影片內) */
     .video-player-box {
       width: 100%;
-      height: 360px;
+      height: 380px;
       background: #000000;
       border-radius: 16px;
       overflow: hidden;
@@ -266,55 +264,51 @@
     .video-player-box video {
       width: 100%;
       height: 100%;
-      object-fit: contain;
+      object-fit: cover; /* 完美填滿整個畫面，消除黑邊，讓愛心與控制項完全在影片裏面 */
       background: #000;
       outline: none;
     }
     #media-display-container:fullscreen .video-player-box,
     #media-display-container:-webkit-full-screen .video-player-box {
-      width: 100% !important;
-      height: 85vh !important;
+      width: 100vw !important;
+      height: 100vh !important;
       max-height: none !important;
-      border-radius: 16px !important;
+      border-radius: 0 !important;
       margin-bottom: 0 !important;
     }
 
-    /* 透明背景字幕樣式（去除黑色底） */
+    /* 純字幕顯示，完全移除不必要的黑色背景與外框 */
     .video-subtitle-overlay {
       position: absolute;
-      bottom: 16px;
+      bottom: 20px;
       left: 16px;
       right: 16px;
       text-align: center;
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: var(--primary-pink);
-      text-shadow: 0 0 16px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.9);
+      text-shadow: 0 0 16px rgba(0,0,0,0.95), 0 2px 6px rgba(0,0,0,0.9);
       pointer-events: none;
       z-index: 20;
       line-height: 1.4;
-      padding: 6px 12px;
-      background: rgba(0, 0, 0, 0.15);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: transparent; /* 移除任何背景陰影底色 */
+      border: none;
     }
     #media-display-container:fullscreen .video-subtitle-overlay,
     #media-display-container:-webkit-full-screen .video-subtitle-overlay {
       font-size: 1.6rem !important;
-      bottom: 24px !important;
+      bottom: 30px !important;
     }
 
     .heart-toy-container {
-      position: absolute; top: 12px; right: 12px; width: 46px; height: 46px;
+      position: absolute; top: 16px; right: 16px; width: 46px; height: 46px;
       z-index: 30; cursor: pointer; user-select: none;
       filter: drop-shadow(0 0 8px rgba(255, 121, 198, 0.8));
       transition: transform 0.15s ease;
     }
     .heart-toy-container:active { transform: scale(1.2); }
     .heart-svg { width: 100%; height: 100%; overflow: visible; }
-    .heart-bg { fill: rgba(10, 10, 16, 0.65); stroke: #ff79c6; stroke-width: 2.2; }
+    .heart-bg { fill: rgba(10, 10, 16, 0.45); stroke: #ff79c6; stroke-width: 2.2; }
     .heart-fill { fill: url(#heart-gradient); }
     
     .heart-full-beat {
@@ -431,7 +425,7 @@
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
       <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載完整資料（包含媒體與封面檔案）。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
+        點擊「匯出備份檔案」會下載完整資料。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
       </div>
       <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
@@ -440,11 +434,10 @@
       </div>
     </div>
 
-    <!-- 省電功能：放置於 MP3 面板設定區中 -->
     <div class="glass-card" style="border: 1px solid rgba(50, 215, 75, 0.4); background: rgba(10, 25, 15, 0.85);">
       <div class="card-title" style="color: #32d74b;">🔋 MP3 專區省電與懸浮動態設定</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        在此設定 MP3 面板的省電播放與桌面懸浮影片聯動。當啟用時，MP3 專區的懸浮影片與背景自動進入節能幀率，大幅降低手機耗電與發熱。
+        在此設定 MP3 面板的省電播放與桌面懸浮影片聯動。
       </div>
       <div class="form-group">
         <label>MP3 專區省電模式 (自動降低背景運算與影音畫面更新率)</label>
@@ -458,7 +451,7 @@
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
       <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        設定後，在「動態影音專區」觸發高潮時將自動暫停主影音，顯示專屬特效圖片並播放此音效。結束後自動恢復！
+        設定後，在「動態影音專區」觸發高潮時將自動暫停主影音，顯示專屬特效圖片並播放此音效。
       </div>
       <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
       <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
@@ -551,14 +544,14 @@
   </div>
 
   <div id="media-display-container">
-    <!-- MP3 專區專屬面板 (支援桌面懸浮影片與省電模式) -->
+    <!-- MP3 專區專屬面板 -->
     <div class="cover-box" id="player-cover-box" style="display:none;">
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     </div>
 
-    <!-- MP4 動態影音專區專屬面板 (YouTube 風格點擊即看、全螢幕橫向放大、無聲影片搭配插入音檔與字幕) -->
+    <!-- MP4 動態影音專區專屬面板 (YouTube 風格：純影片填滿無黑邊、愛心與透明字幕包覆其中) -->
     <div class="video-player-box" id="video-player-box" style="display:none;">
       <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous"></video>
       <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 選擇小篇章開始播放 ♪</div>
@@ -1116,7 +1109,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V36", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V37", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1166,12 +1159,12 @@
 
     if (isMp4) {
       if (coverGroup) coverGroup.style.display = "none";
-      if (trackAudioLabel) trackAudioLabel.innerText = "影片主檔案 (MP4 / MOV 動態影片，影片播放時會自動轉為無聲並搭配下方插入音檔循環)";
+      if (trackAudioLabel) trackAudioLabel.innerText = "影片主檔案 (MP4 / MOV 動態影片，YouTube 風格滿版撥放)";
       if (batchAudioLabel) batchAudioLabel.innerText = "複選所有影片檔 (.mp4 / .mov)";
       if (trackAudioInput) trackAudioInput.accept = "video/*,.mp4,.mov,.webm";
       if (batchAudioInput) batchAudioInput.accept = "video/*,.mp4,.mov,.webm";
       if (extraAudioGroup) extraAudioGroup.style.display = "block";
-      if (trackExtraLabel) trackExtraLabel.innerText = "專屬插入音檔 (MP4 專區必備：影片無聲播放，並以此音檔同步循環播放)";
+      if (trackExtraLabel) trackExtraLabel.innerText = "專屬插入音檔 (MP4 專區選填：影片若需額外配樂可在此上傳)";
     } else {
       if (coverGroup) coverGroup.style.display = "block";
       if (trackAudioLabel) trackAudioLabel.innerText = "音訊檔案 (MP3 / WAV / M4A)";
@@ -1349,10 +1342,6 @@
     };
   }
 
-  /* 嚴格確保 MP4 專區與 MP3 專區在首頁呈現完全不同的差異化樣式：
-     - MP4 專區：採用 YouTube 風格大圖卡片，點擊直接展開影片播放
-     - MP3 專區：採用標準輕量清單卡片
-  */
   function renderHomeAlbums() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
@@ -1375,8 +1364,7 @@
       let albumTracks = tracks.filter(t => t.albumId === album.id);
 
       if (album.albumType === 'mp4') {
-        // MP4 專區專屬 YouTube 樣式大圖卡片 (點進去就是影片播放)
-        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>YouTube 樣式 MP4 專區</text></svg>";
+        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>YouTube 風格滿版影片專區</text></svg>";
         if (albumTracks.length > 0 && albumTracks[0].videoBlob) {
           ytThumbUrl = createTrackedObjectURL(albumTracks[0].videoBlob);
         }
@@ -1386,12 +1374,12 @@
         ytCard.innerHTML = `
           <div class="album-youtube-thumb-container">
             <video src="${ytThumbUrl}" muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊即看影片 (${albumTracks.length} 則)</div>
+            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊觀看滿版影片 (${albumTracks.length} 則)</div>
           </div>
           <div class="album-youtube-info">
             <div>
               <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
-              <span class="album-badge badge-mp4">🌸 MP4 動態影音專區 (YouTube 樣式)</span>
+              <span class="album-badge badge-mp4">🌸 MP4 動態影音專區 (YouTube 滿版風格)</span>
             </div>
             <div class="btn-action-col">
               <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
@@ -1406,7 +1394,6 @@
         listEl.appendChild(ytCard);
 
       } else {
-        // MP3 專區標準卡片
         let thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
         if (album.covers && album.covers.length > 0) {
           let firstCover = album.covers[0];
@@ -1489,7 +1476,7 @@
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
-            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.audioBlob && album.albumType === 'mp4' ? ' | 🎙️ 含無聲影片與插入音檔循環' : ''}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 YouTube 風格滿版影片' : ''}</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1598,8 +1585,8 @@
     };
 
     if (isMp4) {
-      trackData.videoBlob = mainFile; // MP4 影片（無聲播放）
-      trackData.audioBlob = extraAudioFile || null; // 獨立插入音檔（循環播放）
+      trackData.videoBlob = mainFile; // MP4 影片
+      trackData.audioBlob = extraAudioFile || null; // 選填插入音檔
     } else {
       trackData.audioBlob = mainFile; // MP3音檔
     }
@@ -1844,14 +1831,14 @@
       audio.pause();
       const videoUrl = createTrackedObjectURL(track.videoBlob);
       mainVideoPlayer.src = videoUrl;
-      mainVideoPlayer.muted = true; // MP4 影片本身無聲播放
+      mainVideoPlayer.muted = false; // 影片本身有聲播放
       mainVideoPlayer.loop = true;  // 影片循環播放
       mainVideoPlayer.load();
 
       if (track.audioBlob) {
         const audioUrl = createTrackedObjectURL(track.audioBlob);
         audio.src = audioUrl;
-        audio.loop = true; // 插入音檔循環播放
+        audio.loop = true;
         audio.load();
       } else {
         audio.removeAttribute('src');
@@ -2019,61 +2006,50 @@
     const album = albums.find(a => a.id === track.albumId);
     if (album && album.albumType === 'mp3') setupActiveAlbumCovers(album);
     loadAndPlayCurrentTrack(track, album);
+    if (currentAlbumBgBlobs.length > 0) {
+      albumBgIndex--;
+      applyAlbumBackground(currentAlbumBgBlobs, albumBgIndex);
+    }
   }
 
-  seekSlider.addEventListener("input", (e) => {
+  function seekRelative(seconds) {
     let m = getActiveMedia();
-    if (!m || !m.duration || isClimaxState) return;
-    let time = (e.target.value / 100) * m.duration;
+    if (!m || !m.duration) return;
+    m.currentTime = Math.max(0, Math.min(m.duration, m.currentTime + seconds));
+  }
+
+  seekSlider.addEventListener("input", () => {
+    let m = getActiveMedia();
+    if (!m || !m.duration) return;
+    let time = (seekSlider.value / 100) * m.duration;
     m.currentTime = time;
-    if (currentAlbumType === 'mp4' && mainVideoPlayer) {
-      mainVideoPlayer.currentTime = time;
-    }
   });
 
-  function seekRelative(sec) {
-    let m = getActiveMedia();
-    if (currentIndex === -1 || isClimaxState || !m) return;
-    let newTime = Math.max(0, Math.min(m.duration || 0, m.currentTime + sec));
-    m.currentTime = newTime;
-    if (currentAlbumType === 'mp4' && mainVideoPlayer) {
-      mainVideoPlayer.currentTime = newTime;
-    }
-  }
-
-  volumeSlider.addEventListener("input", (e) => {
-    let vol = e.target.value;
-    audio.volume = vol;
-    mainVideoPlayer.volume = vol;
-    climaxAudioEl.volume = vol;
-    audio.muted = (vol === 0);
-    climaxAudioEl.muted = (vol === 0);
-    updateMuteIcon();
+  volumeSlider.addEventListener("input", () => {
+    let val = parseFloat(volumeSlider.value);
+    audio.volume = val;
+    mainVideoPlayer.volume = val;
+    climaxAudioEl.volume = val;
+    document.getElementById("btn-mute").innerText = val === 0 ? "🔇" : "🔈";
   });
 
   function toggleMute() {
     let m = getActiveMedia();
     if (!m) return;
-    let isMutedNow = m.muted;
-    audio.muted = !isMutedNow;
-    climaxAudioEl.muted = !isMutedNow;
-    if (isMutedNow) {
-      audio.volume = lastVolume || 1;
-      climaxAudioEl.volume = lastVolume || 1;
-      volumeSlider.value = audio.volume;
-    } else {
+    if (m.volume > 0) {
       lastVolume = m.volume;
       audio.volume = 0;
+      mainVideoPlayer.volume = 0;
       climaxAudioEl.volume = 0;
       volumeSlider.value = 0;
+      document.getElementById("btn-mute").innerText = "🔇";
+    } else {
+      audio.volume = lastVolume;
+      mainVideoPlayer.volume = lastVolume;
+      climaxAudioEl.volume = lastVolume;
+      volumeSlider.value = lastVolume;
+      document.getElementById("btn-mute").innerText = "🔈";
     }
-    updateMuteIcon();
-  }
-
-  function updateMuteIcon() {
-    let m = getActiveMedia();
-    const btn = document.getElementById("btn-mute");
-    btn.innerText = (!m || m.muted || m.volume === 0) ? "🔇" : "🔈";
   }
 
   function expandPlayer() {
@@ -2083,126 +2059,104 @@
 
   function minimizePlayer() {
     playerCard.classList.add("minimized");
-    playerCard.style.transform = '';
-    miniPlayer.classList.remove("hidden");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
   }
 
   function formatTime(seconds) {
+    if (isNaN(seconds)) return "00:00";
     let m = Math.floor(seconds / 60);
     let s = Math.floor(seconds % 60);
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  async function uploadCurrentTrackLrc(event) {
-    if (currentIndex === -1) return;
-    const file = event.target.files[0];
-    if (!file) return;
-    const text = await readFileAsTextAsync(file);
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag)
+    );
+  }
+
+  async function uploadCurrentTrackLrc(e) {
+    const file = e.target.files[0];
+    if (!file || currentIndex === -1) return;
+    const text = await file.text();
+    currentLrc = parseUniversalLyrics(text);
     const track = currentTrackList[currentIndex];
     track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-
+    
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕匯入成功！"); };
+    tx.oncomplete = () => alert("✅ 當前篇章字幕更新成功！");
   }
 
   function pasteCurrentTrackLrc() {
     if (currentIndex === -1) return alert("請先播放一個篇章！");
-    let text = prompt("請貼上字幕內容 (支援 LRC / VTT / SRT / 純文字)：");
+    let text = prompt("請貼上 LRC / VTT / SRT 字幕內容：");
     if (text === null) return;
+    currentLrc = parseUniversalLyrics(text);
     const track = currentTrackList[currentIndex];
     track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕更新成功！"); };
+    tx.oncomplete = () => alert("✅ 當前篇章字幕貼上更新成功！");
   }
 
   function inspectCurrentTrackLrc() {
     if (currentIndex === -1) return alert("請先播放一個篇章！");
     const track = currentTrackList[currentIndex];
-    let newText = prompt("檢視/修改目前篇章的字幕內容：", track.lrcText || "");
+    if (!track.lrcText) return alert("當前篇章尚無字幕資料。");
+    let newText = prompt("編輯當前字幕文字：", track.lrcText);
     if (newText === null) return;
     track.lrcText = newText;
     currentLrc = parseUniversalLyrics(newText);
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕修改儲存成功！"); };
+    tx.oncomplete = () => alert("✅ 字幕修改儲存成功！");
   }
 
-  function escapeHTML(str) {
-    if (!str) return "";
-    return str.replace(/[&<>'"]/g, 
-      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag)
-    );
-  }
+  function exportDataBackup() {
+    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+    let backup = { albums: [], tracks: [], settings: [] };
+    
+    tx.objectStore("albums").getAll().onsuccess = (e) => { backup.albums = e.target.result; };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => { backup.tracks = e.target.result; };
+    tx.objectStore("settings").getAll().onsuccess = (e) => { backup.settings = e.target.result; };
 
-  async function exportDataBackup() {
-    try {
-      const albumsData = await new Promise((resolve) => {
-        db.transaction("albums", "readonly").objectStore("albums").getAll().onsuccess = e => resolve(e.target.result);
-      });
-      const tracksData = await new Promise((resolve) => {
-        db.transaction("tracks", "readonly").objectStore("tracks").getAll().onsuccess = e => resolve(e.target.result);
-      });
-      const settingsData = await new Promise((resolve) => {
-        db.transaction("settings", "readonly").objectStore("settings").getAll().onsuccess = e => resolve(e.target.result);
-      });
-
-      const backupObj = { albums: albumsData, tracks: tracksData, settings: settingsData, version: 36 };
-      const blob = new Blob([JSON.stringify(backupObj)], { type: "application/json" });
+    tx.oncomplete = () => {
+      const blob = new Blob([JSON.stringify(backup)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      alert("✅ 完整資料備份匯出成功！");
-    } catch(err) {
-      alert("❌ 匯出備份失敗：" + err.message);
-    }
+    };
   }
 
-  async function importDataBackup(event) {
-    const file = event.target.files[0];
+  function importDataBackup(e) {
+    const file = e.target.files[0];
     if (!file) return;
-    if (!confirm("匯入備份將會覆蓋或合併現有資料，確定要繼續嗎？")) return;
+    const reader = new FileReader();
+    reader.onload = async function(evt) {
+      try {
+        const backup = JSON.parse(evt.target.result);
+        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+        
+        backup.albums.forEach(a => tx.objectStore("albums").put(a));
+        backup.tracks.forEach(t => tx.objectStore("tracks").put(t));
+        backup.settings.forEach(s => tx.objectStore("settings").put(s));
 
-    try {
-      const text = await file.text();
-      const backupObj = JSON.parse(text);
-      if (!backupObj || !backupObj.albums) return alert("❌ 備份檔案格式錯誤！");
-
-      const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
-      
-      backupObj.albums.forEach(a => tx.objectStore("albums").put(a));
-      if (backupObj.tracks) backupObj.tracks.forEach(t => tx.objectStore("tracks").put(t));
-      if (backupObj.settings) backupObj.settings.forEach(s => tx.objectStore("settings").put(s));
-
-      tx.oncomplete = () => {
-        loadData();
-        alert("✅ 資料匯入同步成功！");
-      };
-    } catch(err) {
-      alert("❌ 匯入失敗，檔案可能損毀：" + err.message);
-    }
-  }
-
-  function initMediaSession() {
-    if (!("mediaSession" in navigator)) return;
-    try {
-      navigator.mediaSession.setActionHandler('play', () => togglePlay());
-      navigator.mediaSession.setActionHandler('pause', () => togglePlay());
-      navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
-      navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
-      navigator.mediaSession.setActionHandler('seekbackward', (details) => seekRelative(-10));
-      navigator.mediaSession.setActionHandler('seekforward', (details) => seekRelative(10));
-    } catch(e) {}
+        tx.oncomplete = () => {
+          loadData();
+          alert("✅ 跨裝置備份資料匯入與同步成功！");
+        };
+      } catch(err) {
+        alert("❌ 備份檔案解析失敗，請確認檔案格式是否正確。");
+      }
+    };
+    reader.readAsText(file);
   }
 </script>
 </body>
 </html>
-[cite: 4]
