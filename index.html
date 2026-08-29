@@ -213,7 +213,7 @@
       align-items: center;
     }
 
-    /* 全螢幕樣式修正：將容器放大至滿版，確保愛心與字幕在全螢幕時正常懸浮於最上層 */
+    /* 全螢幕樣式修正：支援 iOS 與標準全螢幕，確保愛心與字幕正常懸浮於最上層 */
     #media-display-container:fullscreen,
     #media-display-container:-webkit-full-screen {
       width: 100vw !important;
@@ -273,7 +273,6 @@
       position: relative !important;
     }
 
-    /* 純字幕顯示修正：調整全螢幕下的字幕層級與字體大小 */
     .video-subtitle-overlay {
       position: absolute;
       bottom: 20px;
@@ -297,7 +296,6 @@
       z-index: 100000 !important;
     }
 
-    /* 愛心特效全螢幕懸浮修正 */
     .heart-toy-container {
       position: absolute; top: 16px; right: 16px; width: 46px; height: 46px;
       z-index: 100; cursor: pointer; user-select: none;
@@ -552,14 +550,12 @@
   </div>
 
   <div id="media-display-container">
-    <!-- MP3 專區專屬面板 -->
     <div class="cover-box" id="player-cover-box" style="display:none;">
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     </div>
 
-    <!-- MP4 動態影音專區專屬面板 (影片徹底靜音，純做背景視覺畫面) -->
     <div class="video-player-box" id="video-player-box" style="display:none;">
       <video id="main-video-player" playsinline webkit-playsinline crossorigin="anonymous" muted loop></video>
       <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 選擇小篇章開始播放 ♪</div>
@@ -581,7 +577,6 @@
       <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:25; object-fit:cover; border-radius:12px;">
     </div>
     
-    <!-- 外部字幕框 (僅 MP3 模式顯示) -->
     <div id="lrc-box" class="lrc-box" style="display:none;">♪ 選擇小篇章開始收聽 ♪</div>
   </div>
 
@@ -686,7 +681,6 @@
   let isDragging = false;
   const dragHandleArea = document.getElementById("drag-handle-area");
 
-  /* 核心修正：音源完全由 audio 掌控 */
   function getActiveMedia() {
     return audio;
   }
@@ -785,7 +779,6 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
       
-      /* 強制音頻分析源使用音檔音源 (audio) */
       audioSourceNode = audioCtx.createMediaElementSource(audio);
       audioSourceNode.connect(analyser);
       analyser.connect(audioCtx.destination);
@@ -1081,7 +1074,6 @@
     }
   }
 
-  /* 核心修正：全螢幕強制作用於 media-display-container 容器，確保字幕與愛心特效均可完整顯示與點擊 */
   function toggleFullScreen() {
     const container = document.getElementById("media-display-container");
     if (!container) return;
@@ -1123,7 +1115,6 @@
   request.onsuccess = (e) => { 
     db = e.target.result; 
     loadData(); 
-    initMediaSession(); 
   };
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -1589,10 +1580,10 @@
     };
 
     if (isMp4) {
-      trackData.videoBlob = mainFile; // MP4 畫面影片
-      trackData.audioBlob = extraAudioFile || mainFile; // 專屬聲源檔
+      trackData.videoBlob = mainFile;
+      trackData.audioBlob = extraAudioFile || mainFile;
     } else {
-      trackData.audioBlob = mainFile; // MP3 音檔
+      trackData.audioBlob = mainFile;
     }
 
     const tx = db.transaction("tracks", "readwrite");
@@ -1830,19 +1821,16 @@
     updateCoverDisplay();
   }
 
-  /* 核心修正：載入與播放邏輯，影片絕對靜音，長度完全由音檔時間決定 */
   function loadAndPlayCurrentTrack(track, album) {
     if (currentAlbumType === 'mp4') {
-      // 1. 設置影片畫面（強烈保證靜音與自動循環背景）
       if (track.videoBlob) {
         const videoUrl = createTrackedObjectURL(track.videoBlob);
         mainVideoPlayer.src = videoUrl;
       }
-      mainVideoPlayer.muted = true; // 強制靜音，完全無聲
-      mainVideoPlayer.loop = true;  // 背景無縫循環
+      mainVideoPlayer.muted = true;
+      mainVideoPlayer.loop = true;
       mainVideoPlayer.load();
 
-      // 2. 設置主音訊源（用 audio 元素做為唯一的聲音與時長代表）
       const audioSourceBlob = track.audioBlob || track.videoBlob;
       if (audioSourceBlob) {
         const audioUrl = createTrackedObjectURL(audioSourceBlob);
@@ -1852,7 +1840,6 @@
         audio.load();
       }
 
-      // 3. 聯動播放
       audio.play().then(() => {
         mainVideoPlayer.play().catch(e => console.log(e));
         document.getElementById("btn-play").innerText = "⏸";
@@ -1887,18 +1874,8 @@
     } else {
       document.getElementById("mini-thumb").src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14'>MP4</text></svg>";
     }
-
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.title,
-        artist: album ? album.title : "ASMR 隨身庫",
-        album: "ASMR 私人隨身庫",
-        artwork: (currentAlbumType === 'mp3' && album && album.covers && album.covers.length > 0 && !album.covers[0].type.startsWith("video")) ? [{ src: createTrackedObjectURL(album.covers[0]) }] : []
-      });
-    }
   }
 
-  /* 時間與計時完全以音訊（audio）為準，同步推動影片進度與字幕 */
   function onMediaTimeUpdate() {
     let m = getActiveMedia();
     if (!m || !m.duration) return;
@@ -1908,7 +1885,6 @@
     document.getElementById("time-current").innerText = formatTime(m.currentTime);
     document.getElementById("time-duration").innerText = formatTime(m.duration);
 
-    /* MP4 模式下同步影片進度 */
     if (currentAlbumType === 'mp4' && mainVideoPlayer && !mainVideoPlayer.paused) {
       if (Math.abs(mainVideoPlayer.currentTime - (m.currentTime % (mainVideoPlayer.duration || m.currentTime + 1))) > 0.5) {
         try { mainVideoPlayer.currentTime = m.currentTime % (mainVideoPlayer.duration || 1); } catch(e){}
@@ -1936,7 +1912,6 @@
     return activeText;
   }
 
-  /* 音檔播完時自動播放下一個篇章 */
   audio.addEventListener("ended", () => {
     if (!isClimaxState) nextTrack();
   });
@@ -2038,213 +2013,98 @@
     }
   }
 
-  function expandPlayer() {
-    playerCard.classList.remove("minimized");
-  }
-
-  function minimizePlayer() {
-    playerCard.classList.add("minimized");
-  }
+  function expandPlayer() { playerCard.classList.remove("minimized"); }
+  function minimizePlayer() { playerCard.classList.add("minimized"); }
 
   function formatTime(sec) {
     if (isNaN(sec)) return "00:00";
     let m = Math.floor(sec / 60);
     let s = Math.floor(sec % 60);
-    return (m < 10 ? "0" + m : m) + ":" + (s < 10 ? "0" + s : s);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
   function escapeHTML(str) {
-    return String(str).replace(/[&<>"']/g, function(m) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-    });
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
   }
 
-  async function uploadCurrentTrackLrc(e) {
-    if (currentIndex === -1) return alert("請先選擇播放篇章！");
-    const file = e.target.files[0];
-    if (!file) return;
-    const text = await file.text();
-    const track = currentTrackList[currentIndex];
-    track.lrcText = text;
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
+  function uploadCurrentTrackLrc(event) {
+    const file = event.target.files[0];
+    if (!file || currentIndex === -1) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let text = e.target.result;
+      let track = currentTrackList[currentIndex];
+      track.lrcText = text;
       currentLrc = parseUniversalLyrics(text);
-      alert("✅ 已更新該篇章字幕！");
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => alert("✅ 字幕匯入成功！");
     };
+    reader.readAsText(file);
   }
 
   function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先選擇播放篇章！");
-    const text = prompt("請貼上 LRC / VTT / SRT 或純文字字幕內容：");
+    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    let text = prompt("請貼上 LRC / VTT / SRT 字幕文字：");
     if (text === null) return;
-    const track = currentTrackList[currentIndex];
+    let track = currentTrackList[currentIndex];
     track.lrcText = text;
-
+    currentLrc = parseUniversalLyrics(text);
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      currentLrc = parseUniversalLyrics(text);
-      alert("✅ 字幕已黏貼並更新！");
-    };
+    tx.oncomplete = () => alert("✅ 字幕更新成功！");
   }
 
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先選擇播放篇章！");
-    const track = currentTrackList[currentIndex];
-    const text = prompt("檢視 / 修改當前字幕內容：", track.lrcText || "");
-    if (text === null) return;
-    track.lrcText = text;
-
+    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    let track = currentTrackList[currentIndex];
+    let newText = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
+    if (newText === null) return;
+    track.lrcText = newText;
+    currentLrc = parseUniversalLyrics(newText);
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      currentLrc = parseUniversalLyrics(text);
-      alert("✅ 字幕已修改並更新！");
-    };
-  }
-
-  function initMediaSession() {
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.setActionHandler("play", () => togglePlay());
-      navigator.mediaSession.setActionHandler("pause", () => togglePlay());
-      navigator.mediaSession.setActionHandler("previoustrack", () => prevTrack());
-      navigator.mediaSession.setActionHandler("nexttrack", () => nextTrack());
-      navigator.mediaSession.setActionHandler("seekbackward", () => seekRelative(-10));
-      navigator.mediaSession.setActionHandler("seekforward", () => seekRelative(10));
-    }
+    tx.oncomplete = () => alert("✅ 字幕修改儲存成功！");
   }
 
   async function exportDataBackup() {
-    if (!db) return alert("資料庫未準備好！");
     const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    const albumsData = await new Promise(r => tx.objectStore("albums").getAll().onsuccess = e => r(e.target.result));
-    const tracksData = await new Promise(r => tx.objectStore("tracks").getAll().onsuccess = e => r(e.target.result));
+    let exportObj = { albums: [], tracks: [], settings: [] };
     
-    function blobToBase64(blob) {
-      return new Promise((resolve) => {
-        if (!blob) { resolve(null); return; }
-        const reader = new FileReader();
-        reader.onloadend = () => resolve({ data: reader.result, type: blob.type });
-        reader.readAsDataURL(blob);
-      });
-    }
+    exportObj.albums = await new Promise(r => tx.objectStore("albums").getAll().onsuccess = e => r(e.target.result));
+    exportObj.tracks = await new Promise(r => tx.objectStore("tracks").getAll().onsuccess = e => r(e.target.result));
+    exportObj.settings = await new Promise(r => tx.objectStore("settings").getAll().onsuccess = e => r(e.target.result));
 
-    alert("⚡ 正在打包完整專案備份檔，請稍候...");
-
-    let serializableAlbums = [];
-    for (let a of albumsData) {
-      let coversB64 = [];
-      if (a.covers) {
-        for (let c of a.covers) coversB64.push(await blobToBase64(c));
-      }
-      let bgsB64 = [];
-      if (a.backgrounds) {
-        for (let b of a.backgrounds) bgsB64.push(await blobToBase64(b));
-      }
-      serializableAlbums.push({ ...a, covers: coversB64, backgrounds: bgsB64 });
-    }
-
-    let serializableTracks = [];
-    for (let t of tracksData) {
-      let audioB64 = await blobToBase64(t.audioBlob);
-      let videoB64 = await blobToBase64(t.videoBlob);
-      serializableTracks.push({ ...t, audioBlob: audioB64, videoBlob: videoB64 });
-    }
-
-    const exportObj = {
-      version: 1,
-      timestamp: new Date().toISOString(),
-      albums: serializableAlbums,
-      tracks: serializableTracks
-    };
-
-    const jsonStr = JSON.stringify(exportObj);
-    const blob = new Blob([jsonStr], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(exportObj)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    alert("✅ 備份下載完畢！可將該 .json 檔案傳至手機或電腦進行跨裝置同步匯入。");
   }
 
-  async function importDataBackup(e) {
-    const file = e.target.files[0];
+  async function importDataBackup(event) {
+    const file = event.target.files[0];
     if (!file) return;
-    if (!confirm("⚠️ 匯入備份將覆蓋或合併資料，是否繼續？")) return;
-
     const text = await file.text();
-    let data;
     try {
-      data = JSON.parse(text);
-    } catch(err) {
-      return alert("❌ 備份檔案解析失敗，請確認是否為有效的 JSON 檔。");
+      const data = JSON.parse(text);
+      const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+      
+      data.albums.forEach(item => tx.objectStore("albums").put(item));
+      data.tracks.forEach(item => tx.objectStore("tracks").put(item));
+      if(data.settings) data.settings.forEach(item => tx.objectStore("settings").put(item));
+
+      tx.oncomplete = () => {
+        loadData();
+        alert("✅ 資料備份匯入與跨裝置同步成功！");
+      };
+    } catch(e) {
+      alert("❌ 匯入失敗，檔案格式錯誤。");
     }
-
-    function base64ToBlob(b64Obj) {
-      if (!b64Obj || !b64Obj.data) return null;
-      const arr = b64Obj.data.split(',');
-      const mime = b64Obj.type || arr[0].match(/:(.*?);/)[1];
-      const bstr = atob(arr[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n);
-      }
-      return new Blob([u8arr], { type: mime });
-    }
-
-    alert("⚡ 正在解析並寫入資料庫，請稍候...");
-
-    const tx = db.transaction(["albums", "tracks"], "readwrite");
-    const albumStore = tx.objectStore("albums");
-    const trackStore = tx.objectStore("tracks");
-
-    let albumIdMap = {};
-
-    if (data.albums) {
-      for (let a of data.albums) {
-        let oldId = a.id;
-        delete a.id;
-        let restoredCovers = [];
-        if (a.covers) {
-          for (let c of a.covers) restoredCovers.push(base64ToBlob(c));
-        }
-        let restoredBgs = [];
-        if (a.backgrounds) {
-          for (let b of a.backgrounds) restoredBgs.push(base64ToBlob(b));
-        }
-        a.covers = restoredCovers;
-        a.backgrounds = restoredBgs;
-
-        let newId = await new Promise(r => {
-          let req = albumStore.add(a);
-          req.onsuccess = (ev) => r(ev.target.result);
-        });
-        albumIdMap[oldId] = newId;
-      }
-    }
-
-    if (data.tracks) {
-      for (let t of data.tracks) {
-        delete t.id;
-        if (t.albumId && albumIdMap[t.albumId]) {
-          t.albumId = albumIdMap[t.albumId];
-        }
-        t.audioBlob = base64ToBlob(t.audioBlob);
-        t.videoBlob = base64ToBlob(t.videoBlob);
-        trackStore.add(t);
-      }
-    }
-
-    tx.oncomplete = () => {
-      loadData();
-      alert("🎉 備份匯入完成！作品集與聲源已完美還原。");
-      e.target.value = "";
-    };
   }
 </script>
 </body>
