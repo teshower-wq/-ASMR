@@ -2123,153 +2123,86 @@
   function inspectCurrentTrackLrc() {
     if (currentIndex === -1) return alert("請先播放一個篇章！");
     const track = currentTrackList[currentIndex];
-    let newText = prompt("檢視與修改目前字幕原始碼：", track.lrcText || "");
+    let newText = prompt("檢視/修改目前篇章的字幕內容：", track.lrcText || "");
     if (newText === null) return;
     track.lrcText = newText;
     currentLrc = parseUniversalLyrics(newText);
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕已修改儲存！"); };
+    tx.oncomplete = () => { alert("✅ 字幕修改儲存成功！"); };
   }
 
-  async function blobToDataURL(blob) {
-    return new Promise((resolve) => {
-      if (!blob || !(blob instanceof Blob)) { resolve(blob); return; }
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
+  function escapeHTML(str) {
+    if (!str) return "";
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag)
+    );
   }
 
   async function exportDataBackup() {
-    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    let rawAlbums = [];
-    let rawTracks = [];
-    let rawSettings = [];
+    try {
+      const albumsData = await new Promise((resolve) => {
+        db.transaction("albums", "readonly").objectStore("albums").getAll().onsuccess = e => resolve(e.target.result);
+      });
+      const tracksData = await new Promise((resolve) => {
+        db.transaction("tracks", "readonly").objectStore("tracks").getAll().onsuccess = e => resolve(e.target.result);
+      });
+      const settingsData = await new Promise((resolve) => {
+        db.transaction("settings", "readonly").objectStore("settings").getAll().onsuccess = e => resolve(e.target.result);
+      });
 
-    tx.objectStore("albums").getAll().onsuccess = (e) => { rawAlbums = e.target.result; };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => { rawTracks = e.target.result; };
-    tx.objectStore("settings").getAll().onsuccess = (e) => { rawSettings = e.target.result; };
-
-    tx.oncomplete = async () => {
-      let exportAlbums = [];
-      for (let a of rawAlbums) {
-        let coversBase64 = [];
-        if (a.covers) {
-          for (let c of a.covers) { coversBase64.push(await blobToDataURL(c)); }
-        }
-        let bgsBase64 = [];
-        if (a.backgrounds) {
-          for (let b of a.backgrounds) { bgsBase64.push(await blobToDataURL(b)); }
-        }
-        exportAlbums.push({ ...a, covers: coversBase64, backgrounds: bgsBase64 });
-      }
-
-      let exportTracks = [];
-      for (let t of rawTracks) {
-        let audioBase64 = await blobToDataURL(t.audioBlob);
-        let videoBase64 = await blobToDataURL(t.videoBlob);
-        exportTracks.push({ ...t, audioBlob: audioBase64, videoBlob: videoBase64 });
-      }
-
-      let exportSettings = [];
-      for (let s of rawSettings) {
-        if (s.key === 'globalBackgrounds' && s.blobs) {
-          let b64Arr = [];
-          for (let b of s.blobs) { b64Arr.push(await blobToDataURL(b)); }
-          exportSettings.push({ key: s.key, blobs: b64Arr });
-        } else if (s.key === 'climaxCustomData' && s.imgBlob && s.audioBlob) {
-          exportSettings.push({
-            key: s.key,
-            imgBlob: await blobToDataURL(s.imgBlob),
-            audioBlob: await blobToDataURL(s.audioBlob)
-          });
-        } else {
-          exportSettings.push(s);
-        }
-      }
-
-      const backupObj = { albums: exportAlbums, tracks: exportTracks, settings: exportSettings, version: 36 };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      alert("✅ 資料備份檔案已成功匯出下載！");
-    };
+      const backupObj = { albums: albumsData, tracks: tracksData, settings: settingsData, version: 36 };
+      const blob = new Blob([JSON.stringify(backupObj)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      alert("✅ 完整資料備份匯出成功！");
+    } catch(err) {
+      alert("❌ 匯出備份失敗：" + err.message);
+    }
   }
 
   async function importDataBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      try {
-        const backupObj = JSON.parse(e.target.result);
-        if (!backupObj.albums || !backupObj.tracks) return alert("❌ 備份檔案格式錯誤！");
+    if (!confirm("匯入備份將會覆蓋或合併現有資料，確定要繼續嗎？")) return;
 
-        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
-        tx.objectStore("albums").clear();
-        tx.objectStore("tracks").clear();
-        tx.objectStore("settings").clear();
+    try {
+      const text = await file.text();
+      const backupObj = JSON.parse(text);
+      if (!backupObj || !backupObj.albums) return alert("❌ 備份檔案格式錯誤！");
 
-        for (let a of backupObj.albums) {
-          let restoredCovers = [];
-          if (a.covers) {
-            for (let c of a.covers) { restoredCovers.push(await dataURLToBlob(c)); }
-          }
-          let restoredBgs = [];
-          if (a.backgrounds) {
-            for (let b of a.backgrounds) { restoredBgs.push(await dataURLToBlob(b)); }
-          }
-          tx.objectStore("albums").add({ ...a, covers: restoredCovers, backgrounds: restoredBgs });
-        }
+      const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
+      
+      backupObj.albums.forEach(a => tx.objectStore("albums").put(a));
+      if (backupObj.tracks) backupObj.tracks.forEach(t => tx.objectStore("tracks").put(t));
+      if (backupObj.settings) backupObj.settings.forEach(s => tx.objectStore("settings").put(s));
 
-        for (let t of backupObj.tracks) {
-          let restoredAudio = await dataURLToBlob(t.audioBlob);
-          let restoredVideo = await dataURLToBlob(t.videoBlob);
-          tx.objectStore("tracks").add({ ...t, audioBlob: restoredAudio, videoBlob: restoredVideo });
-        }
-
-        if (backupObj.settings) {
-          for (let s of backupObj.settings) {
-            if (s.key === 'globalBackgrounds' && s.blobs) {
-              let restoredBlobs = [];
-              for (let b of s.blobs) { restoredBlobs.push(await dataURLToBlob(b)); }
-              tx.objectStore("settings").put({ key: s.key, blobs: restoredBlobs });
-            } else if (s.key === 'climaxCustomData' && s.imgBlob && s.audioBlob) {
-              tx.objectStore("settings").put({
-                key: s.key,
-                imgBlob: await dataURLToBlob(s.imgBlob),
-                audioBlob: await dataURLToBlob(s.audioBlob)
-              });
-            } else {
-              tx.objectStore("settings").put(s);
-            }
-          }
-        }
-
-        tx.oncomplete = () => {
-          loadData();
-          alert("✅ 資料備份還原成功！所有作品與影音已同步完畢。");
-        };
-      } catch(err) {
-        alert("❌ 匯入備份失敗：" + err.message);
-      }
-    };
-    reader.readAsText(file);
+      tx.oncomplete = () => {
+        loadData();
+        alert("✅ 資料匯入同步成功！");
+      };
+    } catch(err) {
+      alert("❌ 匯入失敗，檔案可能損毀：" + err.message);
+    }
   }
 
-  function escapeHTML(str) {
-    if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
-      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'}[tag] || tag)
-    );
+  function initMediaSession() {
+    if (!("mediaSession" in navigator)) return;
+    try {
+      navigator.mediaSession.setActionHandler('play', () => togglePlay());
+      navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+      navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+      navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+      navigator.mediaSession.setActionHandler('seekbackward', (details) => seekRelative(-10));
+      navigator.mediaSession.setActionHandler('seekforward', (details) => seekRelative(10));
+    } catch(e) {}
   }
 </script>
 </body>
 </html>
+[cite: 4]
