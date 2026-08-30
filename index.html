@@ -363,4 +363,321 @@
 
 <script>
   /* 資料庫與共用邏輯 */
-  let db,
+  let db, albums = [], tracks = [], currentTrackList = [], currentIndex = -1, currentLrc = [];
+  let currentAlbumType = 'mp3';
+  let activeCreatedUrls = [];
+
+  const mp3Audio = document.getElementById("mp3-audio-player");
+  const mp4Audio = document.getElementById("mp4-audio-player");
+  const mp4Video = document.getElementById("mp4-video-player");
+
+  function showToast(msg) {
+    const box = document.getElementById("toast-container");
+    const t = document.createElement("div"); t.className = "toast-msg"; t.innerText = msg;
+    box.appendChild(t); setTimeout(() => t.remove(), 3000);
+  }
+
+  function cleanMemoryAndGC() {
+    activeCreatedUrls.forEach(url => { try { URL.revokeObjectURL(url); } catch(e){} });
+    activeCreatedUrls = []; showToast("⚡ 已清理快取，最佳化效能。");
+  }
+
+  function createObjectURLTracked(blob) {
+    if (!blob) return "";
+    const url = URL.createObjectURL(blob);
+    activeCreatedUrls.push(url); return url;
+  }
+
+  /* DB 初始化 (簡化版) */
+  const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
+  request.onupgradeneeded = (e) => {
+    db = e.target.result;
+    db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
+    db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
+  };
+  request.onsuccess = (e) => { db = e.target.result; loadData(); };
+
+  function loadData() {
+    const tx = db.transaction(["albums", "tracks"], "readonly");
+    tx.objectStore("albums").getAll().onsuccess = (e) => { albums = e.target.result; renderAlbums(); };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => { tracks = e.target.result; };
+  }
+
+  function switchPage(page, id=null) {
+    document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
+    if(page === 'home') document.getElementById("view-home").classList.add("active");
+    if(page === 'detail') {
+      document.getElementById("view-detail").classList.add("active");
+      renderDetail(id);
+    }
+  }
+
+  function renderAlbums() {
+    const list = document.getElementById("album-list"); list.innerHTML = "";
+    albums.forEach(album => {
+      let card = document.createElement("div");
+      card.className = album.albumType === 'mp4' ? "album-youtube-card" : "album-grid-card";
+      let trackCount = tracks.filter(t => t.albumId === album.id).length;
+      
+      if (album.albumType === 'mp4') {
+        card.innerHTML = `
+          <div class="album-youtube-thumb-container">
+             <div style="width:100%; height:100%; background:#1f1f2e; display:flex; align-items:center; justify-content:center; color:#ff79c6; font-weight:bold;">▶ 現代化影片專區</div>
+          </div>
+          <div class="album-youtube-info">
+            <div><div class="album-grid-title">${album.title}</div><span class="album-badge badge-mp4">MP4 影片</span></div>
+          </div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="album-grid-thumb"></div>
+          <div class="album-grid-info">
+            <div class="album-grid-title">${album.title}</div><span class="album-badge badge-mp3">MP3 音訊</span>
+          </div>
+        `;
+      }
+      card.onclick = () => switchPage('detail', album.id);
+      list.appendChild(card);
+    });
+    
+    // 更新選單
+    const sel = document.getElementById("select-album");
+    sel.innerHTML = '<option value="">-- 選擇 --</option>';
+    albums.forEach(a => { sel.innerHTML += `<option value="${a.id}">${a.title}</option>`; });
+  }
+
+  function renderDetail(albumId) {
+    const album = albums.find(a => a.id === albumId);
+    document.getElementById("detail-album-title").innerText = album.title;
+    const list = document.getElementById("chapter-list-container"); list.innerHTML = "";
+    let tList = tracks.filter(t => t.albumId === albumId);
+    tList.forEach((track, idx) => {
+      let div = document.createElement("div"); div.className = "chapter-file-item";
+      div.innerHTML = `<div class="chapter-info-left" onclick="startPlay(${albumId}, ${idx})"><div class="play-icon-circle">▶</div><div class="chapter-name">${track.title}</div></div>`;
+      list.appendChild(div);
+    });
+  }
+
+  async function createAlbum() {
+    let t = document.getElementById("album-title").value, type = document.getElementById("album-type").value;
+    if(!t) return;
+    db.transaction("albums", "readwrite").objectStore("albums").add({ title: t, albumType: type }).onsuccess = () => { loadData(); showToast("建立成功！"); };
+  }
+
+  async function addTrack() {
+    let aId = parseInt(document.getElementById("select-album").value);
+    let aFile = document.getElementById("track-audio").files[0];
+    let vFile = document.getElementById("track-video").files[0];
+    let lFile = document.getElementById("track-lrc").files[0];
+    if(!aId || !aFile) return showToast("缺漏檔案！");
+    
+    let lrcText = lFile ? await lFile.text() : "";
+    let data = { albumId: aId, title: aFile.name.split('.')[0], audioBlob: aFile, videoBlob: vFile, lrcText };
+    db.transaction("tracks", "readwrite").objectStore("tracks").add(data).onsuccess = () => { loadData(); showToast("篇章新增成功！"); };
+  }
+
+  /* LRC 解析引擎 */
+  function parseUniversalLyrics(rawText) {
+    if (!rawText) return [];
+    const lines = rawText.split('\n'), lyrics = [];
+    const lrcTimeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
+    lines.forEach(line => {
+      const match = lrcTimeReg.exec(line);
+      if (match) {
+        let t = parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3].padEnd(3,'0'))/1000;
+        let text = line.replace(lrcTimeReg, '').trim();
+        if (text) lyrics.push({ time: t, text });
+      }
+    });
+    return lyrics;
+  }
+  function getSubtitle(time) {
+    let txt = "♪ 沉浸播放中 ♪";
+    for(let i=0; i<currentLrc.length; i++) { if(time >= currentLrc[i].time) txt = currentLrc[i].text; else break; }
+    return txt;
+  }
+  function formatTime(secs) {
+    if(isNaN(secs)) return "00:00";
+    let m = Math.floor(secs/60), s = Math.floor(secs%60);
+    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+
+  /* ======================================================== */
+  /* 播放引擎切換核心 */
+  /* ======================================================== */
+  function startPlay(albumId, trackIdx) {
+    const album = albums.find(a => a.id === albumId);
+    currentTrackList = tracks.filter(t => t.albumId === albumId);
+    currentIndex = trackIdx;
+    currentAlbumType = album.albumType;
+    let track = currentTrackList[currentIndex];
+    currentLrc = parseUniversalLyrics(track.lrcText);
+
+    // 關閉所有舊播放
+    mp3Audio.pause(); mp4Audio.pause(); mp4Video.pause();
+
+    if (currentAlbumType === 'mp4') {
+      document.getElementById("mp4-modern-overlay").classList.add("active");
+      document.getElementById("player-card-mp3").classList.add("minimized");
+      document.getElementById("mini-player").classList.add("hidden");
+      
+      document.getElementById("mp4-header-title").innerText = track.title;
+      
+      // MP4 雙引擎同步機制 (音訊主導時間，影像強制靜音跟隨)
+      mp4Audio.src = createObjectURLTracked(track.audioBlob);
+      if (track.videoBlob) {
+        mp4Video.src = createObjectURLTracked(track.videoBlob);
+      } else {
+        mp4Video.removeAttribute('src'); // 若無影片就純黑畫面
+      }
+      
+      mp4Audio.play();
+      if(mp4Video.src) mp4Video.play();
+      syncMp4UI();
+      resetMp4IdleTimer();
+      
+    } else {
+      // 傳統 MP3 模式
+      document.getElementById("mp4-modern-overlay").classList.remove("active");
+      document.getElementById("player-card-mp3").classList.remove("minimized");
+      document.getElementById("mini-player").classList.remove("hidden");
+      
+      document.getElementById("mini-title").innerText = track.title;
+      mp3Audio.src = createObjectURLTracked(track.audioBlob);
+      mp3Audio.play();
+      syncMp3UI();
+    }
+  }
+
+  function playNextTrack() {
+    if (currentIndex < currentTrackList.length - 1) startPlay(currentTrackList[0].albumId, currentIndex + 1);
+    else showToast("最後一首了！");
+  }
+  function playPrevTrack() {
+    if (currentIndex > 0) startPlay(currentTrackList[0].albumId, currentIndex - 1);
+  }
+
+  /* ======================================================== */
+  /* 獨立模塊：MP3 邏輯 */
+  /* ======================================================== */
+  function toggleMp3Play() {
+    if(mp3Audio.paused) mp3Audio.play(); else mp3Audio.pause();
+    syncMp3UI();
+  }
+  function syncMp3UI() {
+    let sym = mp3Audio.paused ? "▶" : "❚❚";
+    document.getElementById("btn-play-mp3").innerText = sym;
+    document.getElementById("mini-btn-play").innerText = sym;
+  }
+  function minimizeMp3Player() { document.getElementById("player-card-mp3").classList.add("minimized"); }
+  function expandMp3Player() { document.getElementById("player-card-mp3").classList.remove("minimized"); }
+  
+  mp3Audio.addEventListener('timeupdate', () => {
+    let p = (mp3Audio.currentTime / mp3Audio.duration) * 100 || 0;
+    document.getElementById("seek-slider-mp3").value = p;
+    document.getElementById("time-current-mp3").innerText = formatTime(mp3Audio.currentTime);
+    document.getElementById("time-duration-mp3").innerText = formatTime(mp3Audio.duration);
+    let txt = getSubtitle(mp3Audio.currentTime);
+    document.getElementById("lrc-box-mp3").innerText = txt;
+    document.getElementById("mini-lrc").innerText = txt;
+  });
+  mp3Audio.addEventListener('ended', playNextTrack);
+  document.getElementById("seek-slider-mp3").addEventListener('input', (e) => { mp3Audio.currentTime = (e.target.value/100)*mp3Audio.duration; });
+
+
+  /* ======================================================== */
+  /* 獨立模塊：MP4 現代播放器邏輯 (UI自動隱藏、全螢幕、雙軌同步) */
+  /* ======================================================== */
+  let mp4IdleTimer = null;
+  const mp4Container = document.getElementById("mp4-video-container");
+
+  function resetMp4IdleTimer() {
+    mp4Container.classList.remove("hide-ui");
+    clearTimeout(mp4IdleTimer);
+    if (!mp4Audio.paused) {
+      mp4IdleTimer = setTimeout(() => { mp4Container.classList.add("hide-ui"); }, 3000);
+    }
+  }
+  // 點擊喚醒或暫停
+  mp4Container.addEventListener("mousemove", resetMp4IdleTimer);
+  mp4Container.addEventListener("touchstart", resetMp4IdleTimer);
+
+  function toggleMp4Play() {
+    if (mp4Audio.paused) { mp4Audio.play(); if(mp4Video.src) mp4Video.play(); }
+    else { mp4Audio.pause(); if(mp4Video.src) mp4Video.pause(); }
+    syncMp4UI(); resetMp4IdleTimer();
+  }
+  
+  function syncMp4UI() {
+    document.getElementById("btn-play-mp4").innerText = mp4Audio.paused ? "▶" : "❚❚";
+  }
+
+  function skipMp4(seconds) {
+    mp4Audio.currentTime = Math.max(0, Math.min(mp4Audio.currentTime + seconds, mp4Audio.duration));
+    if(mp4Video.duration) mp4Video.currentTime = mp4Audio.currentTime % mp4Video.duration;
+    resetMp4IdleTimer();
+  }
+
+  function closeMp4Player() {
+    mp4Audio.pause(); mp4Video.pause();
+    document.getElementById("mp4-modern-overlay").classList.remove("active");
+    if(document.fullscreenElement) document.exitFullscreen();
+  }
+
+  // 完美時間同步機制
+  mp4Audio.addEventListener('timeupdate', () => {
+    // 讓影片循環配合主音訊時間 (防誤差漂移)
+    if(mp4Video.duration) {
+      let expected = mp4Audio.currentTime % mp4Video.duration;
+      if (Math.abs(mp4Video.currentTime - expected) > 0.4) {
+        mp4Video.currentTime = expected;
+      }
+    }
+    
+    // 更新進度條與時間
+    let dur = mp4Audio.duration || 0;
+    let pct = dur ? (mp4Audio.currentTime / dur) * 100 : 0;
+    document.getElementById("mp4-progress-fill").style.width = pct + "%";
+    document.getElementById("mp4-time-current").innerText = formatTime(mp4Audio.currentTime);
+    document.getElementById("mp4-time-duration").innerText = formatTime(dur);
+    
+    // 更新內嵌字幕
+    document.getElementById("mp4-subtitle-text").innerText = getSubtitle(mp4Audio.currentTime);
+  });
+  
+  mp4Audio.addEventListener('ended', playNextTrack);
+
+  // 自訂進度條點擊
+  document.getElementById("mp4-progress-container").addEventListener('click', (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    mp4Audio.currentTime = pos * mp4Audio.duration;
+    if(mp4Video.duration) mp4Video.currentTime = mp4Audio.currentTime % mp4Video.duration;
+  });
+
+  // iOS/現代全螢幕機制
+  function toggleMp4Fullscreen() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (!document.fullscreenElement) {
+      // 嘗試標準 Fullscreen API
+      if (mp4Container.requestFullscreen) {
+        mp4Container.requestFullscreen().catch(err => console.log(err));
+      } else if (mp4Container.webkitRequestFullscreen) { /* Safari */
+        mp4Container.webkitRequestFullscreen();
+      } else if (isIOS) {
+        // iPhone 特殊處理：如果有影片，直接把 video 丟進 native fullscreen
+        // 但因為要求「自訂介面+字幕」，最好的作法是依賴 CSS 100vw，或者利用 Screen Orientation 鎖定
+        showToast("📱 建議將手機橫放以獲得最佳滿版體驗");
+      }
+      
+      try { screen.orientation.lock('landscape').catch(()=>{}); } catch(e){}
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+    }
+  }
+
+</script>
+</body>
+</html>
