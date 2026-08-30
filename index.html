@@ -37,7 +37,7 @@
       z-index: -1; pointer-events: none;
     }
 
-    /* 基本 UI 組件 */
+    /* 基本 UI 組件 (保持原樣不變) */
     .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
     .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
     .app-logo { font-size: 1.4rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 20px var(--pink-glow); cursor: pointer; }
@@ -75,19 +75,17 @@
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* MP3 專輯卡片 */
+    /* MP3/MP4 專輯卡片 (保持原樣不變) */
     .album-grid-card {
       background: var(--card-glass); border: 1px solid var(--border-glass); border-radius: 20px; padding: 14px; margin-bottom: 12px;
       display: flex; align-items: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
     }
     .album-grid-thumb { width: 76px; height: 76px; border-radius: 14px; object-fit: cover; margin-right: 14px; background: #121218; }
     
-    /* MP4 專輯卡片 */
     .album-youtube-card {
       background: var(--card-glass); border: 1px solid rgba(255, 121, 198, 0.3); border-radius: 20px; overflow: hidden; margin-bottom: 16px; cursor: pointer;
     }
     .album-youtube-thumb-container { width: 100%; height: 200px; background: #000; position: relative; }
-    .album-youtube-thumb-container video { width: 100%; height: 100%; object-fit: cover; }
     .album-youtube-info { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
 
     .album-grid-info { flex: 1; overflow: hidden; margin-right: 10px; }
@@ -95,11 +93,6 @@
     .album-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; margin-top: 4px; font-weight: 700; }
     .badge-mp3 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
     .badge-mp4 { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.4); }
-
-    .btn-action-col { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    .btn-album-action, .btn-album-del { padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
-    .btn-album-action { background: rgba(255, 121, 198, 0.12); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.3); }
-    .btn-album-del { background: rgba(255, 85, 85, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 85, 85, 0.25); }
 
     .breadcrumb-bar { display: flex; gap: 10px; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700; color: var(--primary-pink); cursor: pointer; }
     .chapter-file-item {
@@ -109,12 +102,9 @@
     .chapter-info-left { display: flex; align-items: center; gap: 12px; flex: 1; }
     .play-icon-circle { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.95rem; }
     .chapter-name { font-weight: 700; color: #fff; font-size: 0.92rem; }
-    .chapter-duration-sub { font-size: 0.78rem; color: var(--text-sub); }
-    .btn-action-group { display: flex; gap: 6px; }
-    .btn-sm { padding: 5px 10px; border-radius: 9px; font-size: 0.78rem; font-weight: 600; border: 1px solid var(--border-glass); background: transparent; color:#fff;}
 
     /* ======================================================== */
-    /* 1. MP3 專屬播放面板 (保留原有的浮動式卡片) */
+    /* 1. MP3 專屬播放面板 (保持原樣不變) */
     /* ======================================================== */
     .player-card-mp3 {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
@@ -127,96 +117,12 @@
     .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
     .cover-box { width: 100%; height: 240px; border-radius: 16px; overflow: hidden; background: #050508; margin-bottom: 10px; position: relative; display: flex; align-items: center; justify-content: center; }
-    .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; }
     .lrc-box { text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 10px var(--pink-glow); padding: 8px; margin-bottom: 8px; }
     .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.25rem; cursor: pointer; }
     .btn-play-main { width: 48px; height: 48px; background: #fff; color: #07070a; border-radius: 50%; font-size: 1.3rem; }
     .seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.1); }
     .time-box { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin: 6px 0; }
-
-    /* ======================================================== */
-    /* 2. MP4 現代化 YouTube 風格全版播放器 (完全獨立代碼) */
-    /* ======================================================== */
-    .mp4-modern-overlay {
-      position: fixed; inset: 0; background: #000; z-index: 99999; 
-      display: none; flex-direction: column; justify-content: center; align-items: center;
-    }
-    .mp4-modern-overlay.active { display: flex; }
-    
-    .mp4-video-container {
-      position: relative; width: 100%; height: 100%; max-width: 100vw; max-height: 100vh;
-      background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden;
-    }
-    /* iOS 全螢幕支援與橫向強制滿版 */
-    .mp4-video-container:-webkit-full-screen { width: 100vw; height: 100vh; }
-    .mp4-video-container:fullscreen { width: 100vw; height: 100vh; }
-    
-    .mp4-video-element {
-      width: 100%; height: 100%; object-fit: contain;
-    }
-
-    /* 內嵌式字幕 (YouTube Style) */
-    .mp4-subtitles {
-      position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
-      width: 90%; max-width: 800px; text-align: center; pointer-events: none;
-      transition: bottom 0.3s ease, opacity 0.3s ease; z-index: 10;
-    }
-    .mp4-subtitles span {
-      background: rgba(0, 0, 0, 0.75); color: #fff; padding: 6px 12px;
-      border-radius: 8px; font-size: 1.3rem; font-weight: 700; line-height: 1.4;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.8); display: inline-block;
-    }
-    /* 控制列隱藏時字幕下移 */
-    .mp4-video-container.hide-ui .mp4-subtitles { bottom: 30px; }
-
-    /* UI 浮層控制列 */
-    .mp4-ui-layer {
-      position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
-      transition: opacity 0.3s ease; z-index: 20;
-    }
-    .mp4-video-container.hide-ui .mp4-ui-layer { opacity: 0; pointer-events: none; }
-    
-    .mp4-top-bar {
-      padding: 16px; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .mp4-title { color: #fff; font-size: 1.1rem; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
-    .mp4-btn-close { background: rgba(0,0,0,0.5); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(5px); }
-
-    /* 中央點擊區與快進退視覺反饋 */
-    .mp4-center-click-area { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; }
-    
-    .mp4-bottom-bar {
-      padding: 10px 16px 16px 16px; background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
-    }
-    .mp4-progress-container { width: 100%; height: 20px; display: flex; align-items: center; cursor: pointer; margin-bottom: 8px; }
-    .mp4-progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; }
-    .mp4-progress-fill { height: 100%; background: var(--primary-pink); border-radius: 2px; width: 0%; position: relative; }
-    .mp4-progress-thumb { position: absolute; right: -6px; top: -4px; width: 12px; height: 12px; background: var(--primary-pink); border-radius: 50%; opacity: 0; transition: opacity 0.2s; }
-    .mp4-progress-container:hover .mp4-progress-thumb { opacity: 1; }
-
-    .mp4-controls-row { display: flex; align-items: center; gap: 16px; color: #fff; }
-    .mp4-icon-btn { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; transition: color 0.2s; display: flex; align-items: center; }
-    .mp4-icon-btn:hover { color: var(--primary-pink); }
-    .mp4-time { font-size: 0.9rem; font-weight: 600; opacity: 0.9; }
-    .mp4-spacer { flex: 1; }
-
-    /* 愛心高潮特效 (獨立保留) */
-    .heart-toy-container {
-      position: absolute; top: 75px; right: 20px; width: 54px; height: 54px; z-index: 15; cursor: pointer;
-      filter: drop-shadow(0 0 12px rgba(255, 121, 198, 0.95)); transition: transform 0.15s ease;
-    }
-    .heart-toy-container:active { transform: scale(1.3); }
-    .heart-bg { fill: rgba(10, 10, 16, 0.6); stroke: #ff79c6; stroke-width: 2.8; }
-    .heart-full-beat { animation: heartFullBeat 0.4s infinite alternate ease-in-out !important; }
-    @keyframes heartFullBeat { 0% { transform: scale(1); filter: drop-shadow(0 0 15px #ff79c6); } 100% { transform: scale(1.45); filter: drop-shadow(0 0 35px #ff1493); } }
-    .cover-climax-shake-pink { animation: climaxPinkGlowShake 0.35s infinite alternate ease-in-out !important; }
-    @keyframes climaxPinkGlowShake {
-      0% { box-shadow: inset 0 0 30px rgba(255, 105, 180, 0.75); transform: translate(1px, 1px); }
-      33% { transform: translate(-2px, -2px); }
-      100% { box-shadow: inset 0 0 70px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px); }
-    }
 
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 64px;
@@ -229,7 +135,107 @@
     .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); }
     .mini-btn { background: none; border: none; color: #fff; font-size: 1.15rem; padding: 6px; cursor: pointer; }
 
-    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 999999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: 90%; max-width: 400px; align-items: center; }
+    /* ======================================================== */
+    /* 🔥 2. MP4 YouTube 風格全版播放器 (全面翻新) 🔥 */
+    /* ======================================================== */
+    
+    /* 這裡使用 100dvh，確保在 iOS Safari 上不會被網址列吃掉，達到真正的滿版 */
+    .mp4-modern-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; 
+      background: #000; z-index: 999999; 
+      display: none; flex-direction: column; justify-content: center; align-items: center;
+      overflow: hidden;
+    }
+    .mp4-modern-overlay.active { display: flex; }
+    
+    .mp4-video-container {
+      position: relative; width: 100%; height: 100%; 
+      background: #000; display: flex; align-items: center; justify-content: center; 
+    }
+    
+    .mp4-video-element {
+      width: 100%; height: 100%; object-fit: contain; /* 確保影片比例正確，上下補黑邊 */
+      pointer-events: none; /* 讓點擊事件穿透到 UI 層 */
+    }
+
+    /* 內嵌式字幕 (YouTube Style) - 調整位置避免被控制列擋住 */
+    .mp4-subtitles {
+      position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+      width: 90%; max-width: 800px; text-align: center; pointer-events: none;
+      transition: bottom 0.3s ease, opacity 0.3s ease; z-index: 10;
+    }
+    .mp4-subtitles span {
+      background: rgba(0, 0, 0, 0.6); color: #fff; padding: 4px 10px;
+      border-radius: 6px; font-size: 1.1rem; font-weight: 500; line-height: 1.5;
+      text-shadow: 1px 1px 2px #000; display: inline-block;
+      letter-spacing: 0.5px;
+    }
+    /* 當控制列隱藏時，字幕自動往下沉 */
+    .mp4-modern-overlay.hide-ui .mp4-subtitles { bottom: 30px; }
+
+    /* UI 浮層控制列 - 覆蓋整個畫面 */
+    .mp4-ui-layer {
+      position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
+      transition: opacity 0.3s ease; z-index: 20;
+    }
+    .mp4-modern-overlay.hide-ui .mp4-ui-layer { opacity: 0; pointer-events: none; }
+    
+    /* 頂部：標題與返回鍵 (黑色漸層往下) */
+    .mp4-top-bar {
+      padding: 16px 20px; 
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .mp4-title { color: #fff; font-size: 1.1rem; font-weight: 500; text-shadow: 0 1px 3px #000; }
+    .mp4-btn-close { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; padding: 0; text-shadow: 0 1px 3px #000; }
+
+    /* 中間：點擊暫停/播放區 */
+    .mp4-center-click-area { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    
+    /* 大型播放暫停動畫圖示 (可選) */
+    .mp4-center-icon {
+      font-size: 3rem; color: #fff; background: rgba(0,0,0,0.5);
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transform: scale(1.5); pointer-events: none;
+      transition: all 0.2s ease;
+    }
+    .mp4-center-icon.pop { opacity: 1; transform: scale(1); }
+
+    /* 底部：控制列 (黑色漸層往上) */
+    .mp4-bottom-bar {
+      padding: 0 20px 20px 20px; 
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    
+    /* YouTube 樣式進度條：橫跨整個底部容器 */
+    .mp4-progress-container { width: 100%; height: 16px; display: flex; align-items: center; cursor: pointer; margin-bottom: 4px; }
+    .mp4-progress-track { width: 100%; height: 3px; background: rgba(255,255,255,0.3); position: relative; transition: height 0.1s; }
+    .mp4-progress-container:hover .mp4-progress-track { height: 5px; }
+    .mp4-progress-fill { height: 100%; background: var(--primary-pink); width: 0%; position: relative; }
+    .mp4-progress-thumb { position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0); width: 12px; height: 12px; background: var(--primary-pink); border-radius: 50%; transition: transform 0.1s; }
+    .mp4-progress-container:hover .mp4-progress-thumb { transform: translateY(-50%) scale(1); }
+
+    /* 底部按鈕列 */
+    .mp4-controls-row { display: flex; align-items: center; gap: 20px; color: #fff; }
+    .mp4-icon-btn { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .mp4-icon-btn:hover { color: var(--primary-pink); }
+    
+    .mp4-time { font-size: 0.85rem; font-weight: 400; opacity: 0.9; margin-left: -5px; }
+    .mp4-spacer { flex: 1; }
+
+    /* ======================================================== */
+    /* 愛心高潮特效 (完全保留不變) */
+    /* ======================================================== */
+    .heart-toy-container {
+      position: absolute; top: 80px; right: 20px; width: 50px; height: 50px; z-index: 30; cursor: pointer;
+      filter: drop-shadow(0 0 10px rgba(255, 121, 198, 0.8)); transition: transform 0.15s ease;
+    }
+    .heart-toy-container:active { transform: scale(1.3); }
+    .heart-bg { fill: rgba(10, 10, 16, 0.4); stroke: #ff79c6; stroke-width: 2.5; }
+
+    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: 90%; max-width: 400px; align-items: center; }
     .toast-msg { background: rgba(16, 16, 22, 0.92); border: 1px solid var(--primary-pink); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; text-align: center; pointer-events: auto; }
   </style>
 </head>
@@ -257,7 +263,7 @@
         <label>分區類型</label>
         <select id="album-type">
           <option value="mp3">🎵 純音訊 MP3 專區</option>
-          <option value="mp4">🌸 現代化 YouTube 影片專區</option>
+          <option value="mp4">🌸 YouTube 影片專區</option>
         </select>
       </div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
@@ -287,8 +293,8 @@
   </div>
 </div>
 
+<!-- MP3 獨立模塊 (維持不變) -->
 <audio id="mp3-audio-player" crossorigin="anonymous" playsinline preload="auto"></audio>
-
 <div id="mini-player" class="mini-player hidden" onclick="expandMp3Player()">
   <img id="mini-thumb" class="mini-thumb">
   <div class="mini-info">
@@ -297,7 +303,6 @@
   </div>
   <button class="mini-btn" onclick="event.stopPropagation(); toggleMp3Play();" id="mini-btn-play">▶</button>
 </div>
-
 <div id="player-card-mp3" class="player-card-mp3 minimized">
   <div class="drag-handle-area" onclick="minimizeMp3Player()"><div class="drag-handle"></div></div>
   <div class="cover-box" id="player-cover-box"><img id="mp3-cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' fill='%23121218'/></svg>" style="display:block;"></div>
@@ -311,42 +316,57 @@
   </div>
 </div>
 
+<!-- ======================================================== -->
+<!-- 🔥 MP4 YouTube 風格播放器 (全新結構) 🔥 -->
+<!-- ======================================================== -->
 <audio id="mp4-audio-player" crossorigin="anonymous" playsinline preload="auto"></audio>
 
 <div id="mp4-modern-overlay" class="mp4-modern-overlay">
   <div class="mp4-video-container" id="mp4-video-container">
+    
+    <!-- 影片本體 -->
     <video id="mp4-video-player" class="mp4-video-element" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
     
+    <!-- YouTube 樣式字幕 -->
     <div class="mp4-subtitles"><span id="mp4-subtitle-text">♪ 載入中... ♪</span></div>
 
+    <!-- 愛心特效 (保留你的舊功能) -->
     <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); alert('高潮特效觸發！');">
       <svg viewBox="0 0 32 32"><path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" /></svg>
     </div>
 
-    <div class="mp4-ui-layer" id="mp4-ui-layer" onclick="toggleMp4Play()">
+    <!-- UI 覆蓋層 -->
+    <div class="mp4-ui-layer" id="mp4-ui-layer">
       
+      <!-- 頂部列：返回鍵與標題 -->
       <div class="mp4-top-bar" onclick="event.stopPropagation()">
-        <div class="mp4-title" id="mp4-header-title">影片標題</div>
-        <button class="mp4-btn-close" onclick="closeMp4Player()">✕</button>
+        <button class="mp4-btn-close" onclick="closeMp4Player()" title="關閉影片">⬅</button>
+        <div class="mp4-spacer"></div>
       </div>
 
-      <div class="mp4-center-click-area"></div>
+      <!-- 中央大範圍點擊區 (點擊暫停/播放) -->
+      <div class="mp4-center-click-area" onclick="toggleMp4Play()">
+        <div class="mp4-center-icon" id="mp4-center-icon">▶</div>
+      </div>
 
+      <!-- 底部控制列 -->
       <div class="mp4-bottom-bar" onclick="event.stopPropagation()">
+        
+        <!-- 進度條 -->
         <div class="mp4-progress-container" id="mp4-progress-container">
           <div class="mp4-progress-track">
-            <div class="mp4-progress-fill" id="mp4-progress-fill"></div>
-            <div class="mp4-progress-thumb" id="mp4-progress-thumb"></div>
+            <div class="mp4-progress-fill" id="mp4-progress-fill">
+              <div class="mp4-progress-thumb"></div>
+            </div>
           </div>
         </div>
         
+        <!-- 按鈕與時間 -->
         <div class="mp4-controls-row">
           <button class="mp4-icon-btn" onclick="toggleMp4Play()" id="btn-play-mp4">▶</button>
-          <button class="mp4-icon-btn" onclick="skipMp4(-10)" title="倒退 10 秒">↺</button>
-          <button class="mp4-icon-btn" onclick="skipMp4(10)" title="快進 10 秒">↻</button>
           
           <div class="mp4-time">
-            <span id="mp4-time-current">00:00</span> / <span id="mp4-time-duration">00:00</span>
+            <span id="mp4-time-current">0:00</span> / <span id="mp4-time-duration">0:00</span>
           </div>
           
           <div class="mp4-spacer"></div>
@@ -355,6 +375,7 @@
           <button class="mp4-icon-btn" onclick="playNextTrack()" title="下一集">⏭</button>
           <button class="mp4-icon-btn" style="margin-left: 10px;" onclick="toggleMp4Fullscreen()" title="全螢幕">⛶</button>
         </div>
+
       </div>
     </div>
 
@@ -362,7 +383,7 @@
 </div>
 
 <script>
-  /* 資料庫與共用邏輯 */
+  /* 資料庫與共用邏輯 (維持不變) */
   let db, albums = [], tracks = [], currentTrackList = [], currentIndex = -1, currentLrc = [];
   let currentAlbumType = 'mp3';
   let activeCreatedUrls = [];
@@ -379,7 +400,7 @@
 
   function cleanMemoryAndGC() {
     activeCreatedUrls.forEach(url => { try { URL.revokeObjectURL(url); } catch(e){} });
-    activeCreatedUrls = []; showToast("⚡ 已清理快取，最佳化效能。");
+    activeCreatedUrls = []; showToast("⚡ 已清理快取。");
   }
 
   function createObjectURLTracked(blob) {
@@ -388,7 +409,6 @@
     activeCreatedUrls.push(url); return url;
   }
 
-  /* DB 初始化 (簡化版) */
   const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
@@ -406,10 +426,7 @@
   function switchPage(page, id=null) {
     document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
     if(page === 'home') document.getElementById("view-home").classList.add("active");
-    if(page === 'detail') {
-      document.getElementById("view-detail").classList.add("active");
-      renderDetail(id);
-    }
+    if(page === 'detail') { document.getElementById("view-detail").classList.add("active"); renderDetail(id); }
   }
 
   function renderAlbums() {
@@ -417,12 +434,11 @@
     albums.forEach(album => {
       let card = document.createElement("div");
       card.className = album.albumType === 'mp4' ? "album-youtube-card" : "album-grid-card";
-      let trackCount = tracks.filter(t => t.albumId === album.id).length;
       
       if (album.albumType === 'mp4') {
         card.innerHTML = `
           <div class="album-youtube-thumb-container">
-             <div style="width:100%; height:100%; background:#1f1f2e; display:flex; align-items:center; justify-content:center; color:#ff79c6; font-weight:bold;">▶ 現代化影片專區</div>
+             <div style="width:100%; height:100%; background:#1f1f2e; display:flex; align-items:center; justify-content:center; color:#ff79c6; font-weight:bold;">▶ YouTube 樣式專區</div>
           </div>
           <div class="album-youtube-info">
             <div><div class="album-grid-title">${album.title}</div><span class="album-badge badge-mp4">MP4 影片</span></div>
@@ -440,7 +456,6 @@
       list.appendChild(card);
     });
     
-    // 更新選單
     const sel = document.getElementById("select-album");
     sel.innerHTML = '<option value="">-- 選擇 --</option>';
     albums.forEach(a => { sel.innerHTML += `<option value="${a.id}">${a.title}</option>`; });
@@ -473,10 +488,9 @@
     
     let lrcText = lFile ? await lFile.text() : "";
     let data = { albumId: aId, title: aFile.name.split('.')[0], audioBlob: aFile, videoBlob: vFile, lrcText };
-    db.transaction("tracks", "readwrite").objectStore("tracks").add(data).onsuccess = () => { loadData(); showToast("篇章新增成功！"); };
+    db.transaction("tracks", "readwrite").objectStore("tracks").add(data).onsuccess = () => { loadData(); showToast("新增成功！"); };
   }
 
-  /* LRC 解析引擎 */
   function parseUniversalLyrics(rawText) {
     if (!rawText) return [];
     const lines = rawText.split('\n'), lyrics = [];
@@ -492,19 +506,17 @@
     return lyrics;
   }
   function getSubtitle(time) {
-    let txt = "♪ 沉浸播放中 ♪";
+    let txt = "";
     for(let i=0; i<currentLrc.length; i++) { if(time >= currentLrc[i].time) txt = currentLrc[i].text; else break; }
     return txt;
   }
+  // YT 風格時間格式 (去掉不必要的 00)
   function formatTime(secs) {
-    if(isNaN(secs)) return "00:00";
+    if(isNaN(secs)) return "0:00";
     let m = Math.floor(secs/60), s = Math.floor(secs%60);
-    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    return `${m}:${s.toString().padStart(2,'0')}`;
   }
 
-  /* ======================================================== */
-  /* 播放引擎切換核心 */
-  /* ======================================================== */
   function startPlay(albumId, trackIdx) {
     const album = albums.find(a => a.id === albumId);
     currentTrackList = tracks.filter(t => t.albumId === albumId);
@@ -513,35 +525,31 @@
     let track = currentTrackList[currentIndex];
     currentLrc = parseUniversalLyrics(track.lrcText);
 
-    // 關閉所有舊播放
     mp3Audio.pause(); mp4Audio.pause(); mp4Video.pause();
 
     if (currentAlbumType === 'mp4') {
-      document.getElementById("mp4-modern-overlay").classList.add("active");
+      const overlay = document.getElementById("mp4-modern-overlay");
+      overlay.classList.add("active");
+      
       document.getElementById("player-card-mp3").classList.add("minimized");
       document.getElementById("mini-player").classList.add("hidden");
       
-      document.getElementById("mp4-header-title").innerText = track.title;
-      
-      // MP4 雙引擎同步機制 (音訊主導時間，影像強制靜音跟隨)
       mp4Audio.src = createObjectURLTracked(track.audioBlob);
-      if (track.videoBlob) {
-        mp4Video.src = createObjectURLTracked(track.videoBlob);
-      } else {
-        mp4Video.removeAttribute('src'); // 若無影片就純黑畫面
-      }
+      if (track.videoBlob) mp4Video.src = createObjectURLTracked(track.videoBlob);
+      else mp4Video.removeAttribute('src');
       
       mp4Audio.play();
       if(mp4Video.src) mp4Video.play();
-      syncMp4UI();
-      resetMp4IdleTimer();
+      
+      syncMp4UI(); resetMp4IdleTimer();
+      
+      // 自動嘗試進入全螢幕 (手機端橫向)
+      tryAutoFullscreen();
       
     } else {
-      // 傳統 MP3 模式
       document.getElementById("mp4-modern-overlay").classList.remove("active");
       document.getElementById("player-card-mp3").classList.remove("minimized");
       document.getElementById("mini-player").classList.remove("hidden");
-      
       document.getElementById("mini-title").innerText = track.title;
       mp3Audio.src = createObjectURLTracked(track.audioBlob);
       mp3Audio.play();
@@ -551,15 +559,12 @@
 
   function playNextTrack() {
     if (currentIndex < currentTrackList.length - 1) startPlay(currentTrackList[0].albumId, currentIndex + 1);
-    else showToast("最後一首了！");
   }
   function playPrevTrack() {
     if (currentIndex > 0) startPlay(currentTrackList[0].albumId, currentIndex - 1);
   }
 
-  /* ======================================================== */
-  /* 獨立模塊：MP3 邏輯 */
-  /* ======================================================== */
+  /* MP3 控制 (維持不變) */
   function toggleMp3Play() {
     if(mp3Audio.paused) mp3Audio.play(); else mp3Audio.pause();
     syncMp3UI();
@@ -573,11 +578,10 @@
   function expandMp3Player() { document.getElementById("player-card-mp3").classList.remove("minimized"); }
   
   mp3Audio.addEventListener('timeupdate', () => {
-    let p = (mp3Audio.currentTime / mp3Audio.duration) * 100 || 0;
-    document.getElementById("seek-slider-mp3").value = p;
+    document.getElementById("seek-slider-mp3").value = (mp3Audio.currentTime / mp3Audio.duration) * 100 || 0;
     document.getElementById("time-current-mp3").innerText = formatTime(mp3Audio.currentTime);
     document.getElementById("time-duration-mp3").innerText = formatTime(mp3Audio.duration);
-    let txt = getSubtitle(mp3Audio.currentTime);
+    let txt = getSubtitle(mp3Audio.currentTime) || "♪ 播放中 ♪";
     document.getElementById("lrc-box-mp3").innerText = txt;
     document.getElementById("mini-lrc").innerText = txt;
   });
@@ -586,68 +590,78 @@
 
 
   /* ======================================================== */
-  /* 獨立模塊：MP4 現代播放器邏輯 (UI自動隱藏、全螢幕、雙軌同步) */
+  /* 🔥 MP4 全新播放控制邏輯 🔥 */
   /* ======================================================== */
   let mp4IdleTimer = null;
-  const mp4Container = document.getElementById("mp4-video-container");
+  const mp4Overlay = document.getElementById("mp4-modern-overlay");
+  const mp4CenterIcon = document.getElementById("mp4-center-icon");
 
+  // 智慧隱藏 UI 邏輯
   function resetMp4IdleTimer() {
-    mp4Container.classList.remove("hide-ui");
+    mp4Overlay.classList.remove("hide-ui");
     clearTimeout(mp4IdleTimer);
     if (!mp4Audio.paused) {
-      mp4IdleTimer = setTimeout(() => { mp4Container.classList.add("hide-ui"); }, 3000);
+      mp4IdleTimer = setTimeout(() => { mp4Overlay.classList.add("hide-ui"); }, 2500);
     }
   }
-  // 點擊喚醒或暫停
-  mp4Container.addEventListener("mousemove", resetMp4IdleTimer);
-  mp4Container.addEventListener("touchstart", resetMp4IdleTimer);
+  mp4Overlay.addEventListener("mousemove", resetMp4IdleTimer);
+  mp4Overlay.addEventListener("touchstart", resetMp4IdleTimer);
 
+  // 播放/暫停與中央動畫圖示
   function toggleMp4Play() {
-    if (mp4Audio.paused) { mp4Audio.play(); if(mp4Video.src) mp4Video.play(); }
-    else { mp4Audio.pause(); if(mp4Video.src) mp4Video.pause(); }
+    if (mp4Audio.paused) {
+      mp4Audio.play(); if(mp4Video.src) mp4Video.play();
+      showCenterIcon("▶");
+    } else {
+      mp4Audio.pause(); if(mp4Video.src) mp4Video.pause();
+      showCenterIcon("❚❚");
+    }
     syncMp4UI(); resetMp4IdleTimer();
   }
   
+  function showCenterIcon(icon) {
+    mp4CenterIcon.innerText = icon;
+    mp4CenterIcon.classList.add("pop");
+    setTimeout(() => mp4CenterIcon.classList.remove("pop"), 300);
+  }
+
   function syncMp4UI() {
     document.getElementById("btn-play-mp4").innerText = mp4Audio.paused ? "▶" : "❚❚";
   }
 
-  function skipMp4(seconds) {
-    mp4Audio.currentTime = Math.max(0, Math.min(mp4Audio.currentTime + seconds, mp4Audio.duration));
-    if(mp4Video.duration) mp4Video.currentTime = mp4Audio.currentTime % mp4Video.duration;
-    resetMp4IdleTimer();
-  }
-
   function closeMp4Player() {
     mp4Audio.pause(); mp4Video.pause();
-    document.getElementById("mp4-modern-overlay").classList.remove("active");
-    if(document.fullscreenElement) document.exitFullscreen();
+    mp4Overlay.classList.remove("active");
+    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
   }
 
-  // 完美時間同步機制
+  // 時間同步與進度條更新
   mp4Audio.addEventListener('timeupdate', () => {
-    // 讓影片循環配合主音訊時間 (防誤差漂移)
+    // 影片時間防脫鉤校正
     if(mp4Video.duration) {
       let expected = mp4Audio.currentTime % mp4Video.duration;
-      if (Math.abs(mp4Video.currentTime - expected) > 0.4) {
-        mp4Video.currentTime = expected;
-      }
+      if (Math.abs(mp4Video.currentTime - expected) > 0.5) mp4Video.currentTime = expected;
     }
     
-    // 更新進度條與時間
     let dur = mp4Audio.duration || 0;
     let pct = dur ? (mp4Audio.currentTime / dur) * 100 : 0;
     document.getElementById("mp4-progress-fill").style.width = pct + "%";
     document.getElementById("mp4-time-current").innerText = formatTime(mp4Audio.currentTime);
     document.getElementById("mp4-time-duration").innerText = formatTime(dur);
     
-    // 更新內嵌字幕
-    document.getElementById("mp4-subtitle-text").innerText = getSubtitle(mp4Audio.currentTime);
+    // 處理字幕 (無字幕時隱藏背景黑底)
+    let subTxt = getSubtitle(mp4Audio.currentTime);
+    const subContainer = document.querySelector(".mp4-subtitles span");
+    if(subTxt) {
+      subContainer.innerText = subTxt;
+      subContainer.style.display = "inline-block";
+    } else {
+      subContainer.style.display = "none";
+    }
   });
-  
   mp4Audio.addEventListener('ended', playNextTrack);
 
-  // 自訂進度條點擊
+  // 點擊進度條跳轉
   document.getElementById("mp4-progress-container").addEventListener('click', (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const pos = (e.clientX - rect.left) / rect.width;
@@ -655,24 +669,26 @@
     if(mp4Video.duration) mp4Video.currentTime = mp4Audio.currentTime % mp4Video.duration;
   });
 
-  // iOS/現代全螢幕機制
-  function toggleMp4Fullscreen() {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // 真正的全螢幕機制 (解決圖片1的問題)
+  function tryAutoFullscreen() {
+    // 如果是手機，預設嘗試進入全螢幕並橫向
+    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+      toggleMp4Fullscreen(true);
+    }
+  }
+
+  function toggleMp4Fullscreen(forceEnter = false) {
+    const container = document.getElementById("mp4-modern-overlay");
     
-    if (!document.fullscreenElement) {
-      // 嘗試標準 Fullscreen API
-      if (mp4Container.requestFullscreen) {
-        mp4Container.requestFullscreen().catch(err => console.log(err));
-      } else if (mp4Container.webkitRequestFullscreen) { /* Safari */
-        mp4Container.webkitRequestFullscreen();
-      } else if (isIOS) {
-        // iPhone 特殊處理：如果有影片，直接把 video 丟進 native fullscreen
-        // 但因為要求「自訂介面+字幕」，最好的作法是依賴 CSS 100vw，或者利用 Screen Orientation 鎖定
-        showToast("📱 建議將手機橫放以獲得最佳滿版體驗");
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen().catch(()=>{});
+      } else if (container.webkitRequestFullscreen) { /* Safari */
+        container.webkitRequestFullscreen();
       }
-      
+      // 嘗試強制橫向
       try { screen.orientation.lock('landscape').catch(()=>{}); } catch(e){}
-    } else {
+    } else if (!forceEnter) {
       if (document.exitFullscreen) document.exitFullscreen();
       else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     }
