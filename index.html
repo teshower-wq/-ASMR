@@ -197,7 +197,7 @@
     .player-card-mp3.minimized { transform: translateY(110%); pointer-events: none; }
 
     /* ======================================================== */
-    /* Hanime1 & YouTube 風格滿版影片專區 (完全優化、完美全螢幕橫屏、無任何冗餘網站按鈕) */
+    /* Hanime1 & YouTube 風格滿版影片專區 (完全超大升級：iOS 全螢幕播放 + 影片下方同步字幕) */
     /* ======================================================== */
     .player-card-mp4 {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; width: 100vw; height: 100vh;
@@ -208,6 +208,7 @@
     }
     .player-card-mp4.minimized { transform: translateY(110%); pointer-events: none; }
     
+    /* 專為 iOS 打造的真·全螢幕獨立覆蓋樣式 */
     .player-card-mp4.ios-fullscreen {
       position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;
       max-width: none !important; max-height: none !important; z-index: 2147483647 !important; border-radius: 0 !important;
@@ -216,7 +217,7 @@
     .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 頂部控制列 (僅保留全螢幕與關閉，完全乾淨) */
+    /* 頂部控制列 (極簡乾淨) */
     .mp4-top-bar {
       position: absolute; top: 0; left: 0; right: 0; height: 64px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
@@ -226,7 +227,7 @@
     .mp4-top-actions { display: flex; gap: 12px; align-items: center; }
     .mp4-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
 
-    /* 影片滿版對齊框 */
+    /* 影片滿版對齊框：支援 iOS 橫屏/直屏自動適應，維持滿版美感 */
     .video-fullscreen-box {
       width: 100%; height: 100%; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
     }
@@ -237,7 +238,7 @@
       object-fit: cover;
     }
 
-    /* 永久同步字幕：絕對不隨控制列隱藏，永遠同步顯示在影片下方 */
+    /* 永久同步字幕：獨立於控制面板外，在 iOS 全螢幕時穩穩懸浮於影片下方且字體清晰 */
     .video-subtitle-overlay {
       position: absolute; bottom: 85px; left: 20px; right: 20px; text-align: center;
       font-size: 1.4rem; font-weight: 800; color: var(--primary-pink);
@@ -246,7 +247,7 @@
       transition: opacity 0.3s ease;
     }
 
-    /* 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方且隨呻吟音訊即時高潮互動 (大幅提升/大幅降低優化) */
+    /* 愛心互動特效：固定在右上方，隨呻吟音訊高潮互動 */
     .heart-toy-container {
       position: absolute; top: 75px; right: 20px; width: 54px; height: 54px;
       z-index: 130; cursor: pointer; user-select: none;
@@ -275,7 +276,7 @@
       100% { box-shadow: 0 0 80px rgba(255, 20, 147, 1), inset 0 0 70px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px) rotate(0deg); }
     }
 
-    /* 底部控制器列：僅此區塊在點擊時隱藏 (只隱藏進度條與左右換集) */
+    /* 底部控制器列：僅此區塊在點擊時隱藏 */
     .mp4-bottom-controls {
       position: absolute; bottom: 0; left: 0; right: 0; height: 70px;
       background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
@@ -287,7 +288,6 @@
     .mp4-time-display { font-size: 0.85rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
     .mp4-seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.25); position: absolute; top: -6px; left: 0; right: 0; }
 
-    /* 控制列隱藏時，只隱藏頂部欄與底部控制列，字幕與愛心特效永不隱藏 */
     .player-card-mp4.controls-hidden .mp4-top-bar,
     .player-card-mp4.controls-hidden .mp4-bottom-controls {
       opacity: 0; pointer-events: none;
@@ -383,7 +383,7 @@
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
       <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        設定後，在「YouTube 影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
+        設定後，在「Hanime1 滿版影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
       </div>
       <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
       <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
@@ -397,13 +397,13 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 YouTube 影片專區)</div>
+      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與影片專區)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
       <div class="form-group">
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
           <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、面板設置省電功能)</option>
-          <option value="mp4">🌸 Hanime1 風格滿版影片專區 (影片完全無聲音、內嵌專屬高音質音檔、自動循環、永久同步字幕與愛心高潮特效)</option>
+          <option value="mp4">🌸 Hanime1 風格滿版影片專區 (完美獨立面板、支援 iOS 全螢幕同步字幕與高潮互動)</option>
         </select>
       </div>
       <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
@@ -475,7 +475,7 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
-<!-- 1. 純 MP3 專區播放器面板 -->
+<!-- 1. 純 MP3 專區播放器面板 (完全獨立不干擾影片) -->
 <div id="player-card-mp3" class="player-card-mp3 minimized">
   <div class="drag-handle-area" id="drag-handle-area-mp3" title="向下滑動關閉面板">
     <div class="drag-handle"></div>
@@ -517,13 +517,13 @@
   </div>
 </div>
 
-<!-- 2. Hanime1 & YouTube 風格滿版影片專區播放面板 (完全無原音、影片無聲且循環、音檔驅動、字幕與愛心永不隱藏) -->
+<!-- 2. Hanime1 & YouTube 風格滿版影片專區播放面板 (獨立超大升級：支援 iOS 全螢幕播放同時字幕置於下方) -->
 <div id="player-card-mp4" class="player-card-mp4 minimized">
   <div class="video-fullscreen-box" id="video-fullscreen-box">
-    <!-- 主影片播放器：強制靜音且設定 loop 與 playsinline，完全拔掉聲音避免衝突與卡死 -->
+    <!-- 主影片播放器：強制靜音且設定 loop 與 playsinline -->
     <video id="main-video-player" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
 
-    <!-- 獨立頂部資訊列 (僅保留全螢幕切換與關閉按鈕，無任何網站按鈕) -->
+    <!-- 獨立頂部資訊列 (全螢幕與關閉按鈕) -->
     <div class="mp4-top-bar" id="mp4-top-bar">
       <div class="mp4-top-actions">
         <button class="mp4-icon-btn" onclick="event.stopPropagation(); toggleFullScreen();" title="全螢幕 / 橫向填滿">⛶</button>
@@ -531,10 +531,10 @@
       </div>
     </div>
 
-    <!-- 永久同步字幕：絕對不隨控制列隱藏，永遠跟隨影片與音檔時間同步顯示 -->
+    <!-- 永久同步字幕：獨立固定於影片下方，確保在 iOS 全螢幕播放時也能清晰顯示字幕 -->
     <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入影片字幕中... ♪</div>
 
-    <!-- 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方，女聲呻吟交配音訊越激烈提升越快、降低大幅化 -->
+    <!-- 愛心互動特效：固定在右上方 -->
     <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); triggerInstantOrgasm();" title="點擊一鍵高潮">
       <svg class="heart-svg" viewBox="0 0 32 32">
         <defs>
@@ -554,7 +554,7 @@
     <!-- 高潮特效圖片覆蓋 -->
     <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:135; object-fit:cover;">
 
-    <!-- 底部控制器列：點按只隱藏此區塊（進度條與左右換集） -->
+    <!-- 底部控制器列：點按只隱藏此區塊 -->
     <div class="mp4-bottom-controls" id="mp4-bottom-controls" onclick="event.stopPropagation()">
       <input type="range" id="seek-slider-mp4" class="mp4-seek-slider" value="0" min="0" max="100" step="0.1">
       <div class="mp4-controls-left">
@@ -1031,7 +1031,7 @@
 
     if (isIOS) {
       cardMp4.classList.toggle("ios-fullscreen");
-      showToast(cardMp4.classList.contains("ios-fullscreen") ? "📺 已切換滿版橫向全螢幕模式" : "📺 已恢復一般播放視窗");
+      showToast(cardMp4.classList.contains("ios-fullscreen") ? "📺 已切換 iOS 滿版全螢幕模式 (字幕完美置於下方)" : "📺 已恢復一般播放視窗");
     } else {
       const container = document.getElementById("video-fullscreen-box");
       if (!container) return;
@@ -1052,7 +1052,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V44", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1278,7 +1278,7 @@
           <div class="album-youtube-info">
             <div>
               <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
-              <span class="album-badge badge-mp4">🌸 Hanime1 滿版影片專區 (無原音、音檔驅動循環、永久同步字幕與愛心)</span>
+              <span class="album-badge badge-mp4">🌸 Hanime1 滿版影片專區 (支援 iOS 全螢幕、字幕置於下方)</span>
             </div>
             <div class="btn-action-col">
               <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
@@ -1374,7 +1374,7 @@
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
-            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 影片無原音、音檔驅動循環播放' : ''}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 iOS 滿版全螢幕播放、字幕完美置於下方' : ''}</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1494,7 +1494,7 @@
       if(videoInput) videoInput.value = "";
       lrcInput.value = "";
       loadData();
-      showToast("✅ 單一篇章新增成功 (包含影片無原音、音檔與字幕完美整合)！");
+      showToast("✅ 單一篇章新增成功 (影片區與 MP3 專區代碼完全獨立)！");
     };
   }
 
@@ -1564,7 +1564,7 @@
         audioInput.value = ""; if(videoInput) videoInput.value = ""; lrcInput.value = "";
         btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
         loadData();
-        showToast(`✅ 成功批量匯入篇章 (影片無原音、音檔驅動與字幕完美整合)！`);
+        showToast(`✅ 成功批量匯入篇章！`);
       };
     } catch(e) {
       btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
@@ -1892,7 +1892,9 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕已成功更新！");
+    tx.oncomplete = () => {
+      showToast("✅ 字幕已成功更新！");
+    };
   }
 </script>
 </body>
