@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ASMR 私人隨身庫 (Hanime1 & YouTube 極致影音升級版)</title>
+  <title>ASMR 私人隨身庫 (Hanime1 & YouTube M3U8 極致影音升級版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Hls.js 支援 M3U8 / HLS 串流播放解析 -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -197,7 +199,7 @@
     .player-card-mp3.minimized { transform: translateY(110%); pointer-events: none; }
 
     /* ======================================================== */
-    /* Hanime1 & YouTube 風格滿版影片專區 (完美適配 iOS 高相容全螢幕) */
+    /* Hanime1 & YouTube M3U8 升級版滿版影片專區樣式設定 */
     /* ======================================================== */
     .player-card-mp4 {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; width: 100vw; height: 100vh;
@@ -208,7 +210,6 @@
     }
     .player-card-mp4.minimized { transform: translateY(110%); pointer-events: none; }
     
-    /* 修正 iOS / Mobile 裝置專用滿版全螢幕樣式 */
     .player-card-mp4.is-fullscreen {
       position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
       width: 100vw !important; height: 100vh !important; width: 100dvw !important; height: 100dvh !important;
@@ -219,7 +220,6 @@
     .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 頂部控制列 */
     .mp4-top-bar {
       position: absolute; top: 0; left: 0; right: 0; height: 64px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
@@ -229,24 +229,21 @@
     .mp4-top-actions { display: flex; gap: 12px; align-items: center; }
     .mp4-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
 
-    /* 影片滿版對齊框 */
     .video-fullscreen-box {
       width: 100%; height: 100%; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
     }
     .video-fullscreen-box video {
       width: 100%; height: 100%; object-fit: contain; background: #000; outline: none; position: absolute; top: 0; left: 0;
     }
-    /* 全螢幕模式下影片完全填滿屏幕 */
     .player-card-mp4.is-fullscreen .video-fullscreen-box video {
       object-fit: cover !important;
     }
 
-    /* 粉紅色透明背景字幕 (完美支援全螢幕不跑位) */
     .video-subtitle-overlay {
       position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
       max-width: 90%; width: max-content; text-align: center;
       font-size: 1.25rem; font-weight: 800; color: #ffffff;
-      background: rgba(255, 121, 198, 0.35); /* 粉紅色透明背景 */
+      background: rgba(255, 121, 198, 0.35);
       backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       border: 1.5px solid rgba(255, 121, 198, 0.6);
       box-shadow: 0 4px 25px rgba(255, 121, 198, 0.4), inset 0 0 15px rgba(255, 121, 198, 0.2);
@@ -256,7 +253,6 @@
       word-break: break-word; text-shadow: 0 2px 6px rgba(0,0,0,0.8);
     }
 
-    /* 愛心互動特效 */
     .heart-toy-container {
       position: absolute; top: 75px; right: 20px; width: 54px; height: 54px;
       z-index: 130; cursor: pointer; user-select: none;
@@ -285,7 +281,6 @@
       100% { box-shadow: 0 0 80px rgba(255, 20, 147, 1), inset 0 0 70px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px) rotate(0deg); }
     }
 
-    /* 底部控制器列 */
     .mp4-bottom-controls {
       position: absolute; bottom: 0; left: 0; right: 0; height: 70px;
       background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
@@ -406,13 +401,13 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 YouTube 影片專區)</div>
+      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 M3U8 影片專區)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
       <div class="form-group">
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
           <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、面板設置省電功能)</option>
-          <option value="mp4">🌸 Hanime1 風格滿版影片專區 (影片完全無聲音、內嵌專屬高音質音檔、自動循環、永久同步字幕與愛心高潮特效)</option>
+          <option value="mp4">🌸 Hanime1 風格 M3U8 串流影片專區 (完美支援本地影片、.m3u8 檔案或遠端 M3U8 串流網址大升級)</option>
         </select>
       </div>
       <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
@@ -434,8 +429,8 @@
           <input type="file" id="batch-audios" accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov" multiple>
         </div>
         <div class="form-group" id="batch-video-group" style="display:none;">
-          <label>複選對應影片檔案 (.mp4 / .mov)</label>
-          <input type="file" id="batch-videos" accept="video/*,.mp4,.mov,.webm" multiple>
+          <label>複選對應影片檔案 (.mp4 / .mov / .m3u8)</label>
+          <input type="file" id="batch-videos" accept="video/*,.mp4,.mov,.webm,.m3u8" multiple>
         </div>
         <div class="form-group">
           <label>複選所有字幕/文檔 (.lrc / .vtt / .srt / .txt 全格式)</label>
@@ -447,7 +442,11 @@
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
-        <div class="form-group" id="single-video-group" style="display:none;"><label>影片主檔案 (MP4 / MOV - 將自動移除影片原音並與音檔同步)</label><input type="file" id="track-video" accept="video/*,.mp4,.mov,.webm"></div>
+        <div class="form-group" id="single-video-group" style="display:none;">
+          <label>影片檔案 (MP4 / MOV / M3U8 檔案)</label>
+          <input type="file" id="track-video" accept="video/*,.mp4,.mov,.webm,.m3u8" style="margin-bottom:6px;">
+          <input type="text" id="track-m3u8-url" placeholder="或直接貼上遠端 M3U8 串流網址 (例如: https://example.com/index.m3u8)">
+        </div>
         <div class="form-group"><label id="track-audio-label">音訊主檔案 (MP3 / WAV / M4A - 作為主音源與計時依據)</label><input type="file" id="track-audio" accept="audio/*,video/*,.mp3,.wav,.m4a"></div>
         <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
@@ -457,7 +456,7 @@
 
   <div id="view-home" class="page-view active">
     <div class="glass-card">
-      <div class="card-title">📚 選擇作品集 (MP3 與 Hanime1 滿版影片專區獨立呈現)</div>
+      <div class="card-title">📚 選擇作品集 (MP3 與 M3U8 滿版影片專區獨立呈現)</div>
       <div id="album-list">載入中...</div>
       <div id="pagination-container"></div>
     </div>
@@ -526,13 +525,12 @@
   </div>
 </div>
 
-<!-- 2. Hanime1 & YouTube 風格滿版影片專區播放面板 (升級 iOS 高相容全螢幕、粉紅背景字幕、無原音循環) -->
+<!-- 2. Hanime1 & YouTube M3U8 升級版滿版影片專區播放面板 -->
 <div id="player-card-mp4" class="player-card-mp4 minimized">
   <div class="video-fullscreen-box" id="video-fullscreen-box">
-    <!-- 主影片播放器：徹底靜音 muted 且設定 loop 與 playsinline -->
+    <!-- 主影片播放器 (支援 M3U8 串流及本地影片) -->
     <video id="main-video-player" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
 
-    <!-- 獨立頂部資訊列 -->
     <div class="mp4-top-bar" id="mp4-top-bar">
       <div class="mp4-top-actions">
         <button class="mp4-icon-btn" onclick="toggleFullScreen(event)" title="全螢幕 / 橫向填滿">⛶</button>
@@ -540,8 +538,7 @@
       </div>
     </div>
 
-    <!-- 粉紅色透明背景字幕：永遠跟隨影片與音檔時間同步顯示 -->
-    <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入影片字幕中... ♪</div>
+    <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入 M3U8 影片字幕中... ♪</div>
 
     <!-- 愛心互動特效 -->
     <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); triggerInstantOrgasm();" title="點擊一鍵高潮">
@@ -560,10 +557,8 @@
       </svg>
     </div>
 
-    <!-- 高潮特效圖片覆蓋 -->
     <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:135; object-fit:cover;">
 
-    <!-- 底部控制器列 -->
     <div class="mp4-bottom-controls" id="mp4-bottom-controls" onclick="event.stopPropagation()">
       <input type="range" id="seek-slider-mp4" class="mp4-seek-slider" value="0" min="0" max="100" step="0.1">
       <div class="mp4-controls-left">
@@ -623,6 +618,7 @@
   let climaxResetTimer = null;
   
   window.customClimaxData = null;
+  let hlsInstance = null; // M3U8 Hls.js 專用實例
 
   let lastPiPRenderTime = 0;
   let PIP_FPS = 30;
@@ -737,7 +733,7 @@
   }
 
   function getActiveMedia() {
-    return audio; // 音訊統一驅動 MP3 及 MP4
+    return audio;
   }
 
   function createTrackedObjectURL(blob) {
@@ -1032,7 +1028,6 @@
     }
   }
 
-  /* 升級：最高相容性 iOS 手機全螢幕與滿版縮放控制 */
   function toggleFullScreen(e) {
     if (e) {
       e.preventDefault();
@@ -1044,17 +1039,15 @@
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     const willBeFullscreen = !cardMp4.classList.contains("is-fullscreen");
 
-    // 1. 切換高相容偽全螢幕類別（確保字幕與背景音效絕對不中斷）
     cardMp4.classList.toggle("is-fullscreen", willBeFullscreen);
 
-    // 2. 如果為 Android / 電腦瀏覽器，同步觸發 Fullscreen API
     if (!isIOS) {
       if (willBeFullscreen) {
         if (cardMp4.requestFullscreen) cardMp4.requestFullscreen().catch(()=>{});
         else if (cardMp4.webkitRequestFullscreen) cardMp4.webkitRequestFullscreen();
       } else {
         if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-        else if (document.webkitExitFullscreen && document.webkitFullscreenElement) document.webkitExitFullscreen();
+        else if (document.webkitExitFullscreen && document.webkitExitFullscreenElement) document.webkitExitFullscreen();
       }
     }
 
@@ -1068,7 +1061,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V44", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1178,7 +1171,7 @@
     albums.forEach(a => {
       let opt = document.createElement("option");
       opt.value = a.id;
-      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
+      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'}]`;
       sel.appendChild(opt);
     });
   }
@@ -1254,7 +1247,7 @@
       if(coverInput) coverInput.value = "";
       bgInput.value = "";
       loadData();
-      showToast(`✅ ${albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'} 建立成功！`);
+      showToast(`✅ ${albumType === 'mp4' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'} 建立成功！`);
     };
   }
 
@@ -1279,7 +1272,7 @@
       let albumTracks = tracks.filter(t => t.albumId === album.id);
 
       if (album.albumType === 'mp4') {
-        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>Hanime1 滿版影片專區</text></svg>";
+        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>M3U8 串流影片專區</text></svg>";
         if (albumTracks.length > 0 && albumTracks[0].videoBlob) {
           ytThumbUrl = createTrackedObjectURL(albumTracks[0].videoBlob);
         }
@@ -1289,12 +1282,12 @@
         ytCard.innerHTML = `
           <div class="album-youtube-thumb-container">
             <video src="${ytThumbUrl}" muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊觀看滿版影片 (${albumTracks.length} 則)</div>
+            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊觀看 M3U8 串流影片 (${albumTracks.length} 則)</div>
           </div>
           <div class="album-youtube-info">
             <div>
               <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
-              <span class="album-badge badge-mp4">🌸 Hanime1 滿版影片專區 (無原音、音檔驅動循環、永久同步字幕與愛心)</span>
+              <span class="album-badge badge-mp4">🌸 M3U8 / HLS 串流專區 (支援直連網址與檔案解析、自動同步)</span>
             </div>
             <div class="btn-action-col">
               <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
@@ -1369,7 +1362,7 @@
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
-    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
+    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'}]`;
 
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
@@ -1390,7 +1383,7 @@
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
-            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 影片無原音、音檔驅動循環播放' : ''}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoUrl || track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 M3U8 串流同步播放' : ''}</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1480,19 +1473,20 @@
     const titleInput = document.getElementById("track-title-input").value.trim();
     const audioInput = document.getElementById("track-audio");
     const videoInput = document.getElementById("track-video");
+    const m3u8UrlInput = document.getElementById("track-m3u8-url").value.trim();
     const lrcInput = document.getElementById("track-lrc");
 
     if (!albumId) return showToast("請先選擇目標作品分區！");
     const album = albums.find(a => a.id === albumId);
     const isMp4 = album && album.albumType === 'mp4';
 
-    if (isMp4 && !videoInput.files.length) return showToast("請選擇影片檔案！");
+    if (isMp4 && !videoInput.files.length && !m3u8UrlInput) return showToast("請選擇影片檔案或輸入 M3U8 串流網址！");
     if (!audioInput.files.length) return showToast("請選擇音訊/音檔檔案！");
 
     const audioFile = audioInput.files[0];
     const videoFile = isMp4 ? videoInput.files[0] : null;
     const lrcFile = lrcInput.files[0];
-    let title = titleInput || (isMp4 ? videoFile.name.replace(/\.[^/.]+$/, "") : audioFile.name.replace(/\.[^/.]+$/, ""));
+    let title = titleInput || (isMp4 && videoFile ? videoFile.name.replace(/\.[^/.]+$/, "") : (m3u8UrlInput ? "M3U8_Stream" : audioFile.name.replace(/\.[^/.]+$/, "")));
     let lrcText = "";
 
     if (lrcFile) lrcText = await lrcFile.text();
@@ -1500,17 +1494,19 @@
     let trackData = { albumId, title, lrcText, audioBlob: audioFile };
     if (isMp4) {
       trackData.videoBlob = videoFile;
+      trackData.videoUrl = m3u8UrlInput;
     }
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").add(trackData);
     tx.oncomplete = () => {
       document.getElementById("track-title-input").value = "";
+      document.getElementById("track-m3u8-url").value = "";
       audioInput.value = "";
       if(videoInput) videoInput.value = "";
       lrcInput.value = "";
       loadData();
-      showToast("✅ 單一篇章新增成功 (影片靜音、音檔與字幕完美同步)！");
+      showToast("✅ 單一篇章新增成功 (M3U8 串流與音檔、字幕完美同步)！");
     };
   }
 
@@ -1537,7 +1533,7 @@
     const album = albums.find(a => a.id === albumId);
     const isMp4 = album && album.albumType === 'mp4';
 
-    if (isMp4 && !videoInput.files.length) return showToast("請同時選取對應的影片檔案！");
+    if (isMp4 && !videoInput.files.length) return showToast("請同時選取對應的影片或 M3U8 檔案！");
 
     btn.disabled = true;
     btn.innerText = "⚡ 正在配對並匯入...";
@@ -1608,6 +1604,38 @@
     tx.oncomplete = () => { loadData(); showToast("修改成功！"); };
   }
 
+  /* 核心升級：支援 M3U8 / HLS 串流及本地影片播放處理函式 */
+  function loadVideoSourceToPlayer(videoEl, track) {
+    if (hlsInstance) {
+      hlsInstance.destroy();
+      hlsInstance = null;
+    }
+
+    let videoSrc = "";
+    if (track.videoUrl && track.videoUrl.trim() !== "") {
+      videoSrc = track.videoUrl.trim();
+    } else if (track.videoBlob) {
+      videoSrc = createTrackedObjectURL(track.videoBlob);
+    }
+
+    if (!videoSrc) return;
+
+    const isM3U8 = videoSrc.includes('.m3u8') || (track.videoBlob && track.videoBlob.name && track.videoBlob.name.endsWith('.m3u8'));
+
+    if (isM3U8 && Hls.isSupported()) {
+      hlsInstance = new Hls();
+      hlsInstance.loadSource(videoSrc);
+      hlsInstance.attachMedia(videoEl);
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+        videoEl.play().catch(()=>{});
+      });
+    } else if (videoEl.canPlayType('application/vnd.apple.mpegurl') || !isM3U8) {
+      videoEl.src = videoSrc;
+      videoEl.load();
+      videoEl.play().catch(()=>{});
+    }
+  }
+
   async function playTrackFromAlbum(albumId, trackIndex) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
@@ -1635,19 +1663,15 @@
     audio.pause();
     mainVideoPlayer.pause();
 
-    // 關鍵優化：音檔作為真正主音源驅動
     audio.src = createTrackedObjectURL(track.audioBlob);
     audio.load();
 
     if (currentAlbumType === 'mp4') {
-      if (track.videoBlob) {
-        mainVideoPlayer.src = createTrackedObjectURL(track.videoBlob);
-        mainVideoPlayer.muted = true; // 徹底靜音影片原音
-        mainVideoPlayer.volume = 0;
-        mainVideoPlayer.loop = true;  // 影片循環播放
-        mainVideoPlayer.load();
-        mainVideoPlayer.play().catch(()=>{});
-      }
+      loadVideoSourceToPlayer(mainVideoPlayer, track);
+      mainVideoPlayer.muted = true;
+      mainVideoPlayer.volume = 0;
+      mainVideoPlayer.loop = true;
+
       playerCardMp3.classList.add("minimized");
       playerCardMp4.classList.remove("minimized");
       miniPlayer.classList.add("hidden");
@@ -1772,7 +1796,7 @@
 
   function minimizePlayer() {
     playerCardMp3.classList.add("minimized");
-    playerCardMp4.classList.remove("is-fullscreen"); // 離開全螢幕
+    playerCardMp4.classList.remove("is-fullscreen");
     playerCardMp4.classList.add("minimized");
     if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
   }
@@ -1835,7 +1859,6 @@
     document.getElementById("mini-lrc").innerText = currentText;
     document.getElementById("video-subtitle-overlay").innerText = currentText;
 
-    // 影片時間與音訊時長保持完美同步循環
     if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
       let expectedVideoTime = audio.currentTime % mainVideoPlayer.duration;
       if (Math.abs(mainVideoPlayer.currentTime - expectedVideoTime) > 0.4) {
@@ -1900,15 +1923,14 @@
 
   function inspectCurrentTrackLrc() {
     let track = currentTrackList[currentIndex];
-    if (!track) return;
-    let newRaw = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
-    if (newRaw === null) return;
-    track.lrcText = newRaw;
-    currentLrc = parseUniversalLyrics(newRaw);
+    let raw = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
+    if (raw === null) return;
+    track.lrcText = raw;
+    currentLrc = parseUniversalLyrics(raw);
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕已成功更新！");
+    tx.oncomplete = () => showToast("✅ 字幕更新成功！");
   }
 </script>
 </body>
