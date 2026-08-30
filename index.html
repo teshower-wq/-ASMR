@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>ASMR 私人隨身庫 (Hanime1 & YouTube M3U8 極致影音升級版)</title>
+  <title>ASMR 私人隨身庫 (M3U8 極致影音升級版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 引入 Hls.js 支援 M3U8 / HLS 串流播放解析 -->
+  <!-- HLS.js for cross-browser M3U8 playback support -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     :root {
@@ -75,11 +75,11 @@
     .card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; color: var(--primary-pink); display: flex; align-items: center; gap: 10px; }
     .form-group { margin-bottom: 12px; }
     label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 6px; font-weight: 500; }
-    input, select {
+    input, select, textarea {
       width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.2s ease;
     }
-    input:focus, select:focus { border-color: var(--primary-pink); box-shadow: 0 0 12px rgba(255, 121, 198, 0.25); background: rgba(0,0,0,0.6); }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary-pink); box-shadow: 0 0 12px rgba(255, 121, 198, 0.25); background: rgba(0,0,0,0.6); }
     
     input[type="file"] { padding: 8px; color: var(--text-sub); font-size: 0.85rem; cursor: pointer; }
     input[type="file"]::file-selector-button {
@@ -129,7 +129,7 @@
       transform: translateY(-2px); box-shadow: 0 15px 40px rgba(255, 121, 198, 0.25);
     }
     .album-youtube-thumb-container {
-      width: 100%; height: 200px; background: #000; position: relative; overflow: hidden;
+      width: 100%; height: 200px; background: #000; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
     }
     .album-youtube-thumb-container video, .album-youtube-thumb-container img {
       width: 100%; height: 100%; object-fit: cover;
@@ -141,7 +141,7 @@
     .album-grid-count { font-size: 0.85rem; color: var(--primary-pink); font-weight: 600; }
     .album-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; margin-top: 4px; font-weight: 700; }
     .badge-mp3 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
-    .badge-mp4 { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.4); }
+    .badge-m3u8 { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.4); }
     
     .btn-action-col { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; z-index: 2; }
     .btn-album-action {
@@ -199,60 +199,50 @@
     .player-card-mp3.minimized { transform: translateY(110%); pointer-events: none; }
 
     /* ======================================================== */
-    /* Hanime1 & YouTube M3U8 升級版滿版影片專區樣式設定 */
+    /* M3U8 專區極致滿版影片播放器 (打掉重練：完美真正的全螢幕、無任何網址與網站小工具、直接填滿 iOS 畫面) */
     /* ======================================================== */
-    .player-card-mp4 {
-      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; width: 100vw; height: 100vh;
-      width: 100dvw; height: 100dvh; max-width: 100vw; max-height: 100vh; background: #000000;
-      z-index: 10000; display: flex; flex-direction: column; justify-content: space-between;
+    .player-card-m3u8 {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      max-width: 100vw; max-height: 100vh; background: #000000;
+      z-index: 2147483647; display: flex; flex-direction: column; justify-content: space-between;
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      transform: translateZ(0); overflow: hidden;
+      transform: translateZ(0); overflow: hidden; border-radius: 0;
     }
-    .player-card-mp4.minimized { transform: translateY(110%); pointer-events: none; }
+    .player-card-m3u8.minimized { transform: translateY(110%); pointer-events: none; }
     
-    .player-card-mp4.is-fullscreen {
-      position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-      width: 100vw !important; height: 100vh !important; width: 100dvw !important; height: 100dvh !important;
+    .player-card-m3u8.ios-fullscreen {
+      position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important;
       max-width: none !important; max-height: none !important; z-index: 2147483647 !important; border-radius: 0 !important;
-      margin: 0 !important; padding: 0 !important;
     }
 
-    .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
-    .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
-
-    .mp4-top-bar {
+    /* 頂部控制列 (僅保留關閉按鈕，乾淨簡潔) */
+    .m3u8-top-bar {
       position: absolute; top: 0; left: 0; right: 0; height: 64px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
       display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; z-index: 120;
-      transition: opacity 0.3s ease; padding-top: env(safe-area-inset-top);
+      transition: opacity 0.3s ease;
     }
-    .mp4-top-actions { display: flex; gap: 12px; align-items: center; }
-    .mp4-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
+    .m3u8-top-actions { display: flex; gap: 12px; align-items: center; }
+    .m3u8-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
 
+    /* 影片滿版對齊框 */
     .video-fullscreen-box {
       width: 100%; height: 100%; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
     }
     .video-fullscreen-box video {
-      width: 100%; height: 100%; object-fit: contain; background: #000; outline: none; position: absolute; top: 0; left: 0;
-    }
-    .player-card-mp4.is-fullscreen .video-fullscreen-box video {
-      object-fit: cover !important;
+      width: 100%; height: 100%; object-fit: cover; background: #000; outline: none; position: absolute; top: 0; left: 0;
     }
 
+    /* 永久同步字幕：絕對不隨控制列隱藏，永遠同步顯示在影片下方 */
     .video-subtitle-overlay {
-      position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
-      max-width: 90%; width: max-content; text-align: center;
-      font-size: 1.25rem; font-weight: 800; color: #ffffff;
-      background: rgba(255, 121, 198, 0.35);
-      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-      border: 1.5px solid rgba(255, 121, 198, 0.6);
-      box-shadow: 0 4px 25px rgba(255, 121, 198, 0.4), inset 0 0 15px rgba(255, 121, 198, 0.2);
-      padding: 8px 20px; border-radius: 16px;
+      position: absolute; bottom: 85px; left: 20px; right: 20px; text-align: center;
+      font-size: 1.4rem; font-weight: 800; color: var(--primary-pink);
+      text-shadow: 0 0 18px rgba(0,0,0,0.98), 0 2px 8px rgba(0,0,0,0.95);
       pointer-events: none; z-index: 130; line-height: 1.4;
-      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-      word-break: break-word; text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+      transition: opacity 0.3s ease;
     }
 
+    /* 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方且隨音訊高潮互動 */
     .heart-toy-container {
       position: absolute; top: 75px; right: 20px; width: 54px; height: 54px;
       z-index: 130; cursor: pointer; user-select: none;
@@ -281,19 +271,20 @@
       100% { box-shadow: 0 0 80px rgba(255, 20, 147, 1), inset 0 0 70px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px) rotate(0deg); }
     }
 
-    .mp4-bottom-controls {
+    /* 底部控制器列：僅此區塊在點擊時隱藏 */
+    .m3u8-bottom-controls {
       position: absolute; bottom: 0; left: 0; right: 0; height: 70px;
       background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
       display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 120;
-      transition: opacity 0.3s ease, transform 0.3s ease; padding-bottom: env(safe-area-inset-bottom);
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    .mp4-controls-left { display: flex; align-items: center; gap: 16px; }
-    .mp4-controls-right { display: flex; align-items: center; gap: 14px; }
-    .mp4-time-display { font-size: 0.85rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
-    .mp4-seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.25); position: absolute; top: -6px; left: 0; right: 0; }
+    .m3u8-controls-left { display: flex; align-items: center; gap: 16px; }
+    .m3u8-controls-right { display: flex; align-items: center; gap: 14px; }
+    .m3u8-time-display { font-size: 0.85rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .m3u8-seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.25); position: absolute; top: -6px; left: 0; right: 0; }
 
-    .player-card-mp4.controls-hidden .mp4-top-bar,
-    .player-card-mp4.controls-hidden .mp4-bottom-controls {
+    .player-card-m3u8.controls-hidden .m3u8-top-bar,
+    .player-card-m3u8.controls-hidden .m3u8-bottom-controls {
       opacity: 0; pointer-events: none;
     }
 
@@ -385,9 +376,9 @@
 
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
-      <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
+      <div class="card-title" style="color: #ff1493;">🎀 M3U8 專區自訂高潮特效 (圖片 + 音效)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        設定後，在「YouTube 影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
+        設定後，在「M3U8 影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
       </div>
       <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
       <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
@@ -396,67 +387,46 @@
 
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒自動輪播)</div>
-      <div class="form-group"><label>選取多張圖片或 MP4 影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
+      <div class="form-group"><label>選取多張圖片或影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 M3U8 影片專區)</div>
-      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
+      <div class="card-title">📁 建立作品分區 (獨立區隔 MP3 與 M3U8 串流影片專區)</div>
+      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：M3U8 影音專集"></div>
       <div class="form-group">
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
-          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、面板設置省電功能)</option>
-          <option value="mp4">🌸 Hanime1 風格 M3U8 串流影片專區 (完美支援本地影片、.m3u8 檔案或遠端 M3U8 串流網址大升級)</option>
+          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、支援省電與懸浮窗)</option>
+          <option value="m3u8">🌸 M3U8 串流影片專區 (完美支援 iOS 滿版全螢幕無網址列、自動循環、永久同步字幕與愛心高潮特效)</option>
         </select>
       </div>
-      <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
+      <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片封面)</label><input type="file" id="album-covers" accept="image/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
 
     <div class="glass-card">
-      <div class="card-title">⚡ 一鍵自動配對音檔/影片與字幕</div>
+      <div class="card-title">⚡ 新增篇章 (M3U8 串流網址或檔案)</div>
       <div class="form-group">
         <label>選擇目標作品分區</label>
         <select id="select-album"><option value="">-- 請先建立分區 --</option></select>
       </div>
       
-      <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳</div>
-        <div class="form-group" id="batch-audio-group">
-          <label id="batch-audio-label">複選所有音訊/影片檔案</label>
-          <input type="file" id="batch-audios" accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov" multiple>
-        </div>
-        <div class="form-group" id="batch-video-group" style="display:none;">
-          <label>複選對應影片檔案 (.mp4 / .mov / .m3u8)</label>
-          <input type="file" id="batch-videos" accept="video/*,.mp4,.mov,.webm,.m3u8" multiple>
-        </div>
-        <div class="form-group">
-          <label>複選所有字幕/文檔 (.lrc / .vtt / .srt / .txt 全格式)</label>
-          <input type="file" id="batch-lrcs" accept=".lrc,.vtt,.srt,.txt" multiple>
-        </div>
-        <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
+      <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_串流影片章節"></div>
+      <div class="form-group" id="single-m3u8-group">
+        <label>M3U8 串流網址 (URL) 或上傳 .m3u8 檔案</label>
+        <input type="text" id="track-m3u8-url" placeholder="https://example.com/stream.m3u8 或輸入檔案路徑">
+        <div style="margin-top: 6px;"><input type="file" id="track-m3u8-file" accept=".m3u8,.txt"></div>
       </div>
-
-      <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
-        <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
-        <div class="form-group" id="single-video-group" style="display:none;">
-          <label>影片檔案 (MP4 / MOV / M3U8 檔案)</label>
-          <input type="file" id="track-video" accept="video/*,.mp4,.mov,.webm,.m3u8" style="margin-bottom:6px;">
-          <input type="text" id="track-m3u8-url" placeholder="或直接貼上遠端 M3U8 串流網址 (例如: https://example.com/index.m3u8)">
-        </div>
-        <div class="form-group"><label id="track-audio-label">音訊主檔案 (MP3 / WAV / M4A - 作為主音源與計時依據)</label><input type="file" id="track-audio" accept="audio/*,video/*,.mp3,.wav,.m4a"></div>
-        <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
-        <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
-      </div>
+      <div class="form-group"><label>字幕/文檔 (.lrc / .vtt / .srt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
+      <button class="btn-pink" onclick="addTrack()">新增篇章</button>
     </div>
   </div>
 
   <div id="view-home" class="page-view active">
     <div class="glass-card">
-      <div class="card-title">📚 選擇作品集 (MP3 與 M3U8 滿版影片專區獨立呈現)</div>
+      <div class="card-title">📚 選擇作品集 (MP3 與 M3U8 串流影片專區獨立呈現)</div>
       <div id="album-list">載入中...</div>
       <div id="pagination-container"></div>
     </div>
@@ -525,22 +495,23 @@
   </div>
 </div>
 
-<!-- 2. Hanime1 & YouTube M3U8 升級版滿版影片專區播放面板 -->
-<div id="player-card-mp4" class="player-card-mp4 minimized">
+<!-- 2. M3U8 串流影片專區播放面板 (打掉重練：完全無網址列、無多餘工具、完美 iOS 全螢幕橫向填滿) -->
+<div id="player-card-m3u8" class="player-card-m3u8 minimized">
   <div class="video-fullscreen-box" id="video-fullscreen-box">
-    <!-- 主影片播放器 (支援 M3U8 串流及本地影片) -->
-    <video id="main-video-player" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
+    <!-- M3U8 串流主影片播放器：支援 HLS 串流、循環與 playsinline -->
+    <video id="main-m3u8-player" playsinline webkit-playsinline crossorigin="anonymous"></video>
 
-    <div class="mp4-top-bar" id="mp4-top-bar">
-      <div class="mp4-top-actions">
-        <button class="mp4-icon-btn" onclick="toggleFullScreen(event)" title="全螢幕 / 橫向填滿">⛶</button>
-        <button class="mp4-icon-btn" onclick="event.stopPropagation(); minimizePlayer();" title="縮小關閉">✕</button>
+    <!-- 獨立頂部資訊列 (僅保留關閉按鈕，無任何網址與工具列) -->
+    <div class="m3u8-top-bar" id="m3u8-top-bar">
+      <div class="m3u8-top-actions">
+        <button class="m3u8-icon-btn" onclick="event.stopPropagation(); minimizePlayer();" title="縮小關閉">✕</button>
       </div>
     </div>
 
-    <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入 M3U8 影片字幕中... ♪</div>
+    <!-- 永久同步字幕：絕對不隨控制列隱藏，永遠跟隨 M3U8 串流時間同步顯示 -->
+    <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入 M3U8 串流字幕中... ♪</div>
 
-    <!-- 愛心互動特效 -->
+    <!-- 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方，隨音訊高潮互動 -->
     <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); triggerInstantOrgasm();" title="點擊一鍵高潮">
       <svg class="heart-svg" viewBox="0 0 32 32">
         <defs>
@@ -557,15 +528,17 @@
       </svg>
     </div>
 
+    <!-- 高潮特效圖片覆蓋 -->
     <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:135; object-fit:cover;">
 
-    <div class="mp4-bottom-controls" id="mp4-bottom-controls" onclick="event.stopPropagation()">
-      <input type="range" id="seek-slider-mp4" class="mp4-seek-slider" value="0" min="0" max="100" step="0.1">
-      <div class="mp4-controls-left">
-        <button class="btn-ctrl" onclick="togglePlay()" id="btn-play-mp4" style="color:#fff; font-size:1.4rem;">⏸</button>
-        <div class="mp4-time-display"><span id="time-current-mp4">00:00</span> / <span id="time-duration-mp4">00:00</span></div>
+    <!-- 底部控制器列：點按只隱藏此區塊（進度條與左右換集） -->
+    <div class="m3u8-bottom-controls" id="m3u8-bottom-controls" onclick="event.stopPropagation()">
+      <input type="range" id="seek-slider-m3u8" class="m3u8-seek-slider" value="0" min="0" max="100" step="0.1">
+      <div class="m3u8-controls-left">
+        <button class="btn-ctrl" onclick="togglePlay()" id="btn-play-m3u8" style="color:#fff; font-size:1.4rem;">⏸</button>
+        <div class="m3u8-time-display"><span id="time-current-m3u8">00:00</span> / <span id="time-duration-m3u8">00:00</span></div>
       </div>
-      <div class="mp4-controls-right">
+      <div class="m3u8-controls-right">
         <button class="btn-ctrl" onclick="prevTrack()" style="color:#fff; font-size:1.2rem;" title="上一集">⏮</button>
         <button class="btn-ctrl" onclick="nextTrack()" style="color:#fff; font-size:1.2rem;" title="下一集">⏭</button>
       </div>
@@ -596,7 +569,6 @@
 
   let activeAlbumCoverBlobs = [];
   let activeCoverIndex = 0;
-  let coverElements = [];
   let cachedCoverElement = null;
   let isCoverVideoActive = false;
   let currentAlbumType = 'mp3';
@@ -616,9 +588,9 @@
   let heartFillPercent = 0;
   let isClimaxState = false;
   let climaxResetTimer = null;
+  let hlsInstance = null;
   
   window.customClimaxData = null;
-  let hlsInstance = null; // M3U8 Hls.js 專用實例
 
   let lastPiPRenderTime = 0;
   let PIP_FPS = 30;
@@ -629,15 +601,15 @@
   const AUDIO_INTERVAL = 1000 / AUDIO_FPS;
 
   const audio = document.getElementById("main-audio");
-  const mainVideoPlayer = document.getElementById("main-video-player");
+  const mainM3u8Player = document.getElementById("main-m3u8-player");
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
   const pipVideo = document.getElementById("pip-video");
   const playerCardMp3 = document.getElementById("player-card-mp3");
-  const playerCardMp4 = document.getElementById("player-card-mp4");
+  const playerCardM3u8 = document.getElementById("player-card-m3u8");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
-  const seekSliderMp4 = document.getElementById("seek-slider-mp4");
+  const seekSliderM3u8 = document.getElementById("seek-slider-m3u8");
   const volumeSlider = document.getElementById("volume-slider");
   const climaxAudioEl = document.getElementById("climax-audio-el");
   const videoFullscreenBox = document.getElementById("video-fullscreen-box");
@@ -687,27 +659,27 @@
   let isControlsVisible = true;
 
   function resetControlsHideTimer() {
-    const playerMp4 = document.getElementById("player-card-mp4");
-    playerMp4.classList.remove("controls-hidden");
+    const playerM3u8 = document.getElementById("player-card-m3u8");
+    playerM3u8.classList.remove("controls-hidden");
     isControlsVisible = true;
     if (controlsHideTimer) clearTimeout(controlsHideTimer);
     controlsHideTimer = setTimeout(() => {
       let m = getActiveMedia();
       if (m && !m.paused && !isClimaxState) {
-        playerMp4.classList.add("controls-hidden");
+        playerM3u8.classList.add("controls-hidden");
         isControlsVisible = false;
       }
     }, 4000);
   }
 
   function toggleControlsVisibility() {
-    const playerMp4 = document.getElementById("player-card-mp4");
+    const playerM3u8 = document.getElementById("player-card-m3u8");
     if (isControlsVisible) {
-      playerMp4.classList.add("controls-hidden");
+      playerM3u8.classList.add("controls-hidden");
       isControlsVisible = false;
       if (controlsHideTimer) clearTimeout(controlsHideTimer);
     } else {
-      playerMp4.classList.remove("controls-hidden");
+      playerM3u8.classList.remove("controls-hidden");
       isControlsVisible = true;
       resetControlsHideTimer();
     }
@@ -733,7 +705,7 @@
   }
 
   function getActiveMedia() {
-    return audio;
+    return (currentAlbumType === 'm3u8') ? mainM3u8Player : audio;
   }
 
   function createTrackedObjectURL(blob) {
@@ -790,7 +762,6 @@
   }
 
   function initAudioAnalysis() {
-    if (currentAlbumType !== 'mp4') return;
     if (audioCtx) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       return;
@@ -801,7 +772,8 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 512;
       
-      audioSourceNode = audioCtx.createMediaElementSource(audio);
+      let targetNode = (currentAlbumType === 'm3u8') ? mainM3u8Player : audio;
+      audioSourceNode = audioCtx.createMediaElementSource(targetNode);
       audioSourceNode.connect(analyser);
       analyser.connect(audioCtx.destination);
 
@@ -814,11 +786,11 @@
 
   function analyzeAudioFrame(timestamp) {
     requestAnimationFrame(analyzeAudioFrame);
-    if (currentAlbumType !== 'mp4') return;
     if (timestamp - lastAudioAnalyzeTime < AUDIO_INTERVAL) return;
     lastAudioAnalyzeTime = timestamp;
 
-    if (!audioCtx || audio.paused || isClimaxState) return;
+    let m = getActiveMedia();
+    if (!audioCtx || !m || m.paused || isClimaxState) return;
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
@@ -854,7 +826,7 @@
   }
 
   async function triggerClimaxEffect() {
-    if (currentAlbumType !== 'mp4' || isClimaxState) return;
+    if (isClimaxState) return;
     isClimaxState = true;
     heartFillPercent = 100;
     updateHeartDisplay();
@@ -874,8 +846,9 @@
       try {
         climaxAudioEl.currentTime = 0;
         await climaxAudioEl.play();
-        if (!audio.paused) {
-          audio.pause();
+        let m = getActiveMedia();
+        if (m && !m.paused) {
+          m.pause();
           syncPlayButtons(false);
         }
       } catch (e) {
@@ -902,15 +875,15 @@
       climaxOverlay.src = "";
     }
 
-    if (currentIndex !== -1 && audio.paused) {
-      audio.play().then(() => {
+    let m = getActiveMedia();
+    if (currentIndex !== -1 && m && m.paused) {
+      m.play().then(() => {
         syncPlayButtons(true);
       }).catch(e=>{});
     }
   }
 
   function triggerInstantOrgasm() {
-    if (currentAlbumType !== 'mp4') return;
     if (climaxResetTimer) clearTimeout(climaxResetTimer);
     isClimaxState = false;
     triggerClimaxEffect();
@@ -931,7 +904,7 @@
       window.customClimaxData = climaxData;
       climaxAudioEl.src = URL.createObjectURL(audioBlob);
       climaxAudioEl.load();
-      showToast("✅ 動態影音專區自訂高潮特效素材儲存成功！");
+      showToast("✅ M3U8 專區自訂高潮特效素材儲存成功！");
       imgInput.value = ""; audioInput.value = "";
     };
   }
@@ -969,8 +942,8 @@
           const climaxOverlay = document.getElementById("climax-overlay-img");
           if (isClimaxState && climaxOverlay && climaxOverlay.style.display === "block") {
             drawCoverToCanvas(pipCtx, climaxOverlay, 1080, false);
-          } else if (currentAlbumType === 'mp4') {
-            drawCoverToCanvas(pipCtx, mainVideoPlayer, 1080, true);
+          } else if (currentAlbumType === 'm3u8') {
+            drawCoverToCanvas(pipCtx, mainM3u8Player, 1080, true);
           } else if (cachedCoverElement) {
             drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive);
           } else {
@@ -982,7 +955,8 @@
             pipCtx.fillText("ASMR 隨身庫", 540, 540);
           }
 
-          let currentText = isClimaxState ? "🎀 觸發專屬高潮中..." : getActiveSubtitleText(audio.currentTime);
+          let m = getActiveMedia();
+          let currentText = isClimaxState ? "🎀 觸發專屬高潮中..." : getActiveSubtitleText(m ? m.currentTime : 0);
 
           let grad = pipCtx.createLinearGradient(0, 780, 0, 1080);
           grad.addColorStop(0, "rgba(0,0,0,0)"); grad.addColorStop(0.35, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0.92)");
@@ -1011,11 +985,12 @@
   async function enablePiP() {
     if (currentIndex === -1) return showToast("請先播放一個篇章才能開啟桌面懸浮窗！");
     unlockAutoplayConstraints();
-    if (currentAlbumType === 'mp4') initAudioAnalysis();
+    initAudioAnalysis();
     initPiPEngine();
 
-    if (audio.paused && !isClimaxState) {
-      await audio.play().catch(() => {});
+    let m = getActiveMedia();
+    if (m && m.paused && !isClimaxState) {
+      await m.play().catch(() => {});
       syncPlayButtons(true);
     }
     try {
@@ -1028,32 +1003,6 @@
     }
   }
 
-  function toggleFullScreen(e) {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    const cardMp4 = document.getElementById("player-card-mp4");
-    if (!cardMp4) return;
-
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const willBeFullscreen = !cardMp4.classList.contains("is-fullscreen");
-
-    cardMp4.classList.toggle("is-fullscreen", willBeFullscreen);
-
-    if (!isIOS) {
-      if (willBeFullscreen) {
-        if (cardMp4.requestFullscreen) cardMp4.requestFullscreen().catch(()=>{});
-        else if (cardMp4.webkitRequestFullscreen) cardMp4.webkitRequestFullscreen();
-      } else {
-        if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-        else if (document.webkitExitFullscreen && document.webkitExitFullscreenElement) document.webkitExitFullscreen();
-      }
-    }
-
-    showToast(willBeFullscreen ? "📺 已切換滿版橫向全螢幕模式" : "📺 已退出全螢幕視窗");
-  }
-
   function unlockAutoplayConstraints() {
     if (window.customClimaxData && window.customClimaxData.audioBlob && climaxAudioEl.paused) {
       if (!climaxAudioEl.src) climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
@@ -1061,7 +1010,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_M3U8_V1", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1091,31 +1040,16 @@
   function onAlbumTypeChange() {
     const typeSel = document.getElementById("album-type");
     if (!typeSel) return;
-    const isMp4 = typeSel.value === 'mp4';
+    const isM3U8 = typeSel.value === 'm3u8';
     const coverGroup = document.getElementById("group-album-covers");
-    const trackAudioLabel = document.getElementById("track-audio-label");
-    const batchAudioLabel = document.getElementById("batch-audio-label");
-    const trackAudioInput = document.getElementById("track-audio");
-    const batchAudioInput = document.getElementById("batch-audios");
-    const singleVideoGroup = document.getElementById("single-video-group");
-    const batchVideoGroup = document.getElementById("batch-video-group");
+    const singleM3u8Group = document.getElementById("single-m3u8-group");
 
-    if (isMp4) {
-      if (coverGroup) coverGroup.style.display = "none";
-      if (singleVideoGroup) singleVideoGroup.style.display = "block";
-      if (batchVideoGroup) batchVideoGroup.style.display = "block";
-      if (trackAudioLabel) trackAudioLabel.innerText = "專屬主音檔 (MP3 / WAV / M4A - 作為整部影片之真正音源)";
-      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有專屬音檔 (.mp3 / .wav / .m4a)";
-      if (trackAudioInput) trackAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.aac";
-      if (batchAudioInput) batchAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.aac";
+    if (isM3U8) {
+      if (coverGroup) coverGroup.style.display = "block";
+      if (singleM3u8Group) singleM3u8Group.style.display = "block";
     } else {
       if (coverGroup) coverGroup.style.display = "block";
-      if (singleVideoGroup) singleVideoGroup.style.display = "none";
-      if (batchVideoGroup) batchVideoGroup.style.display = "none";
-      if (trackAudioLabel) trackAudioLabel.innerText = "音訊檔案 (MP3 / WAV / M4A)";
-      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有音訊檔案 (.mp3 / .wav / .m4a)";
-      if (trackAudioInput) trackAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.flac,.aac";
-      if (batchAudioInput) batchAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.flac,.aac";
+      if (singleM3u8Group) singleM3u8Group.style.display = "none";
     }
   }
 
@@ -1171,7 +1105,7 @@
     albums.forEach(a => {
       let opt = document.createElement("option");
       opt.value = a.id;
-      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'}]`;
+      opt.innerText = `${a.title} [${a.albumType === 'm3u8' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'}]`;
       sel.appendChild(opt);
     });
   }
@@ -1234,7 +1168,7 @@
     if (!title) return showToast("請填寫分區名稱！");
 
     let coverBlobs = [];
-    if (albumType === 'mp3' && coverInput) {
+    if (coverInput) {
       for (let f of coverInput.files) coverBlobs.push(f);
     }
     let bgBlobs = [];
@@ -1247,7 +1181,7 @@
       if(coverInput) coverInput.value = "";
       bgInput.value = "";
       loadData();
-      showToast(`✅ ${albumType === 'mp4' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'} 建立成功！`);
+      showToast(`✅ ${albumType === 'm3u8' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'} 建立成功！`);
     };
   }
 
@@ -1271,23 +1205,23 @@
     paginatedAlbums.forEach(album => {
       let albumTracks = tracks.filter(t => t.albumId === album.id);
 
-      if (album.albumType === 'mp4') {
-        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>M3U8 串流影片專區</text></svg>";
-        if (albumTracks.length > 0 && albumTracks[0].videoBlob) {
-          ytThumbUrl = createTrackedObjectURL(albumTracks[0].videoBlob);
+      if (album.albumType === 'm3u8') {
+        let thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>M3U8 串流專區</text></svg>";
+        if (album.covers && album.covers.length > 0) {
+          thumbUrl = createTrackedObjectURL(album.covers[0]);
         }
 
         let ytCard = document.createElement("div");
         ytCard.className = "album-youtube-card";
         ytCard.innerHTML = `
           <div class="album-youtube-thumb-container">
-            <video src="${ytThumbUrl}" muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
-            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊觀看 M3U8 串流影片 (${albumTracks.length} 則)</div>
+            <img src="${thumbUrl}" style="width:100%; height:100%; object-fit:cover;">
+            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊觀看串流影片 (${albumTracks.length} 則)</div>
           </div>
           <div class="album-youtube-info">
             <div>
               <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
-              <span class="album-badge badge-mp4">🌸 M3U8 / HLS 串流專區 (支援直連網址與檔案解析、自動同步)</span>
+              <span class="album-badge badge-m3u8">🌸 M3U8 串流專區 (iOS 全螢幕無網址列、自動循環與愛心高潮)</span>
             </div>
             <div class="btn-action-col">
               <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
@@ -1304,12 +1238,7 @@
       } else {
         let thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
         if (album.covers && album.covers.length > 0) {
-          let firstCover = album.covers[0];
-          if (firstCover.type && firstCover.type.startsWith("video")) {
-            thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14'>影片封面</text></svg>";
-          } else {
-            thumbUrl = createTrackedObjectURL(firstCover);
-          }
+          thumbUrl = createTrackedObjectURL(album.covers[0]);
         }
 
         let card = document.createElement("div");
@@ -1362,7 +1291,7 @@
   function renderDetailView(albumId) {
     const album = albums.find(a => a.id === albumId);
     if (!album) return;
-    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'}]`;
+    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'm3u8' ? 'M3U8 串流影片專區' : '純音訊 MP3 專區'}]`;
 
     const container = document.getElementById("chapter-list-container");
     container.innerHTML = "";
@@ -1383,7 +1312,7 @@
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
-            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoUrl || track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 M3U8 串流同步播放' : ''}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.m3u8Url && album.albumType === 'm3u8' ? ' | 🌸 M3U8 串流播放' : ''}</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1472,116 +1401,47 @@
     const albumId = parseInt(document.getElementById("select-album").value);
     const titleInput = document.getElementById("track-title-input").value.trim();
     const audioInput = document.getElementById("track-audio");
-    const videoInput = document.getElementById("track-video");
-    const m3u8UrlInput = document.getElementById("track-m3u8-url").value.trim();
+    const m3u8UrlInput = document.getElementById("track-m3u8-url");
+    const m3u8FileInput = document.getElementById("track-m3u8-file");
     const lrcInput = document.getElementById("track-lrc");
 
     if (!albumId) return showToast("請先選擇目標作品分區！");
     const album = albums.find(a => a.id === albumId);
-    const isMp4 = album && album.albumType === 'mp4';
+    const isM3U8 = album && album.albumType === 'm3u8';
 
-    if (isMp4 && !videoInput.files.length && !m3u8UrlInput) return showToast("請選擇影片檔案或輸入 M3U8 串流網址！");
-    if (!audioInput.files.length) return showToast("請選擇音訊/音檔檔案！");
+    let m3u8Source = "";
+    if (isM3U8) {
+      if (m3u8FileInput && m3u8FileInput.files.length > 0) {
+        m3u8Source = createTrackedObjectURL(m3u8FileInput.files[0]);
+      } else if (m3u8UrlInput && m3u8UrlInput.value.trim()) {
+        m3u8Source = m3u8UrlInput.value.trim();
+      } else {
+        return showToast("請填寫 M3U8 串流網址或上傳 .m3u8 檔案！");
+      }
+    } else {
+      if (!audioInput || !audioInput.files.length) return showToast("請選擇音訊檔案！");
+    }
 
-    const audioFile = audioInput.files[0];
-    const videoFile = isMp4 ? videoInput.files[0] : null;
+    let audioBlob = (!isM3U8 && audioInput && audioInput.files.length) ? audioInput.files[0] : null;
     const lrcFile = lrcInput.files[0];
-    let title = titleInput || (isMp4 && videoFile ? videoFile.name.replace(/\.[^/.]+$/, "") : (m3u8UrlInput ? "M3U8_Stream" : audioFile.name.replace(/\.[^/.]+$/, "")));
+    let title = titleInput || (isM3U8 ? "M3U8 串流章節" : audioFile.name.replace(/\.[^/.]+$/, ""));
     let lrcText = "";
 
     if (lrcFile) lrcText = await lrcFile.text();
 
-    let trackData = { albumId, title, lrcText, audioBlob: audioFile };
-    if (isMp4) {
-      trackData.videoBlob = videoFile;
-      trackData.videoUrl = m3u8UrlInput;
-    }
+    let trackData = { albumId, title, lrcText, audioBlob, m3u8Url: isM3U8 ? m3u8Source : "" };
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").add(trackData);
     tx.oncomplete = () => {
       document.getElementById("track-title-input").value = "";
-      document.getElementById("track-m3u8-url").value = "";
-      audioInput.value = "";
-      if(videoInput) videoInput.value = "";
+      if(m3u8UrlInput) m3u8UrlInput.value = "";
+      if(m3u8FileInput) m3u8FileInput.value = "";
+      if(audioInput) audioInput.value = "";
       lrcInput.value = "";
       loadData();
-      showToast("✅ 單一篇章新增成功 (M3U8 串流與音檔、字幕完美同步)！");
+      showToast("✅ 新增篇章成功！");
     };
-  }
-
-  function readFileAsTextAsync(file) {
-    return new Promise((resolve) => {
-      if (!file) { resolve(""); return; }
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result || "");
-      reader.onerror = () => resolve("");
-      reader.readAsText(file);
-    });
-  }
-
-  async function batchUploadAndPair() {
-    const albumId = parseInt(document.getElementById("select-album").value);
-    const audioInput = document.getElementById("batch-audios");
-    const videoInput = document.getElementById("batch-videos");
-    const lrcInput = document.getElementById("batch-lrcs");
-    const btn = document.getElementById("btn-batch-upload");
-
-    if (!albumId) return showToast("請先選擇目標作品分區！");
-    if (!audioInput.files.length) return showToast("請至少選取音檔檔案！");
-
-    const album = albums.find(a => a.id === albumId);
-    const isMp4 = album && album.albumType === 'mp4';
-
-    if (isMp4 && !videoInput.files.length) return showToast("請同時選取對應的影片或 M3U8 檔案！");
-
-    btn.disabled = true;
-    btn.innerText = "⚡ 正在配對並匯入...";
-
-    let audios = Array.from(audioInput.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
-    let videos = isMp4 ? Array.from(videoInput.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true})) : [];
-    let lrcs = Array.from(lrcInput.files);
-
-    let lrcMapData = [];
-    for (let l of lrcs) {
-      let text = await readFileAsTextAsync(l);
-      let lBase = l.name.replace(/\.[^/.]+$/, "").trim();
-      lrcMapData.push({ base: lBase, text: text });
-    }
-
-    try {
-      const tx = db.transaction("tracks", "readwrite");
-      const store = tx.objectStore("tracks");
-
-      for (let i = 0; i < audios.length; i++) {
-        let audioFile = audios[i];
-        let baseName = audioFile.name.replace(/\.[^/.]+$/, "").trim();
-        let matchedLrcText = "";
-
-        let found = lrcMapData.find(item => {
-          let lBase = item.base;
-          return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
-        });
-        if (found) matchedLrcText = found.text;
-
-        let trackObj = { albumId, title: baseName, lrcText: matchedLrcText, audioBlob: audioFile };
-        if (isMp4 && videos[i]) {
-          trackObj.videoBlob = videos[i];
-          trackObj.title = videos[i].name.replace(/\.[^/.]+$/, "").trim();
-        }
-        store.add(trackObj);
-      }
-
-      tx.oncomplete = () => {
-        audioInput.value = ""; if(videoInput) videoInput.value = ""; lrcInput.value = "";
-        btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        loadData();
-        showToast(`✅ 成功批量匯入篇章！`);
-      };
-    } catch(e) {
-      btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      showToast("❌ 發生未預期的錯誤。");
-    }
   }
 
   function deleteTrack(id) {
@@ -1602,38 +1462,6 @@
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => { loadData(); showToast("修改成功！"); };
-  }
-
-  /* 核心升級：支援 M3U8 / HLS 串流及本地影片播放處理函式 */
-  function loadVideoSourceToPlayer(videoEl, track) {
-    if (hlsInstance) {
-      hlsInstance.destroy();
-      hlsInstance = null;
-    }
-
-    let videoSrc = "";
-    if (track.videoUrl && track.videoUrl.trim() !== "") {
-      videoSrc = track.videoUrl.trim();
-    } else if (track.videoBlob) {
-      videoSrc = createTrackedObjectURL(track.videoBlob);
-    }
-
-    if (!videoSrc) return;
-
-    const isM3U8 = videoSrc.includes('.m3u8') || (track.videoBlob && track.videoBlob.name && track.videoBlob.name.endsWith('.m3u8'));
-
-    if (isM3U8 && Hls.isSupported()) {
-      hlsInstance = new Hls();
-      hlsInstance.loadSource(videoSrc);
-      hlsInstance.attachMedia(videoEl);
-      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-        videoEl.play().catch(()=>{});
-      });
-    } else if (videoEl.canPlayType('application/vnd.apple.mpegurl') || !isM3U8) {
-      videoEl.src = videoSrc;
-      videoEl.load();
-      videoEl.play().catch(()=>{});
-    }
   }
 
   async function playTrackFromAlbum(albumId, trackIndex) {
@@ -1660,179 +1488,197 @@
       if (globalBackgrounds.length > 0) applyGlobalBackground(globalBackgrounds[bgIndex]);
     }
 
-    audio.pause();
-    mainVideoPlayer.pause();
-
-    audio.src = createTrackedObjectURL(track.audioBlob);
-    audio.load();
-
-    if (currentAlbumType === 'mp4') {
-      loadVideoSourceToPlayer(mainVideoPlayer, track);
-      mainVideoPlayer.muted = true;
-      mainVideoPlayer.volume = 0;
-      mainVideoPlayer.loop = true;
-
+    if (currentAlbumType === 'm3u8') {
       playerCardMp3.classList.add("minimized");
-      playerCardMp4.classList.remove("minimized");
+      playerCardM3u8.classList.remove("minimized");
       miniPlayer.classList.add("hidden");
+
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+      }
+
+      let m3u8Source = track.m3u8Url || "";
+      if (Hls.isSupported() && !m3u8Source.includes('.m3u8') && !m3u8Source.startsWith('blob:')) {
+        // Fallback or direct setup
+      }
+
+      if (Hls.isSupported() && m3u8Source) {
+        hlsInstance = new Hls();
+        hlsInstance.loadSource(m3u8Source);
+        hlsInstance.attachMedia(mainM3u8Player);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          mainM3u8Player.play().then(() => syncPlayButtons(true)).catch(e=>{});
+        });
+      } else {
+        mainM3u8Player.src = m3u8Source;
+        mainM3u8Player.load();
+        mainM3u8Player.play().then(() => syncPlayButtons(true)).catch(e=>{});
+      }
+
+      mainM3u8Player.loop = true;
       initAudioAnalysis();
+      resetControlsHideTimer();
+
     } else {
-      playerCardMp4.classList.add("minimized");
+      playerCardM3u8.classList.add("minimized");
       playerCardMp3.classList.remove("minimized");
       miniPlayer.classList.remove("hidden");
-      setupMp3Covers(album, track);
+
+      if (track.audioBlob) {
+        audio.src = createTrackedObjectURL(track.audioBlob);
+        audio.load();
+        audio.play().then(() => syncPlayButtons(true)).catch(e=>{});
+      }
+
+      if (album.covers && album.covers.length > 0) {
+        activeAlbumCoverBlobs = album.covers;
+        activeCoverIndex = 0;
+        renderPlayerCovers();
+      } else {
+        renderDefaultCover();
+      }
     }
 
-    try {
-      await audio.play();
-      syncPlayButtons(true);
-      updateMiniPlayerInfo(track, album.title);
-      showToast(`▶ 正在播放：${track.title}`);
-    } catch(e) {
-      showToast("點擊播放按鈕以啟動語音。");
-      syncPlayButtons(false);
+    updateMiniPlayerInfo(track.title);
+    renderDetailView(albumId);
+  }
+
+  function applyAlbumBackground(blobs, index) {
+    if (!blobs || !blobs.length) return;
+    let blob = blobs[index];
+    const url = createTrackedObjectURL(blob);
+    if (blob.type.startsWith("video")) {
+      bgImg.style.display = "none"; bgVideo.style.display = "block";
+      bgVideo.src = url; bgVideo.muted = true; bgVideo.play().catch(()=>{});
+    } else {
+      bgVideo.style.display = "none"; bgVideo.pause();
+      bgImg.style.display = "block"; bgImg.src = url;
     }
   }
 
-  function setupMp3Covers(album, track) {
+  function renderPlayerCovers() {
+    const coverBox = document.getElementById("player-cover-box");
+    coverBox.querySelectorAll("img, video").forEach(el => el.remove());
     coverElements = [];
-    if (album.covers && album.covers.length > 0) {
-      album.covers.forEach((blob, i) => {
-        let url = createTrackedObjectURL(blob);
-        let isVid = blob.type && blob.type.startsWith("video");
-        let el = document.createElement(isVid ? "video" : "img");
-        el.src = url;
-        if (isVid) { el.muted = true; el.loop = true; el.playsInline = true; el.play().catch(()=>{}); }
-        coverElements.push({ el, isVideo: isVid });
-      });
-    } else {
-      let el = document.createElement("img");
-      el.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect width='100%' height='100%' fill='%23121218'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='20'>ASMR Cover</text></svg>";
-      coverElements.push({ el, isVideo: false });
-    }
 
-    const box = document.getElementById("player-cover-box");
-    box.querySelectorAll("img, video").forEach(el => el.remove());
-    activeCoverIndex = 0;
-    coverElements.forEach((item, idx) => {
-      item.el.style.display = (idx === 0) ? "block" : "none";
-      box.insertBefore(item.el, box.firstChild);
+    activeAlbumCoverBlobs.forEach((blob, idx) => {
+      let url = createTrackedObjectURL(blob);
+      let isVid = blob.type && blob.type.startsWith("video");
+      let el;
+      if (isVid) {
+        el = document.createElement("video");
+        el.src = url; el.muted = true; el.loop = true; el.playsInline = true;
+        el.style.display = (idx === 0) ? "block" : "none";
+        el.play().catch(()=>{});
+      } else {
+        el = document.createElement("img");
+        el.src = url;
+        el.style.display = (idx === 0) ? "block" : "none";
+      }
+      coverBox.appendChild(el);
+      coverElements.push({ el, isVid });
     });
+
     if (coverElements.length > 0) {
       cachedCoverElement = coverElements[0].el;
-      isCoverVideoActive = coverElements[0].isVideo;
+      isCoverVideoActive = coverElements[0].isVid;
     }
-    document.getElementById("cover-indicator").innerText = `1 / ${coverElements.length}`;
+
+    document.getElementById("cover-indicator").innerText = `1 / ${activeAlbumCoverBlobs.length}`;
   }
 
-  function prevCover() {
-    if (!coverElements.length) return;
-    coverElements[activeCoverIndex].el.style.display = "none";
-    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
-    coverElements[activeCoverIndex].el.style.display = "block";
-    cachedCoverElement = coverElements[activeCoverIndex].el;
-    isCoverVideoActive = coverElements[activeCoverIndex].isVideo;
-    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
+  function renderDefaultCover() {
+    const coverBox = document.getElementById("player-cover-box");
+    coverBox.querySelectorAll("img, video").forEach(el => el.remove());
+    document.getElementById("cover-indicator").innerText = "1 / 1";
+    cachedCoverElement = null;
+    isCoverVideoActive = false;
   }
 
   function nextCover() {
-    if (!coverElements.length) return;
-    coverElements[activeCoverIndex].el.style.display = "none";
-    activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
-    coverElements[activeCoverIndex].el.style.display = "block";
-    cachedCoverElement = coverElements[activeCoverIndex].el;
-    isCoverVideoActive = coverElements[activeCoverIndex].isVideo;
-    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
+    if (!activeAlbumCoverBlobs.length) return;
+    activeCoverIndex = (activeCoverIndex + 1) % activeAlbumCoverBlobs.length;
+    coverElements.forEach((item, idx) => {
+      item.el.style.display = (idx === activeCoverIndex) ? "block" : "none";
+      if (idx === activeCoverIndex) {
+        cachedCoverElement = item.el;
+        isCoverVideoActive = item.isVid;
+        if (item.isVid) item.el.play().catch(()=>{});
+      }
+    });
+    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${activeAlbumCoverBlobs.length}`;
+  }
+
+  function prevCover() {
+    if (!activeAlbumCoverBlobs.length) return;
+    activeCoverIndex = (activeCoverIndex - 1 + activeAlbumCoverBlobs.length) % activeAlbumCoverBlobs.length;
+    coverElements.forEach((item, idx) => {
+      item.el.style.display = (idx === activeCoverIndex) ? "block" : "none";
+      if (idx === activeCoverIndex) {
+        cachedCoverElement = item.el;
+        isCoverVideoActive = item.isVid;
+        if (item.isVid) item.el.play().catch(()=>{});
+      }
+    });
+    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${activeAlbumCoverBlobs.length}`;
+  }
+
+  function updateMiniPlayerInfo(title) {
+    document.getElementById("mini-title").innerText = title;
   }
 
   function togglePlay() {
-    if (currentIndex === -1) return;
-    if (audio.paused) {
-      audio.play().then(() => {
-        syncPlayButtons(true);
-        if (currentAlbumType === 'mp4') {
-          mainVideoPlayer.play().catch(()=>{});
-        }
-      });
+    let m = getActiveMedia();
+    if (!m) return;
+    if (m.paused) {
+      m.play().then(() => syncPlayButtons(true)).catch(e=>{});
     } else {
-      audio.pause();
+      m.pause();
       syncPlayButtons(false);
-      if (currentAlbumType === 'mp4') {
-        mainVideoPlayer.pause();
-      }
     }
   }
 
   function syncPlayButtons(isPlaying) {
-    const symbol = isPlaying ? "❚❚" : "▶";
-    document.getElementById("btn-play-mp3").innerText = symbol;
-    document.getElementById("mini-btn-play").innerText = symbol;
-    const btnMp4 = document.getElementById("btn-play-mp4");
-    if (btnMp4) btnMp4.innerText = symbol;
+    const icon = isPlaying ? "❚❚" : "▶";
+    const iconMp4 = isPlaying ? "⏸" : "▶";
+    document.getElementById("btn-play-mp3").innerText = icon;
+    document.getElementById("mini-btn-play").innerText = icon;
+    const btnM3u8 = document.getElementById("btn-play-m3u8");
+    if (btnM3u8) btnM3u8.innerText = iconMp4;
   }
 
-  function prevTrack() {
-    if (currentIndex <= 0) return showToast("已經是第一首了！");
-    playTrackFromAlbum(currentPlayingAlbumId, currentIndex - 1);
-  }
+  audio.addEventListener("timeupdate", () => handleTimeUpdate(audio));
+  mainM3u8Player.addEventListener("timeupdate", () => handleTimeUpdate(mainM3u8Player));
 
-  function nextTrack() {
-    if (currentIndex >= currentTrackList.length - 1) return showToast("已經是最後一首了！");
-    playTrackFromAlbum(currentPlayingAlbumId, currentIndex + 1);
-  }
-
-  function seekRelative(seconds) {
-    if (isNaN(audio.duration)) return;
-    audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration);
-    if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
-      mainVideoPlayer.currentTime = audio.currentTime % mainVideoPlayer.duration;
-    }
-  }
-
-  function toggleMute() {
-    audio.muted = !audio.muted;
-    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
-  }
-
-  function minimizePlayer() {
-    playerCardMp3.classList.add("minimized");
-    playerCardMp4.classList.remove("is-fullscreen");
-    playerCardMp4.classList.add("minimized");
-    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
-  }
-
-  function expandPlayer() {
-    miniPlayer.classList.add("hidden");
-    if (currentAlbumType === 'mp4') {
-      playerCardMp4.classList.remove("minimized");
-      resetControlsHideTimer();
+  function handleTimeUpdate(mediaEl) {
+    if (isNaN(mediaEl.duration)) return;
+    let percent = (mediaEl.currentTime / mediaEl.duration) * 100;
+    
+    if (currentAlbumType === 'm3u8') {
+      seekSliderM3u8.value = percent;
+      document.getElementById("time-current-m3u8").innerText = formatTime(mediaEl.currentTime);
+      document.getElementById("time-duration-m3u8").innerText = formatTime(mediaEl.duration);
     } else {
-      playerCardMp3.classList.remove("minimized");
+      seekSlider.value = percent;
+      document.getElementById("time-current").innerText = formatTime(mediaEl.currentTime);
+      document.getElementById("time-duration").innerText = formatTime(mediaEl.duration);
     }
+
+    updateSubtitle(mediaEl.currentTime);
   }
 
-  function updateMiniPlayerInfo(track, albumTitle) {
-    document.getElementById("mini-title").innerText = track.title;
-    document.getElementById("mini-subtitle").innerText = albumTitle;
-    let thumb = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
-    if (currentAlbumType === 'mp4' && track.videoBlob) {
-      thumb = createTrackedObjectURL(track.videoBlob);
-    } else if (coverElements.length > 0 && !coverElements[0].isVideo) {
-      thumb = coverElements[0].el.src;
-    }
-    document.getElementById("mini-thumb").src = thumb;
-  }
-
-  function formatTime(secs) {
-    if (isNaN(secs)) return "00:00";
-    let m = Math.floor(secs / 60);
-    let s = Math.floor(secs % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  function updateSubtitle(currentTime) {
+    let text = getActiveSubtitleText(currentTime);
+    document.getElementById("lrc-box").innerText = text;
+    document.getElementById("mini-lrc").innerText = text;
+    const subOverlay = document.getElementById("video-subtitle-overlay");
+    if (subOverlay) subOverlay.innerText = text;
   }
 
   function getActiveSubtitleText(currentTime) {
-    if (!currentLrc.length) return "♪ ASMR 專屬沉浸音訊播放中 ♪";
-    let activeText = "♪ ASMR 專屬沉浸音訊播放中 ♪";
+    if (!currentLrc || !currentLrc.length) return "♪ 享受沉浸式影音時光 ♪";
+    let activeText = "♪ 享受沉浸式影音時光 ♪";
     for (let i = 0; i < currentLrc.length; i++) {
       if (currentTime >= currentLrc[i].time) {
         activeText = currentLrc[i].text;
@@ -1843,38 +1689,12 @@
     return activeText;
   }
 
-  audio.addEventListener("timeupdate", () => {
-    if (isNaN(audio.duration)) return;
-    let progress = (audio.currentTime / audio.duration) * 100;
-    seekSlider.value = progress;
-    seekSliderMp4.value = progress;
-
-    document.getElementById("time-current").innerText = formatTime(audio.currentTime);
-    document.getElementById("time-duration").innerText = formatTime(audio.duration);
-    document.getElementById("time-current-mp4").innerText = formatTime(audio.currentTime);
-    document.getElementById("time-duration-mp4").innerText = formatTime(audio.duration);
-
-    let currentText = getActiveSubtitleText(audio.currentTime);
-    document.getElementById("lrc-box").innerText = currentText;
-    document.getElementById("mini-lrc").innerText = currentText;
-    document.getElementById("video-subtitle-overlay").innerText = currentText;
-
-    if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
-      let expectedVideoTime = audio.currentTime % mainVideoPlayer.duration;
-      if (Math.abs(mainVideoPlayer.currentTime - expectedVideoTime) > 0.4) {
-        mainVideoPlayer.currentTime = expectedVideoTime;
-      }
-    }
-  });
-
-  audio.addEventListener("ended", () => {
-    if (currentIndex < currentTrackList.length - 1) {
-      nextTrack();
-    } else {
-      syncPlayButtons(false);
-      showToast("播放完畢！");
-    }
-  });
+  function formatTime(secs) {
+    if (isNaN(secs)) return "00:00";
+    let m = Math.floor(secs / 60);
+    let s = Math.floor(secs % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
 
   seekSlider.addEventListener("input", (e) => {
     if (!isNaN(audio.duration)) {
@@ -1882,39 +1702,80 @@
     }
   });
 
-  seekSliderMp4.addEventListener("input", (e) => {
-    if (!isNaN(audio.duration)) {
-      audio.currentTime = (e.target.value / 100) * audio.duration;
+  seekSliderM3u8.addEventListener("input", (e) => {
+    if (!isNaN(mainM3u8Player.duration)) {
+      mainM3u8Player.currentTime = (e.target.value / 100) * mainM3u8Player.duration;
     }
   });
 
   volumeSlider.addEventListener("input", (e) => {
     audio.volume = e.target.value;
+    mainM3u8Player.volume = e.target.value;
   });
 
-  function uploadCurrentTrackLrc(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      let text = evt.target.result;
-      let track = currentTrackList[currentIndex];
-      track.lrcText = text;
-      currentLrc = parseUniversalLyrics(text);
-      
-      const tx = db.transaction("tracks", "readwrite");
-      tx.objectStore("tracks").put(track);
-      tx.oncomplete = () => showToast("✅ 字幕匯入並更新成功！");
-    };
-    reader.readAsText(file);
+  function toggleMute() {
+    audio.muted = !audio.muted;
+    mainM3u8Player.muted = !mainM3u8Player.muted;
+    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
+  }
+
+  audio.addEventListener("ended", () => nextTrack());
+  mainM3u8Player.addEventListener("ended", () => nextTrack());
+
+  function nextTrack() {
+    if (currentIndex === -1 || !currentTrackList.length) return;
+    let nextIdx = (currentIndex + 1) % currentTrackList.length;
+    playTrackFromAlbum(currentPlayingAlbumId, nextIdx);
+  }
+
+  function prevTrack() {
+    if (currentIndex === -1 || !currentTrackList.length) return;
+    let prevIdx = (currentIndex - 1 + currentTrackList.length) % currentTrackList.length;
+    playTrackFromAlbum(currentPlayingAlbumId, prevIdx);
+  }
+
+  function seekRelative(sec) {
+    let m = getActiveMedia();
+    if (m && !isNaN(m.duration)) {
+      m.currentTime = Math.max(0, Math.min(m.duration, m.currentTime + sec));
+    }
+  }
+
+  function expandPlayer() {
+    miniPlayer.classList.add("hidden");
+    if (currentAlbumType === 'm3u8') {
+      playerCardM3u8.classList.remove("minimized");
+    } else {
+      playerCardMp3.classList.remove("minimized");
+    }
+  }
+
+  function minimizePlayer() {
+    playerCardMp3.classList.add("minimized");
+    playerCardM3u8.classList.add("minimized");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
+  }
+
+  async function uploadCurrentTrackLrc(event) {
+    const file = event.target.files[0];
+    if (!file || currentIndex === -1) return;
+    let text = await file.text();
+    currentLrc = parseUniversalLyrics(text);
+    let track = currentTrackList[currentIndex];
+    track.lrcText = text;
+
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => showToast("✅ 字幕更新成功！");
   }
 
   function pasteCurrentTrackLrc() {
-    let raw = prompt("請貼上 LRC / VTT / SRT / 文字字幕內容：");
-    if (raw === null) return;
+    if (currentIndex === -1) return showToast("請先播放篇章！");
+    let text = prompt("請貼上字幕/文檔內容 (.lrc / .srt / .txt)：");
+    if (text === null) return;
+    currentLrc = parseUniversalLyrics(text);
     let track = currentTrackList[currentIndex];
-    track.lrcText = raw;
-    currentLrc = parseUniversalLyrics(raw);
+    track.lrcText = text;
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
@@ -1922,15 +1783,16 @@
   }
 
   function inspectCurrentTrackLrc() {
+    if (currentIndex === -1) return showToast("請先播放篇章！");
     let track = currentTrackList[currentIndex];
-    let raw = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
-    if (raw === null) return;
-    track.lrcText = raw;
-    currentLrc = parseUniversalLyrics(raw);
+    let newText = prompt("檢視與修改目前字幕內容：", track.lrcText || "");
+    if (newText === null) return;
+    currentLrc = parseUniversalLyrics(newText);
+    track.lrcText = newText;
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕更新成功！");
+    tx.oncomplete = () => showToast("✅ 字幕修改成功！");
   }
 </script>
 </body>
