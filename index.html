@@ -94,14 +94,6 @@
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
 
-    .btn-green {
-      width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
-      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;
-    }
-    .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
-    .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
-
     .page-view { display: none; width: 100%; animation: fadeIn 0.2s ease; }
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -233,7 +225,7 @@
       width: 100%; height: 100%; object-fit: cover; background: #000; outline: none; position: absolute; top: 0; left: 0;
     }
 
-    /* 永久同步字幕：絕對不隨控制列隱藏，永遠同步顯示在影片下方 */
+    /* 永久同步字幕：絕對不隨控制列隱藏，永遠同步顯示在影片下方，即使放大螢幕也不會遮擋 */
     .video-subtitle-overlay {
       position: absolute; bottom: 85px; left: 20px; right: 20px; text-align: center;
       font-size: 1.4rem; font-weight: 800; color: var(--primary-pink);
@@ -398,7 +390,7 @@
         <label>分區類型選擇</label>
         <select id="album-type" onchange="onAlbumTypeChange()">
           <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、支援省電與懸浮窗)</option>
-          <option value="m3u8">🌸 M3U8 串流影片專區 (完美支援 iOS 滿版全螢幕無網址列、自動循環、永久同步字幕與愛心高潮特效)</option>
+          <option value="m3u8">🌸 M3U8 串流影片專區 (完美支援 iOS 滿版無網址列、自動循環、永久同步字幕與愛心高潮特效)</option>
         </select>
       </div>
       <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片封面)</label><input type="file" id="album-covers" accept="image/*" multiple></div>
@@ -407,7 +399,7 @@
     </div>
 
     <div class="glass-card">
-      <div class="card-title">⚡ 新增篇章 (M3U8 串流網址或檔案)</div>
+      <div class="card-title">⚡ 新增篇章 (M3U8 串流網址或檔案 + 替代音檔)</div>
       <div class="form-group">
         <label>選擇目標作品分區</label>
         <select id="select-album"><option value="">-- 請先建立分區 --</option></select>
@@ -418,6 +410,10 @@
         <label>M3U8 串流網址 (URL) 或上傳 .m3u8 檔案</label>
         <input type="text" id="track-m3u8-url" placeholder="https://example.com/stream.m3u8 或輸入檔案路徑">
         <div style="margin-top: 6px;"><input type="file" id="track-m3u8-file" accept=".m3u8,.txt"></div>
+      </div>
+      <div class="form-group" id="m3u8-audio-replace-group">
+        <label>🎵 上傳替代音檔 (MP3/WAV/M4A) - 取代原影片聲音，並使影片循環長度跟隨此音檔走</label>
+        <input type="file" id="track-m3u8-audio-file" accept="audio/*,.mp3,.wav,.m4a,.aac">
       </div>
       <div class="form-group"><label>字幕/文檔 (.lrc / .vtt / .srt / .txt)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
       <button class="btn-pink" onclick="addTrack()">新增篇章</button>
@@ -495,11 +491,11 @@
   </div>
 </div>
 
-<!-- 2. M3U8 串流影片專區播放面板 (打掉重練：完全無網址列、無多餘工具、完美 iOS 全螢幕橫向填滿) -->
+<!-- 2. M3U8 串流影片專區播放面板 (全面升級：完全靜音原影片、以替代音檔同步長度、永遠在下方顯示字幕即使放大螢幕) -->
 <div id="player-card-m3u8" class="player-card-m3u8 minimized">
   <div class="video-fullscreen-box" id="video-fullscreen-box">
-    <!-- M3U8 串流主影片播放器：支援 HLS 串流、循環與 playsinline -->
-    <video id="main-m3u8-player" playsinline webkit-playsinline crossorigin="anonymous"></video>
+    <!-- M3U8 串流主影片播放器：強制靜音 (muted)，確保完全沒有原影片聲音 -->
+    <video id="main-m3u8-player" muted playsinline webkit-playsinline crossorigin="anonymous"></video>
 
     <!-- 獨立頂部資訊列 (僅保留關閉按鈕，無任何網址與工具列) -->
     <div class="m3u8-top-bar" id="m3u8-top-bar">
@@ -508,7 +504,7 @@
       </div>
     </div>
 
-    <!-- 永久同步字幕：絕對不隨控制列隱藏，永遠跟隨 M3U8 串流時間同步顯示 -->
+    <!-- 永久同步字幕：絕對不隨控制列隱藏，永遠固定顯示在影片下方，即使放大螢幕或滿版也不會被遮擋 -->
     <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入 M3U8 串流字幕中... ♪</div>
 
     <!-- 愛心互動特效：絕對不隨控制列隱藏，永遠固定在右上方，隨音訊高潮互動 -->
@@ -705,7 +701,7 @@
   }
 
   function getActiveMedia() {
-    return (currentAlbumType === 'm3u8') ? mainM3u8Player : audio;
+    return (currentAlbumType === 'm3u8') ? audio : audio;
   }
 
   function createTrackedObjectURL(blob) {
@@ -772,8 +768,7 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 512;
       
-      let targetNode = (currentAlbumType === 'm3u8') ? mainM3u8Player : audio;
-      audioSourceNode = audioCtx.createMediaElementSource(targetNode);
+      audioSourceNode = audioCtx.createMediaElementSource(audio);
       audioSourceNode.connect(analyser);
       analyser.connect(audioCtx.destination);
 
@@ -849,6 +844,7 @@
         let m = getActiveMedia();
         if (m && !m.paused) {
           m.pause();
+          if (currentAlbumType === 'm3u8' && mainM3u8Player) mainM3u8Player.pause();
           syncPlayButtons(false);
         }
       } catch (e) {
@@ -878,6 +874,10 @@
     let m = getActiveMedia();
     if (currentIndex !== -1 && m && m.paused) {
       m.play().then(() => {
+        if (currentAlbumType === 'm3u8' && mainM3u8Player) {
+          mainM3u8Player.currentTime = m.currentTime;
+          mainM3u8Player.play().catch(()=>{});
+        }
         syncPlayButtons(true);
       }).catch(e=>{});
     }
@@ -1010,7 +1010,7 @@
     }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_M3U8_V1", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_M3U8_V2", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1043,13 +1043,16 @@
     const isM3U8 = typeSel.value === 'm3u8';
     const coverGroup = document.getElementById("group-album-covers");
     const singleM3u8Group = document.getElementById("single-m3u8-group");
+    const m3u8AudioReplaceGroup = document.getElementById("m3u8-audio-replace-group");
 
     if (isM3U8) {
       if (coverGroup) coverGroup.style.display = "block";
       if (singleM3u8Group) singleM3u8Group.style.display = "block";
+      if (m3u8AudioReplaceGroup) m3u8AudioReplaceGroup.style.display = "block";
     } else {
       if (coverGroup) coverGroup.style.display = "block";
       if (singleM3u8Group) singleM3u8Group.style.display = "none";
+      if (m3u8AudioReplaceGroup) m3u8AudioReplaceGroup.style.display = "none";
     }
   }
 
@@ -1221,7 +1224,7 @@
           <div class="album-youtube-info">
             <div>
               <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
-              <span class="album-badge badge-m3u8">🌸 M3U8 串流專區 (iOS 全螢幕無網址列、自動循環與愛心高潮)</span>
+              <span class="album-badge badge-m3u8">🌸 M3U8 串流專區 (靜音影片 + 自訂替代音檔循環、底部同步字幕)</span>
             </div>
             <div class="btn-action-col">
               <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
@@ -1312,7 +1315,7 @@
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(track.title)}</div>
-            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.m3u8Url && album.albumType === 'm3u8' ? ' | 🌸 M3U8 串流播放' : ''}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.m3u8Url && album.albumType === 'm3u8' ? ' | 🌸 M3U8 靜音影片 + 自訂音檔循環' : ''}</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1403,6 +1406,7 @@
     const audioInput = document.getElementById("track-audio");
     const m3u8UrlInput = document.getElementById("track-m3u8-url");
     const m3u8FileInput = document.getElementById("track-m3u8-file");
+    const m3u8AudioFileInput = document.getElementById("track-m3u8-audio-file");
     const lrcInput = document.getElementById("track-lrc");
 
     if (!albumId) return showToast("請先選擇目標作品分區！");
@@ -1410,6 +1414,8 @@
     const isM3U8 = album && album.albumType === 'm3u8';
 
     let m3u8Source = "";
+    let m3u8AudioBlob = null;
+
     if (isM3U8) {
       if (m3u8FileInput && m3u8FileInput.files.length > 0) {
         m3u8Source = createTrackedObjectURL(m3u8FileInput.files[0]);
@@ -1418,13 +1424,16 @@
       } else {
         return showToast("請填寫 M3U8 串流網址或上傳 .m3u8 檔案！");
       }
+      if (m3u8AudioFileInput && m3u8AudioFileInput.files.length > 0) {
+        m3u8AudioBlob = m3u8AudioFileInput.files[0];
+      }
     } else {
       if (!audioInput || !audioInput.files.length) return showToast("請選擇音訊檔案！");
     }
 
-    let audioBlob = (!isM3U8 && audioInput && audioInput.files.length) ? audioInput.files[0] : null;
+    let audioBlob = (!isM3U8 && audioInput && audioInput.files.length) ? audioInput.files[0] : m3u8AudioBlob;
     const lrcFile = lrcInput.files[0];
-    let title = titleInput || (isM3U8 ? "M3U8 串流章節" : audioFile.name.replace(/\.[^/.]+$/, ""));
+    let title = titleInput || (isM3U8 ? "M3U8 串流章節" : "音訊章節");
     let lrcText = "";
 
     if (lrcFile) lrcText = await lrcFile.text();
@@ -1437,6 +1446,7 @@
       document.getElementById("track-title-input").value = "";
       if(m3u8UrlInput) m3u8UrlInput.value = "";
       if(m3u8FileInput) m3u8FileInput.value = "";
+      if(m3u8AudioFileInput) m3u8AudioFileInput.value = "";
       if(audioInput) audioInput.value = "";
       lrcInput.value = "";
       loadData();
@@ -1499,24 +1509,30 @@
       }
 
       let m3u8Source = track.m3u8Url || "";
-      if (Hls.isSupported() && !m3u8Source.includes('.m3u8') && !m3u8Source.startsWith('blob:')) {
-        // Fallback or direct setup
-      }
-
-      if (Hls.isSupported() && m3u8Source) {
+      if (Hls.isSupported() && m3u8Source && !m3u8Source.startsWith('blob:')) {
         hlsInstance = new Hls();
         hlsInstance.loadSource(m3u8Source);
         hlsInstance.attachMedia(mainM3u8Player);
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-          mainM3u8Player.play().then(() => syncPlayButtons(true)).catch(e=>{});
-        });
       } else {
         mainM3u8Player.src = m3u8Source;
         mainM3u8Player.load();
-        mainM3u8Player.play().then(() => syncPlayButtons(true)).catch(e=>{});
       }
 
+      // 嚴格確保影片靜音，完全由替代音檔提供聲音與循環控制
+      mainM3u8Player.muted = true;
       mainM3u8Player.loop = true;
+      mainM3u8Player.play().catch(()=>{});
+
+      if (track.audioBlob) {
+        audio.src = createTrackedObjectURL(track.audioBlob);
+        audio.load();
+        audio.loop = true; // 使影片循環長度跟隨替代音檔走
+        audio.play().then(() => syncPlayButtons(true)).catch(e=>{});
+      } else {
+        audio.src = "";
+        showToast("⚠️ 此 M3U8 章節未上傳替代音檔，將無聲音播放。");
+      }
+
       initAudioAnalysis();
       resetControlsHideTimer();
 
@@ -1528,25 +1544,27 @@
       if (track.audioBlob) {
         audio.src = createTrackedObjectURL(track.audioBlob);
         audio.load();
+        audio.loop = false;
         audio.play().then(() => syncPlayButtons(true)).catch(e=>{});
       }
 
       if (album.covers && album.covers.length > 0) {
         activeAlbumCoverBlobs = album.covers;
         activeCoverIndex = 0;
-        renderPlayerCovers();
+        renderActiveCover(activeAlbumCoverBlobs[activeCoverIndex]);
       } else {
-        renderDefaultCover();
+        resetCoverDisplay();
       }
+      initAudioAnalysis();
     }
 
-    updateMiniPlayerInfo(track.title);
-    renderDetailView(albumId);
+    updateMiniPlayerInfo(track);
+    if (currentActiveAlbumId) renderDetailView(currentActiveAlbumId);
   }
 
   function applyAlbumBackground(blobs, index) {
     if (!blobs || !blobs.length) return;
-    let blob = blobs[index];
+    const blob = blobs[index];
     const url = createTrackedObjectURL(blob);
     if (blob.type.startsWith("video")) {
       bgImg.style.display = "none"; bgVideo.style.display = "block";
@@ -1557,128 +1575,131 @@
     }
   }
 
-  function renderPlayerCovers() {
-    const coverBox = document.getElementById("player-cover-box");
-    coverBox.querySelectorAll("img, video").forEach(el => el.remove());
-    coverElements = [];
+  function renderActiveCover(blob) {
+    const box = document.getElementById("player-cover-box");
+    const indicator = document.getElementById("cover-indicator");
+    if (!box) return;
 
-    activeAlbumCoverBlobs.forEach((blob, idx) => {
-      let url = createTrackedObjectURL(blob);
-      let isVid = blob.type && blob.type.startsWith("video");
-      let el;
-      if (isVid) {
-        el = document.createElement("video");
-        el.src = url; el.muted = true; el.loop = true; el.playsInline = true;
-        el.style.display = (idx === 0) ? "block" : "none";
-        el.play().catch(()=>{});
-      } else {
-        el = document.createElement("img");
-        el.src = url;
-        el.style.display = (idx === 0) ? "block" : "none";
-      }
-      coverBox.appendChild(el);
-      coverElements.push({ el, isVid });
-    });
+    box.querySelectorAll("img, video").forEach(el => el.remove());
+    indicator.innerText = `${activeCoverIndex + 1} / ${activeAlbumCoverBlobs.length}`;
 
-    if (coverElements.length > 0) {
-      cachedCoverElement = coverElements[0].el;
-      isCoverVideoActive = coverElements[0].isVid;
+    const url = createTrackedObjectURL(blob);
+    if (blob.type.startsWith("video")) {
+      const v = document.createElement("video");
+      v.src = url; v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+      v.style.display = "block";
+      box.appendChild(v);
+      cachedCoverElement = v; isCoverVideoActive = true;
+    } else {
+      const img = document.createElement("img");
+      img.src = url; img.style.display = "block";
+      box.appendChild(img);
+      cachedCoverElement = img; isCoverVideoActive = false;
     }
-
-    document.getElementById("cover-indicator").innerText = `1 / ${activeAlbumCoverBlobs.length}`;
   }
 
-  function renderDefaultCover() {
-    const coverBox = document.getElementById("player-cover-box");
-    coverBox.querySelectorAll("img, video").forEach(el => el.remove());
+  function resetCoverDisplay() {
+    const box = document.getElementById("player-cover-box");
+    box.querySelectorAll("img, video").forEach(el => el.remove());
     document.getElementById("cover-indicator").innerText = "1 / 1";
-    cachedCoverElement = null;
-    isCoverVideoActive = false;
-  }
-
-  function nextCover() {
-    if (!activeAlbumCoverBlobs.length) return;
-    activeCoverIndex = (activeCoverIndex + 1) % activeAlbumCoverBlobs.length;
-    coverElements.forEach((item, idx) => {
-      item.el.style.display = (idx === activeCoverIndex) ? "block" : "none";
-      if (idx === activeCoverIndex) {
-        cachedCoverElement = item.el;
-        isCoverVideoActive = item.isVid;
-        if (item.isVid) item.el.play().catch(()=>{});
-      }
-    });
-    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${activeAlbumCoverBlobs.length}`;
+    cachedCoverElement = null; isCoverVideoActive = false;
   }
 
   function prevCover() {
     if (!activeAlbumCoverBlobs.length) return;
     activeCoverIndex = (activeCoverIndex - 1 + activeAlbumCoverBlobs.length) % activeAlbumCoverBlobs.length;
-    coverElements.forEach((item, idx) => {
-      item.el.style.display = (idx === activeCoverIndex) ? "block" : "none";
-      if (idx === activeCoverIndex) {
-        cachedCoverElement = item.el;
-        isCoverVideoActive = item.isVid;
-        if (item.isVid) item.el.play().catch(()=>{});
-      }
-    });
-    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${activeAlbumCoverBlobs.length}`;
+    renderActiveCover(activeAlbumCoverBlobs[activeCoverIndex]);
   }
 
-  function updateMiniPlayerInfo(title) {
-    document.getElementById("mini-title").innerText = title;
+  function nextCover() {
+    if (!activeAlbumCoverBlobs.length) return;
+    activeCoverIndex = (activeCoverIndex + 1) % activeAlbumCoverBlobs.length;
+    renderActiveCover(activeAlbumCoverBlobs[activeCoverIndex]);
+  }
+
+  function updateMiniPlayerInfo(track) {
+    document.getElementById("mini-title").innerText = track.title;
+    if (activeAlbumCoverBlobs.length > 0) {
+      document.getElementById("mini-thumb").src = createTrackedObjectURL(activeAlbumCoverBlobs[0]);
+    }
   }
 
   function togglePlay() {
     let m = getActiveMedia();
-    if (!m) return;
+    if (!m.src && currentAlbumType === 'm3u8' && currentTrackList[currentIndex]) {
+      playTrackFromAlbum(currentPlayingAlbumId, currentIndex);
+      return;
+    }
     if (m.paused) {
-      m.play().then(() => syncPlayButtons(true)).catch(e=>{});
+      m.play().then(() => {
+        if (currentAlbumType === 'm3u8' && mainM3u8Player) mainM3u8Player.play().catch(()=>{});
+        syncPlayButtons(true);
+      }).catch(e=>{});
     } else {
       m.pause();
+      if (currentAlbumType === 'm3u8' && mainM3u8Player) mainM3u8Player.pause();
       syncPlayButtons(false);
     }
   }
 
   function syncPlayButtons(isPlaying) {
-    const icon = isPlaying ? "❚❚" : "▶";
-    const iconMp4 = isPlaying ? "⏸" : "▶";
-    document.getElementById("btn-play-mp3").innerText = icon;
-    document.getElementById("mini-btn-play").innerText = icon;
-    const btnM3u8 = document.getElementById("btn-play-m3u8");
-    if (btnM3u8) btnM3u8.innerText = iconMp4;
+    const playMp3 = document.getElementById("btn-play-mp3");
+    const playM3u8 = document.getElementById("btn-play-m3u8");
+    const miniBtn = document.getElementById("mini-btn-play");
+
+    if (playMp3) playMp3.innerText = isPlaying ? '❚❚' : '▶';
+    if (playM3u8) playM3u8.innerText = isPlaying ? '❚❚' : '▶';
+    if (miniBtn) miniBtn.innerText = isPlaying ? '❚❚' : '▶';
   }
 
-  audio.addEventListener("timeupdate", () => handleTimeUpdate(audio));
-  mainM3u8Player.addEventListener("timeupdate", () => handleTimeUpdate(mainM3u8Player));
+  function prevTrack() {
+    if (currentIndex > 0) playTrackFromAlbum(currentPlayingAlbumId, currentIndex - 1);
+    else if (currentTrackList.length > 0) playTrackFromAlbum(currentPlayingAlbumId, currentTrackList.length - 1);
+  }
 
-  function handleTimeUpdate(mediaEl) {
-    if (isNaN(mediaEl.duration)) return;
-    let percent = (mediaEl.currentTime / mediaEl.duration) * 100;
-    
-    if (currentAlbumType === 'm3u8') {
-      seekSliderM3u8.value = percent;
-      document.getElementById("time-current-m3u8").innerText = formatTime(mediaEl.currentTime);
-      document.getElementById("time-duration-m3u8").innerText = formatTime(mediaEl.duration);
-    } else {
-      seekSlider.value = percent;
-      document.getElementById("time-current").innerText = formatTime(mediaEl.currentTime);
-      document.getElementById("time-duration").innerText = formatTime(mediaEl.duration);
+  function nextTrack() {
+    if (currentIndex < currentTrackList.length - 1) playTrackFromAlbum(currentPlayingAlbumId, currentIndex + 1);
+    else if (currentTrackList.length > 0) playTrackFromAlbum(currentPlayingAlbumId, 0);
+  }
+
+  function seekRelative(sec) {
+    let m = getActiveMedia();
+    if (m && m.duration) {
+      m.currentTime = Math.min(Math.max(0, m.currentTime + sec), m.duration);
+      if (currentAlbumType === 'm3u8' && mainM3u8Player) mainM3u8Player.currentTime = m.currentTime;
     }
-
-    updateSubtitle(mediaEl.currentTime);
   }
 
-  function updateSubtitle(currentTime) {
-    let text = getActiveSubtitleText(currentTime);
-    document.getElementById("lrc-box").innerText = text;
-    document.getElementById("mini-lrc").innerText = text;
-    const subOverlay = document.getElementById("video-subtitle-overlay");
-    if (subOverlay) subOverlay.innerText = text;
+  function toggleMute() {
+    audio.muted = !audio.muted;
+    document.getElementById("btn-mute").innerText = audio.muted ? '🔇' : '🔈';
+  }
+
+  function expandPlayer() {
+    if (currentAlbumType === 'm3u8') {
+      playerCardM3u8.classList.remove("minimized");
+    } else {
+      playerCardMp3.classList.remove("minimized");
+    }
+    miniPlayer.classList.add("hidden");
+  }
+
+  function minimizePlayer() {
+    playerCardMp3.classList.add("minimized");
+    playerCardM3u8.classList.add("minimized");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
+  }
+
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return "00:00";
+    let m = Math.floor(seconds / 60);
+    let s = Math.floor(seconds % 60);
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   }
 
   function getActiveSubtitleText(currentTime) {
-    if (!currentLrc || !currentLrc.length) return "♪ 享受沉浸式影音時光 ♪";
-    let activeText = "♪ 享受沉浸式影音時光 ♪";
+    if (!currentLrc || currentLrc.length === 0) return "♪ 享受極致 ASMR 體驗 ♪";
+    let activeText = "♪ 享受極致 ASMR 體驗 ♪";
     for (let i = 0; i < currentLrc.length; i++) {
       if (currentTime >= currentLrc[i].time) {
         activeText = currentLrc[i].text;
@@ -1689,111 +1710,98 @@
     return activeText;
   }
 
-  function formatTime(secs) {
-    if (isNaN(secs)) return "00:00";
-    let m = Math.floor(secs / 60);
-    let s = Math.floor(secs % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
+  audio.addEventListener("timeupdate", () => {
+    if (!audio.duration) return;
+    let percent = (audio.currentTime / audio.duration) * 100;
+    seekSlider.value = percent;
+    seekSliderM3u8.value = percent;
 
-  seekSlider.addEventListener("input", (e) => {
-    if (!isNaN(audio.duration)) {
-      audio.currentTime = (e.target.value / 100) * audio.duration;
+    document.getElementById("time-current").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration").innerText = formatTime(audio.duration);
+    document.getElementById("time-current-m3u8").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration-m3u8").innerText = formatTime(audio.duration);
+
+    // 同步 M3U8 串流影片時間與替代音檔一致
+    if (currentAlbumType === 'm3u8' && mainM3u8Player) {
+      if (Math.abs(mainM3u8Player.currentTime - audio.currentTime) > 0.5) {
+        mainM3u8Player.currentTime = audio.currentTime;
+      }
+    }
+
+    let subText = getActiveSubtitleText(audio.currentTime);
+    document.getElementById("lrc-box").innerText = subText;
+    document.getElementById("video-subtitle-overlay").innerText = subText;
+    document.getElementById("mini-lrc").innerText = subText;
+  });
+
+  audio.addEventListener("ended", () => {
+    if (currentAlbumType === 'm3u8') {
+      audio.currentTime = 0;
+      audio.play().catch(()=>{});
+      if (mainM3u8Player) {
+        mainM3u8Player.currentTime = 0;
+        mainM3u8Player.play().catch(()=>{});
+      }
+    } else {
+      nextTrack();
     }
   });
 
+  seekSlider.addEventListener("input", (e) => {
+    if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration;
+  });
+
   seekSliderM3u8.addEventListener("input", (e) => {
-    if (!isNaN(mainM3u8Player.duration)) {
-      mainM3u8Player.currentTime = (e.target.value / 100) * mainM3u8Player.duration;
-    }
+    if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration;
   });
 
   volumeSlider.addEventListener("input", (e) => {
     audio.volume = e.target.value;
-    mainM3u8Player.volume = e.target.value;
   });
 
-  function toggleMute() {
-    audio.muted = !audio.muted;
-    mainM3u8Player.muted = !mainM3u8Player.muted;
-    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
-  }
-
-  audio.addEventListener("ended", () => nextTrack());
-  mainM3u8Player.addEventListener("ended", () => nextTrack());
-
-  function nextTrack() {
-    if (currentIndex === -1 || !currentTrackList.length) return;
-    let nextIdx = (currentIndex + 1) % currentTrackList.length;
-    playTrackFromAlbum(currentPlayingAlbumId, nextIdx);
-  }
-
-  function prevTrack() {
-    if (currentIndex === -1 || !currentTrackList.length) return;
-    let prevIdx = (currentIndex - 1 + currentTrackList.length) % currentTrackList.length;
-    playTrackFromAlbum(currentPlayingAlbumId, prevIdx);
-  }
-
-  function seekRelative(sec) {
-    let m = getActiveMedia();
-    if (m && !isNaN(m.duration)) {
-      m.currentTime = Math.max(0, Math.min(m.duration, m.currentTime + sec));
-    }
-  }
-
-  function expandPlayer() {
-    miniPlayer.classList.add("hidden");
-    if (currentAlbumType === 'm3u8') {
-      playerCardM3u8.classList.remove("minimized");
-    } else {
-      playerCardMp3.classList.remove("minimized");
-    }
-  }
-
-  function minimizePlayer() {
-    playerCardMp3.classList.add("minimized");
-    playerCardM3u8.classList.add("minimized");
-    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
-  }
-
-  async function uploadCurrentTrackLrc(event) {
-    const file = event.target.files[0];
+  function uploadCurrentTrackLrc(e) {
+    const file = e.target.files[0];
     if (!file || currentIndex === -1) return;
-    let text = await file.text();
-    currentLrc = parseUniversalLyrics(text);
+    const reader = new FileReader();
+    reader.onload = async function(evt) {
+      let lrcText = evt.target.result;
+      let track = currentTrackList[currentIndex];
+      track.lrcText = lrcText;
+      currentLrc = parseUniversalLyrics(lrcText);
+
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => showToast("✅ 當前篇章字幕匯入成功！");
+    };
+    reader.readAsText(file);
+  }
+
+  function pasteCurrentTrackLrc() {
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
+    let text = prompt("請貼上 LRC / VTT / SRT 字幕文字：");
+    if (text === null) return;
     let track = currentTrackList[currentIndex];
     track.lrcText = text;
+    currentLrc = parseUniversalLyrics(text);
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => showToast("✅ 字幕更新成功！");
   }
 
-  function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先播放篇章！");
-    let text = prompt("請貼上字幕/文檔內容 (.lrc / .srt / .txt)：");
-    if (text === null) return;
-    currentLrc = parseUniversalLyrics(text);
-    let track = currentTrackList[currentIndex];
-    track.lrcText = text;
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕貼上並更新成功！");
-  }
-
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先播放篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     let track = currentTrackList[currentIndex];
-    let newText = prompt("檢視與修改目前字幕內容：", track.lrcText || "");
+    let newText = prompt("檢視/修改字幕原文：", track.lrcText || "");
     if (newText === null) return;
-    currentLrc = parseUniversalLyrics(newText);
     track.lrcText = newText;
+    currentLrc = parseUniversalLyrics(newText);
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => showToast("✅ 字幕修改成功！");
   }
 </script>
+
 </body>
 </html>
