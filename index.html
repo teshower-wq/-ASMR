@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (極致影音升級版)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ASMR 私人隨身庫 (Hanime1 & YouTube 極致影音升級版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -30,218 +30,351 @@
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: cover; background-color: var(--bg-dark);
       z-index: -2; display: none; filter: brightness(0.7) blur(4px);
+      transform: translateZ(0); will-change: transform, opacity;
+      transition: opacity 0.8s ease;
     }
+    @media (max-width: 768px) {
+      #bg-video, #bg-img { top: -10vh; left: -10vw; width: 120vw; height: 120vh; }
+    }
+
     #bg-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: radial-gradient(circle, rgba(7,7,10,0.3) 0%, rgba(7,7,10,0.88) 100%);
       z-index: -1; pointer-events: none;
     }
 
-    /* 基本 UI 組件 (保持原樣不變) */
     .container { width: 100%; max-width: 680px; z-index: 1; position: relative; }
-    .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
-    .app-logo { font-size: 1.4rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 20px var(--pink-glow); cursor: pointer; }
+    .top-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; }
+    .app-logo { font-size: 1.4rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 20px var(--pink-glow); cursor: pointer; letter-spacing: 0.5px; }
     .top-actions { display: flex; gap: 8px; }
     
-    .btn-clean-mem, .btn-toggle-admin {
-      padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.2s ease;
+    .btn-clean-mem {
+      background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4);
+      color: #50fa7b; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s ease; backdrop-filter: blur(10px);
     }
-    .btn-clean-mem { background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4); color: #50fa7b; }
-    .btn-toggle-admin { background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3); color: var(--primary-pink); }
+    .btn-clean-mem:hover { background: rgba(80, 250, 123, 0.3); box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
+    
+    .btn-toggle-admin {
+      background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
+      color: var(--primary-pink); padding: 10px 18px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+      transition: all 0.2s ease; backdrop-filter: blur(10px);
+    }
+    .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
-    .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; width: 100%; }
+    .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
     .admin-drawer.open { max-height: 5200px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--border-glass); border-radius: 24px; padding: 20px; margin-bottom: 18px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      border: 1px solid var(--border-glass); border-radius: 24px; padding: 20px; margin-bottom: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5); transform: translateZ(0);
     }
-    .card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; color: var(--primary-pink); }
+    .card-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; color: var(--primary-pink); display: flex; align-items: center; gap: 10px; }
     .form-group { margin-bottom: 12px; }
     label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 6px; font-weight: 500; }
     input, select {
       width: 100%; padding: 12px 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none;
+      border-radius: 14px; color: #fff; font-size: 0.95rem; outline: none; transition: all 0.2s ease;
     }
+    input:focus, select:focus { border-color: var(--primary-pink); box-shadow: 0 0 12px rgba(255, 121, 198, 0.25); background: rgba(0,0,0,0.6); }
+    
+    input[type="file"] { padding: 8px; color: var(--text-sub); font-size: 0.85rem; cursor: pointer; }
     input[type="file"]::file-selector-button {
       background: rgba(255, 121, 198, 0.15); border: 1px solid rgba(255, 121, 198, 0.3);
       color: var(--primary-pink); padding: 8px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-right: 12px;
     }
 
-    .btn-pink { width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); color: #07070a; border: none; padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem; }
-    .btn-green { width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem; }
+    .btn-pink {
+      width: 100%; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); color: #07070a; border: none;
+      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
+      box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.2s ease;
+    }
+    .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
+
+    .btn-green {
+      width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
+      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.2s ease;
+    }
+    .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
+    .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .page-view { display: none; width: 100%; animation: fadeIn 0.2s ease; }
     .page-view.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* MP3/MP4 專輯卡片 (保持原樣不變) */
     .album-grid-card {
-      background: var(--card-glass); border: 1px solid var(--border-glass); border-radius: 20px; padding: 14px; margin-bottom: 12px;
-      display: flex; align-items: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      background: var(--card-glass); backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass); border-radius: 20px; padding: 14px; margin-bottom: 12px;
+      display: flex; align-items: center; cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3); transform: translateZ(0);
     }
-    .album-grid-thumb { width: 76px; height: 76px; border-radius: 14px; object-fit: cover; margin-right: 14px; background: #121218; }
+    .album-grid-card:hover {
+      background: var(--card-glass-hover); border-color: var(--border-glass-hover);
+      transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255, 121, 198, 0.15);
+    }
+    .album-grid-thumb { width: 76px; height: 76px; border-radius: 14px; object-fit: cover; margin-right: 14px; flex-shrink: 0; background: #121218; }
     
     .album-youtube-card {
-      background: var(--card-glass); border: 1px solid rgba(255, 121, 198, 0.3); border-radius: 20px; overflow: hidden; margin-bottom: 16px; cursor: pointer;
+      background: var(--card-glass); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 121, 198, 0.3); border-radius: 20px; overflow: hidden; margin-bottom: 16px;
+      cursor: pointer; transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
-    .album-youtube-thumb-container { width: 100%; height: 200px; background: #000; position: relative; }
+    .album-youtube-card:hover {
+      border-color: var(--primary-pink);
+      transform: translateY(-2px); box-shadow: 0 15px 40px rgba(255, 121, 198, 0.25);
+    }
+    .album-youtube-thumb-container {
+      width: 100%; height: 200px; background: #000; position: relative; overflow: hidden;
+    }
+    .album-youtube-thumb-container video, .album-youtube-thumb-container img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
     .album-youtube-info { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; }
 
     .album-grid-info { flex: 1; overflow: hidden; margin-right: 10px; }
-    .album-grid-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: #fff; }
+    .album-grid-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+    .album-grid-count { font-size: 0.85rem; color: var(--primary-pink); font-weight: 600; }
     .album-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.72rem; margin-top: 4px; font-weight: 700; }
     .badge-mp3 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
     .badge-mp4 { background: rgba(255, 121, 198, 0.2); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.4); }
-
-    .breadcrumb-bar { display: flex; gap: 10px; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700; color: var(--primary-pink); cursor: pointer; }
-    .chapter-file-item {
-      display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; margin-bottom: 8px;
-      background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px; cursor: pointer;
+    
+    .btn-action-col { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; z-index: 2; }
+    .btn-album-action {
+      background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
+      color: var(--primary-pink); padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
     }
-    .chapter-info-left { display: flex; align-items: center; gap: 12px; flex: 1; }
-    .play-icon-circle { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.95rem; }
-    .chapter-name { font-weight: 700; color: #fff; font-size: 0.92rem; }
+    .btn-album-del {
+      background: rgba(255, 85, 85, 0.1); border: 1px solid rgba(255, 85, 85, 0.25);
+      color: #ff6b6b; padding: 6px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    }
 
-    /* ======================================================== */
-    /* 1. MP3 專屬播放面板 (保持原樣不變) */
-    /* ======================================================== */
+    .breadcrumb-bar {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px; font-size: 0.95rem; font-weight: 700;
+      color: var(--primary-pink); cursor: pointer; padding: 2px 0;
+    }
+
+    .chapter-file-list { display: flex; flex-direction: column; gap: 8px; }
+    .chapter-file-item {
+      display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 14px;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    .chapter-file-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(255, 121, 198, 0.25); }
+    .chapter-info-left { display: flex; align-items: center; gap: 12px; overflow: hidden; flex: 1; margin-right: 10px; }
+    .play-icon-circle {
+      width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.95rem; flex-shrink: 0;
+    }
+    .chapter-meta-text { overflow: hidden; }
+    .chapter-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; margin-bottom: 2px; color: #fff; font-size: 0.92rem; }
+    .chapter-duration-sub { font-size: 0.78rem; color: var(--text-sub); }
+
+    .btn-action-group { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-sm { padding: 5px 10px; border-radius: 9px; border: none; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .btn-sm-edit { background: rgba(255, 121, 198, 0.15); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.3); }
+    .btn-sm-del { background: rgba(255,255,255,0.06); color: #ff6b6b; border: 1px solid rgba(255,85,85,0.15); }
+
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .btn-page {
+      background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3); color: var(--primary-pink);
+      padding: 8px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; font-size: 0.88rem;
+    }
+    .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
+    .page-info { font-size: 0.85rem; color: var(--text-sub); }
+
     .player-card-mp3 {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
-      background: rgba(16, 16, 22, 0.98); backdrop-filter: blur(25px);
+      max-height: 90vh; height: auto; overflow-y: auto; overflow-x: hidden;
+      background: rgba(16, 16, 22, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       padding: 4px 18px 24px 18px; box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
-      z-index: 1000; transition: transform 0.25s ease;
+      z-index: 1000; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform; transform: translateZ(0);
     }
     .player-card-mp3.minimized { transform: translateY(110%); pointer-events: none; }
-    .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; }
+
+    /* ======================================================== */
+    /* Hanime1 & YouTube 風格滿版影片專區 (完美適配 iOS 高相容全螢幕) */
+    /* ======================================================== */
+    .player-card-mp4 {
+      position: fixed; bottom: 0; left: 0; right: 0; margin: auto; width: 100vw; height: 100vh;
+      width: 100dvw; height: 100dvh; max-width: 100vw; max-height: 100vh; background: #000000;
+      z-index: 10000; display: flex; flex-direction: column; justify-content: space-between;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateZ(0); overflow: hidden;
+    }
+    .player-card-mp4.minimized { transform: translateY(110%); pointer-events: none; }
+    
+    /* 修正 iOS / Mobile 裝置專用滿版全螢幕樣式 */
+    .player-card-mp4.is-fullscreen {
+      position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+      width: 100vw !important; height: 100vh !important; width: 100dvw !important; height: 100dvh !important;
+      max-width: none !important; max-height: none !important; z-index: 2147483647 !important; border-radius: 0 !important;
+      margin: 0 !important; padding: 0 !important;
+    }
+
+    .drag-handle-area { width: 100%; padding: 10px 0; display: flex; justify-content: center; cursor: grab; touch-action: none; }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
-    .cover-box { width: 100%; height: 240px; border-radius: 16px; overflow: hidden; background: #050508; margin-bottom: 10px; position: relative; display: flex; align-items: center; justify-content: center; }
-    .lrc-box { text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink); text-shadow: 0 0 10px var(--pink-glow); padding: 8px; margin-bottom: 8px; }
-    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.25rem; cursor: pointer; }
-    .btn-play-main { width: 48px; height: 48px; background: #fff; color: #07070a; border-radius: 50%; font-size: 1.3rem; }
+
+    /* 頂部控制列 */
+    .mp4-top-bar {
+      position: absolute; top: 0; left: 0; right: 0; height: 64px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+      display: flex; align-items: center; justify-content: flex-end; padding: 0 20px; z-index: 120;
+      transition: opacity 0.3s ease; padding-top: env(safe-area-inset-top);
+    }
+    .mp4-top-actions { display: flex; gap: 12px; align-items: center; }
+    .mp4-icon-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; backdrop-filter: blur(6px); }
+
+    /* 影片滿版對齊框 */
+    .video-fullscreen-box {
+      width: 100%; height: 100%; position: relative; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;
+    }
+    .video-fullscreen-box video {
+      width: 100%; height: 100%; object-fit: contain; background: #000; outline: none; position: absolute; top: 0; left: 0;
+    }
+    /* 全螢幕模式下影片完全填滿屏幕 */
+    .player-card-mp4.is-fullscreen .video-fullscreen-box video {
+      object-fit: cover !important;
+    }
+
+    /* 粉紅色透明背景字幕 (完美支援全螢幕不跑位) */
+    .video-subtitle-overlay {
+      position: absolute; bottom: 85px; left: 50%; transform: translateX(-50%);
+      max-width: 90%; width: max-content; text-align: center;
+      font-size: 1.25rem; font-weight: 800; color: #ffffff;
+      background: rgba(255, 121, 198, 0.35); /* 粉紅色透明背景 */
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255, 121, 198, 0.6);
+      box-shadow: 0 4px 25px rgba(255, 121, 198, 0.4), inset 0 0 15px rgba(255, 121, 198, 0.2);
+      padding: 8px 20px; border-radius: 16px;
+      pointer-events: none; z-index: 130; line-height: 1.4;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      word-break: break-word; text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+    }
+
+    /* 愛心互動特效 */
+    .heart-toy-container {
+      position: absolute; top: 75px; right: 20px; width: 54px; height: 54px;
+      z-index: 130; cursor: pointer; user-select: none;
+      filter: drop-shadow(0 0 12px rgba(255, 121, 198, 0.95));
+      transition: transform 0.15s ease; pointer-events: auto;
+    }
+    .heart-toy-container:active { transform: scale(1.3); }
+    .heart-svg { width: 100%; height: 100%; overflow: visible; }
+    .heart-bg { fill: rgba(10, 10, 16, 0.6); stroke: #ff79c6; stroke-width: 2.8; }
+    .heart-fill { fill: url(#heart-gradient); }
+    
+    .heart-full-beat { animation: heartFullBeat 0.4s infinite alternate ease-in-out !important; }
+    @keyframes heartFullBeat {
+      0% { transform: scale(1); filter: drop-shadow(0 0 15px #ff79c6); }
+      100% { transform: scale(1.45); filter: drop-shadow(0 0 35px #ff1493); }
+    }
+
+    .cover-climax-shake-pink {
+      animation: climaxPinkGlowShake 0.35s infinite alternate ease-in-out !important;
+      border: 4px solid #ff1493 !important;
+    }
+    @keyframes climaxPinkGlowShake {
+      0% { box-shadow: 0 0 30px rgba(255, 121, 198, 0.85), inset 0 0 30px rgba(255, 105, 180, 0.75); transform: translate(1px, 1px) rotate(0deg); }
+      33% { transform: translate(-2px, -2px) rotate(-1deg); }
+      66% { transform: translate(-1px, 2px) rotate(1deg); }
+      100% { box-shadow: 0 0 80px rgba(255, 20, 147, 1), inset 0 0 70px rgba(255, 20, 147, 0.95); transform: translate(2px, -1px) rotate(0deg); }
+    }
+
+    /* 底部控制器列 */
+    .mp4-bottom-controls {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 70px;
+      background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 120;
+      transition: opacity 0.3s ease, transform 0.3s ease; padding-bottom: env(safe-area-inset-bottom);
+    }
+    .mp4-controls-left { display: flex; align-items: center; gap: 16px; }
+    .mp4-controls-right { display: flex; align-items: center; gap: 14px; }
+    .mp4-time-display { font-size: 0.85rem; color: #fff; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .mp4-seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.25); position: absolute; top: -6px; left: 0; right: 0; }
+
+    .player-card-mp4.controls-hidden .mp4-top-bar,
+    .player-card-mp4.controls-hidden .mp4-bottom-controls {
+      opacity: 0; pointer-events: none;
+    }
+
+    .cover-box { 
+      width: 100%; height: 240px; border-radius: 16px; overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
+      position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+    }
+    .cover-box img, .cover-box video { width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; top: 0; left: 0; border-radius: 12px; }
+    .btn-cover-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.55); border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      font-size: 1rem; z-index: 10; backdrop-filter: blur(4px);
+    }
+    .cover-prev { left: 10px; }
+    .cover-next { right: 10px; }
+    .cover-indicator {
+      position: absolute; bottom: 10px; right: 12px; background: rgba(0, 0, 0, 0.6); padding: 3px 8px; border-radius: 8px; font-size: 0.72rem; color: #fff; z-index: 10; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .lrc-box {
+      min-height: 48px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 1.05rem; font-weight: 800; color: var(--primary-pink);
+      text-shadow: 0 0 20px var(--pink-glow), 0 2px 4px rgba(0,0,0,0.8); padding: 2px 8px; line-height: 1.3; margin-bottom: 8px; width: 100%;
+    }
+    .sub-quick-tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+    .btn-sub-quick {
+      padding: 5px 10px; background: rgba(255, 121, 198, 0.1); border: 1px solid rgba(255, 121, 198, 0.25);
+      color: var(--primary-pink); border-radius: 9px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    }
     .seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.1); }
-    .time-box { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin: 6px 0; }
+    .time-box { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin-top: 4px; margin-bottom: 10px; font-weight: 500; }
+    .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+    .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.25rem; cursor: pointer; padding: 6px; transition: transform 0.15s, color 0.2s; }
+    .btn-ctrl:hover { color: var(--primary-pink); transform: scale(1.1); }
+    .btn-play-main {
+      width: 48px; height: 48px; background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%); color: #07070a; border-radius: 50%;
+      font-size: 1.3rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(255,255,255,0.3);
+    }
+    .volume-box { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; padding: 0 2px; }
+    .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); cursor: pointer; }
+    .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.05rem; cursor: pointer; }
+    .bottom-tools { display: flex; gap: 8px; }
+    .btn-pip {
+      flex: 1; background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
+      color: var(--primary-pink); padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; text-align: center;
+    }
 
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 64px;
-      background: rgba(16, 16, 22, 0.95); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 14px; z-index: 999; cursor: pointer;
+      background: rgba(16, 16, 22, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 14px;
+      z-index: 999; cursor: pointer; box-shadow: 0 -6px 25px rgba(0,0,0,0.6); transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .mini-player.hidden { display: none; }
-    .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 10px; }
+    .mini-player.hidden { transform: translateY(100%); pointer-events: none; }
+    .mini-thumb { width: 42px; height: 42px; border-radius: 10px; background: #121218; object-fit: cover; margin-right: 10px; flex-shrink: 0; }
     .mini-info { flex: 1; overflow: hidden; margin-right: 10px; }
-    .mini-title { font-size: 0.88rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); }
+    .mini-title { font-size: 0.88rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+    .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
     .mini-btn { background: none; border: none; color: #fff; font-size: 1.15rem; padding: 6px; cursor: pointer; }
 
-    /* ======================================================== */
-    /* 🔥 2. MP4 YouTube 風格全版播放器 (全面翻新) 🔥 */
-    /* ======================================================== */
-    
-    /* 這裡使用 100dvh，確保在 iOS Safari 上不會被網址列吃掉，達到真正的滿版 */
-    .mp4-modern-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; 
-      background: #000; z-index: 999999; 
-      display: none; flex-direction: column; justify-content: center; align-items: center;
-      overflow: hidden;
+    #toast-container {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 99999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+      width: 90%; max-width: 400px; align-items: center;
     }
-    .mp4-modern-overlay.active { display: flex; }
-    
-    .mp4-video-container {
-      position: relative; width: 100%; height: 100%; 
-      background: #000; display: flex; align-items: center; justify-content: center; 
+    .toast-msg {
+      background: rgba(16, 16, 22, 0.92); backdrop-filter: blur(16px);
+      border: 1px solid var(--primary-pink); color: #fff; padding: 12px 20px; border-radius: 14px;
+      font-size: 0.9rem; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      animation: toastIn 0.3s ease forwards; text-align: center; pointer-events: auto;
     }
-    
-    .mp4-video-element {
-      width: 100%; height: 100%; object-fit: contain; /* 確保影片比例正確，上下補黑邊 */
-      pointer-events: none; /* 讓點擊事件穿透到 UI 層 */
-    }
-
-    /* 內嵌式字幕 (YouTube Style) - 調整位置避免被控制列擋住 */
-    .mp4-subtitles {
-      position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
-      width: 90%; max-width: 800px; text-align: center; pointer-events: none;
-      transition: bottom 0.3s ease, opacity 0.3s ease; z-index: 10;
-    }
-    .mp4-subtitles span {
-      background: rgba(0, 0, 0, 0.6); color: #fff; padding: 4px 10px;
-      border-radius: 6px; font-size: 1.1rem; font-weight: 500; line-height: 1.5;
-      text-shadow: 1px 1px 2px #000; display: inline-block;
-      letter-spacing: 0.5px;
-    }
-    /* 當控制列隱藏時，字幕自動往下沉 */
-    .mp4-modern-overlay.hide-ui .mp4-subtitles { bottom: 30px; }
-
-    /* UI 浮層控制列 - 覆蓋整個畫面 */
-    .mp4-ui-layer {
-      position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
-      transition: opacity 0.3s ease; z-index: 20;
-    }
-    .mp4-modern-overlay.hide-ui .mp4-ui-layer { opacity: 0; pointer-events: none; }
-    
-    /* 頂部：標題與返回鍵 (黑色漸層往下) */
-    .mp4-top-bar {
-      padding: 16px 20px; 
-      background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .mp4-title { color: #fff; font-size: 1.1rem; font-weight: 500; text-shadow: 0 1px 3px #000; }
-    .mp4-btn-close { background: none; border: none; color: #fff; font-size: 1.8rem; cursor: pointer; padding: 0; text-shadow: 0 1px 3px #000; }
-
-    /* 中間：點擊暫停/播放區 */
-    .mp4-center-click-area { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-    
-    /* 大型播放暫停動畫圖示 (可選) */
-    .mp4-center-icon {
-      font-size: 3rem; color: #fff; background: rgba(0,0,0,0.5);
-      width: 80px; height: 80px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; transform: scale(1.5); pointer-events: none;
-      transition: all 0.2s ease;
-    }
-    .mp4-center-icon.pop { opacity: 1; transform: scale(1); }
-
-    /* 底部：控制列 (黑色漸層往上) */
-    .mp4-bottom-bar {
-      padding: 0 20px 20px 20px; 
-      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
-      display: flex; flex-direction: column; gap: 10px;
-    }
-    
-    /* YouTube 樣式進度條：橫跨整個底部容器 */
-    .mp4-progress-container { width: 100%; height: 16px; display: flex; align-items: center; cursor: pointer; margin-bottom: 4px; }
-    .mp4-progress-track { width: 100%; height: 3px; background: rgba(255,255,255,0.3); position: relative; transition: height 0.1s; }
-    .mp4-progress-container:hover .mp4-progress-track { height: 5px; }
-    .mp4-progress-fill { height: 100%; background: var(--primary-pink); width: 0%; position: relative; }
-    .mp4-progress-thumb { position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0); width: 12px; height: 12px; background: var(--primary-pink); border-radius: 50%; transition: transform 0.1s; }
-    .mp4-progress-container:hover .mp4-progress-thumb { transform: translateY(-50%) scale(1); }
-
-    /* 底部按鈕列 */
-    .mp4-controls-row { display: flex; align-items: center; gap: 20px; color: #fff; }
-    .mp4-icon-btn { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
-    .mp4-icon-btn:hover { color: var(--primary-pink); }
-    
-    .mp4-time { font-size: 0.85rem; font-weight: 400; opacity: 0.9; margin-left: -5px; }
-    .mp4-spacer { flex: 1; }
-
-    /* ======================================================== */
-    /* 愛心高潮特效 (完全保留不變) */
-    /* ======================================================== */
-    .heart-toy-container {
-      position: absolute; top: 80px; right: 20px; width: 50px; height: 50px; z-index: 30; cursor: pointer;
-      filter: drop-shadow(0 0 10px rgba(255, 121, 198, 0.8)); transition: transform 0.15s ease;
-    }
-    .heart-toy-container:active { transform: scale(1.3); }
-    .heart-bg { fill: rgba(10, 10, 16, 0.4); stroke: #ff79c6; stroke-width: 2.5; }
-
-    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: 90%; max-width: 400px; align-items: center; }
-    .toast-msg { background: rgba(16, 16, 22, 0.92); border: 1px solid var(--primary-pink); color: #fff; padding: 12px 20px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; text-align: center; pointer-events: auto; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
 <div id="toast-container"></div>
+
 <video id="bg-video" autoplay loop muted playsinline></video>
 <img id="bg-img" alt="全域背景">
 <div id="bg-overlay"></div>
@@ -250,450 +383,1533 @@
   <div class="top-bar">
     <div class="app-logo" onclick="switchPage('home')">🌸 ASMR 隨身庫</div>
     <div class="top-actions">
-      <button class="btn-clean-mem" onclick="cleanMemoryAndGC()">⚡ 清理快取</button>
-      <button class="btn-toggle-admin" onclick="toggleAdminDrawer()">⚙️ 管理</button>
+      <button class="btn-clean-mem" onclick="cleanMemoryAndGC()">⚡ 清理記憶體</button>
+      <button class="btn-toggle-admin" onclick="toggleAdminDrawer()">⚙️ 管理選單</button>
     </div>
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
+    <div class="glass-card" style="border: 1px solid rgba(255, 20, 147, 0.4); background: rgba(25, 10, 20, 0.85);">
+      <div class="card-title" style="color: #ff1493;">🎀 動態影音專區自訂高潮特效 (圖片 + 音效)</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        設定後，在「YouTube 影片專區」愛心累積至 100% 觸發高潮時將自動暫停，顯示特效圖片並播放此專屬高潮音效。
+      </div>
+      <div class="form-group"><label>高潮特效圖片 (JPG/PNG/GIF)</label><input type="file" id="climax-img-input" accept="image/*"></div>
+      <div class="form-group"><label>高潮專屬音效 (MP3/WAV/M4A)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a,.aac"></div>
+      <button class="btn-pink" onclick="saveClimaxSettings()">儲存自訂特效設定</button>
+    </div>
+
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區</div>
-      <div class="form-group"><label>分區名稱</label><input type="text" id="album-title"></div>
+      <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒自動輪播)</div>
+      <div class="form-group"><label>選取多張圖片或 MP4 影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
+      <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
+    </div>
+
+    <div class="glass-card">
+      <div class="card-title">📁 建立作品分區 (完全獨立區隔 MP3 與 YouTube 影片專區)</div>
+      <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女花嫁篇"></div>
       <div class="form-group">
-        <label>分區類型</label>
-        <select id="album-type">
-          <option value="mp3">🎵 純音訊 MP3 專區</option>
-          <option value="mp4">🌸 YouTube 影片專區</option>
+        <label>分區類型選擇</label>
+        <select id="album-type" onchange="onAlbumTypeChange()">
+          <option value="mp3">🎵 純音訊 MP3 專區 (輕量穩定、面板設置省電功能)</option>
+          <option value="mp4">🌸 Hanime1 風格滿版影片專區 (影片完全無聲音、內嵌專屬高音質音檔、自動循環、永久同步字幕與愛心高潮特效)</option>
         </select>
       </div>
+      <div class="form-group" id="group-album-covers"><label>封面素材 (支援圖片或 MP4 影片封面)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
+      <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
+
     <div class="glass-card">
-      <div class="card-title">⚡ 匯入篇章</div>
-      <div class="form-group"><select id="select-album"><option value="">-- 請先建立分區 --</option></select></div>
-      <div class="form-group"><label>音訊檔 (MP3/WAV)</label><input type="file" id="track-audio" accept="audio/*"></div>
-      <div class="form-group"><label>影片檔 (僅 MP4 專區需要)</label><input type="file" id="track-video" accept="video/*"></div>
-      <div class="form-group"><label>字幕檔 (LRC/VTT)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
-      <button class="btn-green" onclick="addTrack()">新增單一篇章</button>
+      <div class="card-title">⚡ 一鍵自動配對音檔/影片與字幕</div>
+      <div class="form-group">
+        <label>選擇目標作品分區</label>
+        <select id="select-album"><option value="">-- 請先建立分區 --</option></select>
+      </div>
+      
+      <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳</div>
+        <div class="form-group" id="batch-audio-group">
+          <label id="batch-audio-label">複選所有音訊/影片檔案</label>
+          <input type="file" id="batch-audios" accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov" multiple>
+        </div>
+        <div class="form-group" id="batch-video-group" style="display:none;">
+          <label>複選對應影片檔案 (.mp4 / .mov)</label>
+          <input type="file" id="batch-videos" accept="video/*,.mp4,.mov,.webm" multiple>
+        </div>
+        <div class="form-group">
+          <label>複選所有字幕/文檔 (.lrc / .vtt / .srt / .txt 全格式)</label>
+          <input type="file" id="batch-lrcs" accept=".lrc,.vtt,.srt,.txt" multiple>
+        </div>
+        <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
+      </div>
+
+      <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
+        <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增</div>
+        <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
+        <div class="form-group" id="single-video-group" style="display:none;"><label>影片主檔案 (MP4 / MOV - 將自動移除影片原音並與音檔同步)</label><input type="file" id="track-video" accept="video/*,.mp4,.mov,.webm"></div>
+        <div class="form-group"><label id="track-audio-label">音訊主檔案 (MP3 / WAV / M4A - 作為主音源與計時依據)</label><input type="file" id="track-audio" accept="audio/*,video/*,.mp3,.wav,.m4a"></div>
+        <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
+        <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
+      </div>
     </div>
   </div>
 
   <div id="view-home" class="page-view active">
     <div class="glass-card">
-      <div class="card-title">📚 選擇作品集</div>
-      <div id="album-list"></div>
+      <div class="card-title">📚 選擇作品集 (MP3 與 Hanime1 滿版影片專區獨立呈現)</div>
+      <div id="album-list">載入中...</div>
+      <div id="pagination-container"></div>
     </div>
   </div>
 
   <div id="view-detail" class="page-view">
     <div class="glass-card">
-      <div class="breadcrumb-bar" onclick="switchPage('home')">⬅ 返回列表 / <span id="detail-album-title"></span></div>
-      <div id="chapter-list-container"></div>
+      <div class="breadcrumb-bar" onclick="switchPage('home')">
+        <span>⬅ ROOT / 📁 <span id="detail-album-title">作品名稱</span></span>
+      </div>
+      <div id="chapter-list-container" class="chapter-file-list"></div>
     </div>
   </div>
 </div>
 
-<!-- MP3 獨立模塊 (維持不變) -->
-<audio id="mp3-audio-player" crossorigin="anonymous" playsinline preload="auto"></audio>
-<div id="mini-player" class="mini-player hidden" onclick="expandMp3Player()">
-  <img id="mini-thumb" class="mini-thumb">
+<!-- 共用迷你播放器 -->
+<div id="mini-player" class="mini-player hidden" onclick="expandPlayer()">
+  <img id="mini-thumb" class="mini-thumb" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>">
   <div class="mini-info">
     <div id="mini-title" class="mini-title">未選擇篇章</div>
-    <div id="mini-lrc" class="mini-subtitle">♪ 點擊展開</div>
+    <div id="mini-lrc" class="mini-subtitle">♪ 點擊展開播放面板</div>
   </div>
-  <button class="mini-btn" onclick="event.stopPropagation(); toggleMp3Play();" id="mini-btn-play">▶</button>
+  <button class="mini-btn" onclick="event.stopPropagation(); togglePlay();" id="mini-btn-play">▶</button>
+  <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
+
+<!-- 1. 純 MP3 專區播放器面板 -->
 <div id="player-card-mp3" class="player-card-mp3 minimized">
-  <div class="drag-handle-area" onclick="minimizeMp3Player()"><div class="drag-handle"></div></div>
-  <div class="cover-box" id="player-cover-box"><img id="mp3-cover-img" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' fill='%23121218'/></svg>" style="display:block;"></div>
-  <div id="lrc-box-mp3" class="lrc-box">♪ 選擇篇章開始收聽 ♪</div>
-  <input type="range" id="seek-slider-mp3" class="seek-slider" value="0" min="0" max="100" step="0.1">
-  <div class="time-box"><span id="time-current-mp3">00:00</span><span id="time-duration-mp3">00:00</span></div>
+  <div class="drag-handle-area" id="drag-handle-area-mp3" title="向下滑動關閉面板">
+    <div class="drag-handle"></div>
+  </div>
+
+  <div class="cover-box" id="player-cover-box">
+    <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
+    <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
+    <div class="cover-indicator" id="cover-indicator">1 / 1</div>
+  </div>
+  
+  <div id="lrc-box" class="lrc-box">♪ 選擇小篇章開始收聽 ♪</div>
+
+  <div class="sub-quick-tools">
+    <label class="btn-sub-quick">📂 匯入字幕<input type="file" id="quick-lrc-input" accept=".lrc,.vtt,.srt,.txt" style="display:none;" onchange="uploadCurrentTrackLrc(event)"></label>
+    <button class="btn-sub-quick" onclick="pasteCurrentTrackLrc()">📝 貼上字幕</button>
+    <button class="btn-sub-quick" onclick="inspectCurrentTrackLrc()">🔍 檢視/修改</button>
+  </div>
+
+  <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100" step="0.1">
+  <div class="time-box"><span id="time-current">00:00</span><span id="time-duration">00:00</span></div>
+
   <div class="controls">
-    <button class="btn-ctrl" onclick="playPrevTrack()">⏮</button>
-    <button class="btn-ctrl btn-play-main" id="btn-play-mp3" onclick="toggleMp3Play()">▶</button>
-    <button class="btn-ctrl" onclick="playNextTrack()">⏭</button>
+    <button class="btn-ctrl" onclick="prevTrack()">⏮</button>
+    <button class="btn-ctrl" onclick="seekRelative(-5)">↺5</button>
+    <button class="btn-ctrl btn-play-main" id="btn-play-mp3" onclick="togglePlay()">▶</button>
+    <button class="btn-ctrl" onclick="seekRelative(30)">↻30</button>
+    <button class="btn-ctrl" onclick="nextTrack()">⏭</button>
+  </div>
+
+  <div class="volume-box">
+    <button class="btn-mute" id="btn-mute" onclick="toggleMute()">🔈</button>
+    <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="1">
+    <span>🔊</span>
+  </div>
+
+  <div class="bottom-tools">
+    <button class="btn-pip" onclick="enablePiP()">📺 桌面懸浮 (PiP)</button>
   </div>
 </div>
 
-<!-- ======================================================== -->
-<!-- 🔥 MP4 YouTube 風格播放器 (全新結構) 🔥 -->
-<!-- ======================================================== -->
-<audio id="mp4-audio-player" crossorigin="anonymous" playsinline preload="auto"></audio>
+<!-- 2. Hanime1 & YouTube 風格滿版影片專區播放面板 (升級 iOS 高相容全螢幕、粉紅背景字幕、無原音循環) -->
+<div id="player-card-mp4" class="player-card-mp4 minimized">
+  <div class="video-fullscreen-box" id="video-fullscreen-box">
+    <!-- 主影片播放器：徹底靜音 muted 且設定 loop 與 playsinline -->
+    <video id="main-video-player" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
 
-<div id="mp4-modern-overlay" class="mp4-modern-overlay">
-  <div class="mp4-video-container" id="mp4-video-container">
-    
-    <!-- 影片本體 -->
-    <video id="mp4-video-player" class="mp4-video-element" muted loop playsinline webkit-playsinline crossorigin="anonymous"></video>
-    
-    <!-- YouTube 樣式字幕 -->
-    <div class="mp4-subtitles"><span id="mp4-subtitle-text">♪ 載入中... ♪</span></div>
-
-    <!-- 愛心特效 (保留你的舊功能) -->
-    <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); alert('高潮特效觸發！');">
-      <svg viewBox="0 0 32 32"><path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" /></svg>
-    </div>
-
-    <!-- UI 覆蓋層 -->
-    <div class="mp4-ui-layer" id="mp4-ui-layer">
-      
-      <!-- 頂部列：返回鍵與標題 -->
-      <div class="mp4-top-bar" onclick="event.stopPropagation()">
-        <button class="mp4-btn-close" onclick="closeMp4Player()" title="關閉影片">⬅</button>
-        <div class="mp4-spacer"></div>
-      </div>
-
-      <!-- 中央大範圍點擊區 (點擊暫停/播放) -->
-      <div class="mp4-center-click-area" onclick="toggleMp4Play()">
-        <div class="mp4-center-icon" id="mp4-center-icon">▶</div>
-      </div>
-
-      <!-- 底部控制列 -->
-      <div class="mp4-bottom-bar" onclick="event.stopPropagation()">
-        
-        <!-- 進度條 -->
-        <div class="mp4-progress-container" id="mp4-progress-container">
-          <div class="mp4-progress-track">
-            <div class="mp4-progress-fill" id="mp4-progress-fill">
-              <div class="mp4-progress-thumb"></div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 按鈕與時間 -->
-        <div class="mp4-controls-row">
-          <button class="mp4-icon-btn" onclick="toggleMp4Play()" id="btn-play-mp4">▶</button>
-          
-          <div class="mp4-time">
-            <span id="mp4-time-current">0:00</span> / <span id="mp4-time-duration">0:00</span>
-          </div>
-          
-          <div class="mp4-spacer"></div>
-          
-          <button class="mp4-icon-btn" onclick="playPrevTrack()" title="上一集">⏮</button>
-          <button class="mp4-icon-btn" onclick="playNextTrack()" title="下一集">⏭</button>
-          <button class="mp4-icon-btn" style="margin-left: 10px;" onclick="toggleMp4Fullscreen()" title="全螢幕">⛶</button>
-        </div>
-
+    <!-- 獨立頂部資訊列 -->
+    <div class="mp4-top-bar" id="mp4-top-bar">
+      <div class="mp4-top-actions">
+        <button class="mp4-icon-btn" onclick="toggleFullScreen(event)" title="全螢幕 / 橫向填滿">⛶</button>
+        <button class="mp4-icon-btn" onclick="event.stopPropagation(); minimizePlayer();" title="縮小關閉">✕</button>
       </div>
     </div>
 
+    <!-- 粉紅色透明背景字幕：永遠跟隨影片與音檔時間同步顯示 -->
+    <div id="video-subtitle-overlay" class="video-subtitle-overlay">♪ 載入影片字幕中... ♪</div>
+
+    <!-- 愛心互動特效 -->
+    <div class="heart-toy-container" id="heart-toy" onclick="event.stopPropagation(); triggerInstantOrgasm();" title="點擊一鍵高潮">
+      <svg class="heart-svg" viewBox="0 0 32 32">
+        <defs>
+          <linearGradient id="heart-gradient" x1="0%" y1="100%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#ff1493" />
+            <stop offset="100%" stop-color="#ff79c6" />
+          </linearGradient>
+          <clipPath id="heart-clip">
+            <rect id="heart-clip-rect" x="0" y="32" width="32" height="0" />
+          </clipPath>
+        </defs>
+        <path class="heart-bg" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+        <path class="heart-fill" clip-path="url(#heart-clip)" d="M16 28.5 C16 28.5 3 19 3 10.5 C3 6 6.5 2.5 11 2.5 C13.8 2.5 15.3 3.8 16 5 C16.7 3.8 18.2 2.5 21 2.5 C25.5 2.5 29 6 29 10.5 C29 19 16 28.5 16 28.5 Z" />
+      </svg>
+    </div>
+
+    <!-- 高潮特效圖片覆蓋 -->
+    <img id="climax-overlay-img" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:135; object-fit:cover;">
+
+    <!-- 底部控制器列 -->
+    <div class="mp4-bottom-controls" id="mp4-bottom-controls" onclick="event.stopPropagation()">
+      <input type="range" id="seek-slider-mp4" class="mp4-seek-slider" value="0" min="0" max="100" step="0.1">
+      <div class="mp4-controls-left">
+        <button class="btn-ctrl" onclick="togglePlay()" id="btn-play-mp4" style="color:#fff; font-size:1.4rem;">⏸</button>
+        <div class="mp4-time-display"><span id="time-current-mp4">00:00</span> / <span id="time-duration-mp4">00:00</span></div>
+      </div>
+      <div class="mp4-controls-right">
+        <button class="btn-ctrl" onclick="prevTrack()" style="color:#fff; font-size:1.2rem;" title="上一集">⏮</button>
+        <button class="btn-ctrl" onclick="nextTrack()" style="color:#fff; font-size:1.2rem;" title="下一集">⏭</button>
+      </div>
+    </div>
   </div>
 </div>
+
+<video id="pip-video" crossorigin="anonymous" playsinline style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<audio id="main-audio" crossorigin="anonymous" playsinline preload="auto"></audio>
+<audio id="climax-audio-el" crossorigin="anonymous" playsinline preload="auto"></audio>
 
 <script>
-  /* 資料庫與共用邏輯 (維持不變) */
-  let db, albums = [], tracks = [], currentTrackList = [], currentIndex = -1, currentLrc = [];
+  let db;
+  let albums = [];
+  let tracks = [];
+  let currentTrackList = [];
+  let currentIndex = -1;
+  let currentLrc = [];
+  let currentPlayingAlbumId = null;
+  let currentActiveAlbumId = null;
+
+  let globalBackgrounds = [];
+  let bgIndex = 0;
+  let bgTimer = null;
+  let isCustomAlbumPlaying = false;
+  let currentAlbumBgBlobs = [];
+  let albumBgIndex = 0;
+
+  let activeAlbumCoverBlobs = [];
+  let activeCoverIndex = 0;
+  let coverElements = [];
+  let cachedCoverElement = null;
+  let isCoverVideoActive = false;
   let currentAlbumType = 'mp3';
+
+  let pipCanvas = null;
+  let pipCtx = null;
+  let isPiPInitialized = false;
+
+  let currentPage = 1;
+  const itemsPerPage = 4;
   let activeCreatedUrls = [];
 
-  const mp3Audio = document.getElementById("mp3-audio-player");
-  const mp4Audio = document.getElementById("mp4-audio-player");
-  const mp4Video = document.getElementById("mp4-video-player");
+  let audioCtx = null;
+  let analyser = null;
+  let audioSourceNode = null;
+  let climaxAudioSourceNode = null;
+  let heartFillPercent = 0;
+  let isClimaxState = false;
+  let climaxResetTimer = null;
+  
+  window.customClimaxData = null;
 
-  function showToast(msg) {
-    const box = document.getElementById("toast-container");
-    const t = document.createElement("div"); t.className = "toast-msg"; t.innerText = msg;
-    box.appendChild(t); setTimeout(() => t.remove(), 3000);
+  let lastPiPRenderTime = 0;
+  let PIP_FPS = 30;
+  let PIP_INTERVAL = 1000 / PIP_FPS;
+
+  let lastAudioAnalyzeTime = 0;
+  const AUDIO_FPS = 25;
+  const AUDIO_INTERVAL = 1000 / AUDIO_FPS;
+
+  const audio = document.getElementById("main-audio");
+  const mainVideoPlayer = document.getElementById("main-video-player");
+  const bgVideo = document.getElementById("bg-video");
+  const bgImg = document.getElementById("bg-img");
+  const pipVideo = document.getElementById("pip-video");
+  const playerCardMp3 = document.getElementById("player-card-mp3");
+  const playerCardMp4 = document.getElementById("player-card-mp4");
+  const miniPlayer = document.getElementById("mini-player");
+  const seekSlider = document.getElementById("seek-slider");
+  const seekSliderMp4 = document.getElementById("seek-slider-mp4");
+  const volumeSlider = document.getElementById("volume-slider");
+  const climaxAudioEl = document.getElementById("climax-audio-el");
+  const videoFullscreenBox = document.getElementById("video-fullscreen-box");
+
+  let touchStartY = 0;
+  let touchCurrentY = 0;
+  let isDragging = false;
+  const dragHandleAreaMp3 = document.getElementById("drag-handle-area-mp3");
+
+  function showToast(message, duration = 3000) {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    toast.className = "toast-msg";
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  function showConfirmModal(message, onConfirm) {
+    const modalBg = document.createElement("div");
+    modalBg.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:99999; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(8px);";
+    
+    const box = document.createElement("div");
+    box.style.cssText = "background:#121218; border:1px solid var(--border-glass); border-radius:20px; padding:24px; width:90%; max-width:360px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.8);";
+    box.innerHTML = `
+      <div style="font-size:1rem; font-weight:700; color:#fff; margin-bottom:16px; line-height:1.5;">${message}</div>
+      <div style="display:flex; gap:10px;">
+        <button id="modal-cancel" style="flex:1; background:rgba(255,255,255,0.08); border:none; padding:12px; border-radius:12px; color:#fff; font-weight:700; cursor:pointer;">取消</button>
+        <button id="modal-ok" style="flex:1; background:linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); border:none; padding:12px; border-radius:12px; color:#07070a; font-weight:700; cursor:pointer;">確定</button>
+      </div>
+    `;
+    modalBg.appendChild(box);
+    document.body.appendChild(modalBg);
+
+    modalBg.querySelector("#modal-cancel").onclick = () => modalBg.remove();
+    modalBg.querySelector("#modal-ok").onclick = () => {
+      modalBg.remove();
+      onConfirm();
+    };
+  }
+
+  let controlsHideTimer = null;
+  let isControlsVisible = true;
+
+  function resetControlsHideTimer() {
+    const playerMp4 = document.getElementById("player-card-mp4");
+    playerMp4.classList.remove("controls-hidden");
+    isControlsVisible = true;
+    if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    controlsHideTimer = setTimeout(() => {
+      let m = getActiveMedia();
+      if (m && !m.paused && !isClimaxState) {
+        playerMp4.classList.add("controls-hidden");
+        isControlsVisible = false;
+      }
+    }, 4000);
+  }
+
+  function toggleControlsVisibility() {
+    const playerMp4 = document.getElementById("player-card-mp4");
+    if (isControlsVisible) {
+      playerMp4.classList.add("controls-hidden");
+      isControlsVisible = false;
+      if (controlsHideTimer) clearTimeout(controlsHideTimer);
+    } else {
+      playerMp4.classList.remove("controls-hidden");
+      isControlsVisible = true;
+      resetControlsHideTimer();
+    }
+  }
+
+  if (videoFullscreenBox) {
+    let lastTapTime = 0;
+    videoFullscreenBox.addEventListener("click", (e) => {
+      let currentTime = new Date().getTime();
+      let tapLength = currentTime - lastTapTime;
+      if (tapLength < 350 && tapLength > 0) {
+        toggleControlsVisibility();
+        e.stopPropagation();
+      } else {
+        if (!isControlsVisible) {
+          toggleControlsVisibility();
+        } else {
+          resetControlsHideTimer();
+        }
+      }
+      lastTapTime = currentTime;
+    });
+  }
+
+  function getActiveMedia() {
+    return audio; // 音訊統一驅動 MP3 及 MP4
+  }
+
+  function createTrackedObjectURL(blob) {
+    if (!blob) return "";
+    const url = URL.createObjectURL(blob);
+    activeCreatedUrls.push(url);
+    return url;
   }
 
   function cleanMemoryAndGC() {
-    activeCreatedUrls.forEach(url => { try { URL.revokeObjectURL(url); } catch(e){} });
-    activeCreatedUrls = []; showToast("⚡ 已清理快取。");
+    activeCreatedUrls.forEach(url => {
+      try { URL.revokeObjectURL(url); } catch(e){}
+    });
+    activeCreatedUrls = [];
+    if (bgVideo.paused) {
+      bgVideo.removeAttribute('src');
+      bgVideo.load();
+    }
+    showToast("⚡ 已完成快取釋放與記憶體清理！手機流暢度與電池續航已最佳化。");
   }
 
-  function createObjectURLTracked(blob) {
-    if (!blob) return "";
-    const url = URL.createObjectURL(blob);
-    activeCreatedUrls.push(url); return url;
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (bgVideo && !bgVideo.paused) bgVideo.pause();
+    } else {
+      let m = getActiveMedia();
+      if (bgVideo && bgVideo.src && m && !m.paused && !isClimaxState) bgVideo.play().catch(()=>{});
+    }
+  });
+
+  if (dragHandleAreaMp3) {
+    dragHandleAreaMp3.addEventListener("touchstart", (e) => {
+      touchStartY = e.touches[0].clientY;
+      isDragging = true;
+      playerCardMp3.style.transition = 'none';
+    }, { passive: true });
+
+    dragHandleAreaMp3.addEventListener("touchmove", (e) => {
+      if (!isDragging) return;
+      touchCurrentY = e.touches[0].clientY;
+      let diff = touchCurrentY - touchStartY;
+      if (diff > 0) playerCardMp3.style.transform = `translateY(${diff}px)`;
+    }, { passive: true });
+
+    dragHandleAreaMp3.addEventListener("touchend", () => {
+      if (!isDragging) return;
+      isDragging = false;
+      playerCardMp3.style.transition = 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)';
+      let diff = touchCurrentY - touchStartY;
+      if (diff > 80) minimizePlayer();
+      else playerCardMp3.style.transform = 'translateY(0)';
+      touchStartY = 0; touchCurrentY = 0;
+    });
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V45", 1);
+  function initAudioAnalysis() {
+    if (currentAlbumType !== 'mp4') return;
+    if (audioCtx) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return;
+    }
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      
+      audioSourceNode = audioCtx.createMediaElementSource(audio);
+      audioSourceNode.connect(analyser);
+      analyser.connect(audioCtx.destination);
+
+      climaxAudioSourceNode = audioCtx.createMediaElementSource(climaxAudioEl);
+      climaxAudioSourceNode.connect(audioCtx.destination);
+      
+      requestAnimationFrame(analyzeAudioFrame);
+    } catch(e) { console.error(e); }
+  }
+
+  function analyzeAudioFrame(timestamp) {
+    requestAnimationFrame(analyzeAudioFrame);
+    if (currentAlbumType !== 'mp4') return;
+    if (timestamp - lastAudioAnalyzeTime < AUDIO_INTERVAL) return;
+    lastAudioAnalyzeTime = timestamp;
+
+    if (!audioCtx || audio.paused || isClimaxState) return;
+
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteFrequencyData(dataArray);
+
+    let totalSum = 0;
+    for (let i = 0; i < bufferLength; i++) totalSum += dataArray[i];
+    let avgEnergy = totalSum / bufferLength;
+
+    if (avgEnergy > 5) {
+      let boostFactor = Math.pow(avgEnergy / 32, 1.35);
+      heartFillPercent += (0.5 * boostFactor);
+    } else {
+      heartFillPercent -= 3.8;
+    }
+
+    if (heartFillPercent < 0) heartFillPercent = 0;
+    if (heartFillPercent >= 100) {
+      heartFillPercent = 100;
+      triggerClimaxEffect();
+    }
+    updateHeartDisplay();
+  }
+
+  function updateHeartDisplay() {
+    const clipRect = document.getElementById("heart-clip-rect");
+    if (clipRect) {
+      let fillHeight = (heartFillPercent / 100) * 32;
+      let yPos = 32 - fillHeight;
+      clipRect.setAttribute("y", yPos);
+      clipRect.setAttribute("height", fillHeight);
+    }
+  }
+
+  async function triggerClimaxEffect() {
+    if (currentAlbumType !== 'mp4' || isClimaxState) return;
+    isClimaxState = true;
+    heartFillPercent = 100;
+    updateHeartDisplay();
+
+    const heartEl = document.getElementById("heart-toy");
+    const videoBox = document.getElementById("video-fullscreen-box");
+    const climaxOverlay = document.getElementById("climax-overlay-img");
+
+    if (heartEl) heartEl.classList.add("heart-full-beat");
+    if (videoBox) videoBox.classList.add("cover-climax-shake-pink");
+
+    if (window.customClimaxData && window.customClimaxData.audioBlob && window.customClimaxData.imgBlob) {
+      if (!climaxAudioEl.src) climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
+      climaxOverlay.src = URL.createObjectURL(window.customClimaxData.imgBlob);
+      climaxOverlay.style.display = "block";
+
+      try {
+        climaxAudioEl.currentTime = 0;
+        await climaxAudioEl.play();
+        if (!audio.paused) {
+          audio.pause();
+          syncPlayButtons(false);
+        }
+      } catch (e) {
+        endClimax(climaxOverlay, heartEl, videoBox);
+        return;
+      }
+      climaxAudioEl.onended = () => endClimax(climaxOverlay, heartEl, videoBox);
+    } else {
+      if (climaxResetTimer) clearTimeout(climaxResetTimer);
+      climaxResetTimer = setTimeout(() => endClimax(null, heartEl, videoBox), 10000);
+    }
+  }
+
+  function endClimax(climaxOverlay, heartEl, videoBox) {
+    heartFillPercent = 0;
+    updateHeartDisplay();
+    if (heartEl) heartEl.classList.remove("heart-full-beat");
+    if (videoBox) videoBox.classList.remove("cover-climax-shake-pink");
+    isClimaxState = false;
+    
+    if (climaxOverlay) {
+      climaxOverlay.style.display = "none";
+      try { URL.revokeObjectURL(climaxOverlay.src); } catch(e){}
+      climaxOverlay.src = "";
+    }
+
+    if (currentIndex !== -1 && audio.paused) {
+      audio.play().then(() => {
+        syncPlayButtons(true);
+      }).catch(e=>{});
+    }
+  }
+
+  function triggerInstantOrgasm() {
+    if (currentAlbumType !== 'mp4') return;
+    if (climaxResetTimer) clearTimeout(climaxResetTimer);
+    isClimaxState = false;
+    triggerClimaxEffect();
+  }
+
+  async function saveClimaxSettings() {
+    const imgInput = document.getElementById("climax-img-input");
+    const audioInput = document.getElementById("climax-audio-input");
+    let imgBlob = imgInput.files[0] || null;
+    let audioBlob = audioInput.files[0] || null;
+
+    if (!imgBlob || !audioBlob) return showToast("請必須同時選擇「特效圖片」與「特效音效」兩項素材才能儲存！");
+
+    const tx = db.transaction("settings", "readwrite");
+    const climaxData = { key: "climaxCustomData", imgBlob, audioBlob };
+    tx.objectStore("settings").put(climaxData);
+    tx.oncomplete = () => {
+      window.customClimaxData = climaxData;
+      climaxAudioEl.src = URL.createObjectURL(audioBlob);
+      climaxAudioEl.load();
+      showToast("✅ 動態影音專區自訂高潮特效素材儲存成功！");
+      imgInput.value = ""; audioInput.value = "";
+    };
+  }
+
+  function drawCoverToCanvas(ctx, element, size, isVideo) {
+    if (!element) return;
+    try {
+      let sw = isVideo ? element.videoWidth : element.naturalWidth;
+      let sh = isVideo ? element.videoHeight : element.naturalHeight;
+      if (!sw || !sh) { sw = size; sh = size; }
+      let aspect = sw / sh;
+      let dw = size, dh = size, dx = 0, dy = 0;
+      if (aspect > 1) { dw = size * aspect; dh = size; dx = (size - dw) / 2; }
+      else { dw = size; dh = size / aspect; dy = (size - dh) / 2; }
+      ctx.drawImage(element, dx, dy, dw, dh);
+    } catch(e) {}
+  }
+
+  function initPiPEngine() {
+    if (isPiPInitialized) return;
+    try {
+      pipCanvas = document.createElement('canvas');
+      pipCanvas.width = 1080; pipCanvas.height = 1080;
+      pipCtx = pipCanvas.getContext('2d', { alpha: false });
+
+      function renderPiPFrame(timestamp) {
+        requestAnimationFrame(renderPiPFrame);
+        if (timestamp - lastPiPRenderTime < PIP_INTERVAL) return;
+        lastPiPRenderTime = timestamp;
+
+        if (pipCtx) {
+          pipCtx.fillStyle = "#07070a";
+          pipCtx.fillRect(0, 0, 1080, 1080);
+
+          const climaxOverlay = document.getElementById("climax-overlay-img");
+          if (isClimaxState && climaxOverlay && climaxOverlay.style.display === "block") {
+            drawCoverToCanvas(pipCtx, climaxOverlay, 1080, false);
+          } else if (currentAlbumType === 'mp4') {
+            drawCoverToCanvas(pipCtx, mainVideoPlayer, 1080, true);
+          } else if (cachedCoverElement) {
+            drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive);
+          } else {
+            pipCtx.fillStyle = "#121218";
+            pipCtx.fillRect(0, 0, 1080, 1080);
+            pipCtx.fillStyle = "#ff79c6";
+            pipCtx.font = "bold 48px sans-serif";
+            pipCtx.textAlign = "center";
+            pipCtx.fillText("ASMR 隨身庫", 540, 540);
+          }
+
+          let currentText = isClimaxState ? "🎀 觸發專屬高潮中..." : getActiveSubtitleText(audio.currentTime);
+
+          let grad = pipCtx.createLinearGradient(0, 780, 0, 1080);
+          grad.addColorStop(0, "rgba(0,0,0,0)"); grad.addColorStop(0.35, "rgba(0,0,0,0.6)"); grad.addColorStop(1, "rgba(0,0,0,0.92)");
+          pipCtx.fillStyle = grad;
+          pipCtx.fillRect(0, 780, 1080, 300);
+
+          pipCtx.textAlign = "center";
+          pipCtx.font = "bold 58px sans-serif";
+          pipCtx.lineWidth = 12;
+          pipCtx.strokeStyle = "rgba(0, 0, 0, 0.95)";
+          pipCtx.strokeText(currentText, 540, 950);
+          pipCtx.fillStyle = isClimaxState ? "#ff1493" : "#ff79c6";
+          pipCtx.fillText(currentText, 540, 950);
+        }
+      }
+      requestAnimationFrame(renderPiPFrame);
+
+      const canvasStream = pipCanvas.captureStream(PIP_FPS);
+      pipVideo.srcObject = canvasStream;
+      pipVideo.muted = true; 
+      pipVideo.play().catch(()=>{});
+      isPiPInitialized = true;
+    } catch(e) {}
+  }
+
+  async function enablePiP() {
+    if (currentIndex === -1) return showToast("請先播放一個篇章才能開啟桌面懸浮窗！");
+    unlockAutoplayConstraints();
+    if (currentAlbumType === 'mp4') initAudioAnalysis();
+    initPiPEngine();
+
+    if (audio.paused && !isClimaxState) {
+      await audio.play().catch(() => {});
+      syncPlayButtons(true);
+    }
+    try {
+      if (pipVideo !== document.pictureInPictureElement) await pipVideo.requestPictureInPicture();
+      else await document.exitPictureInPicture();
+    } catch (err) {
+      setTimeout(async () => {
+        try { await pipVideo.requestPictureInPicture(); } catch(e) { showToast("無法啟用懸浮視窗。"); }
+      }, 200);
+    }
+  }
+
+  /* 升級：最高相容性 iOS 手機全螢幕與滿版縮放控制 */
+  function toggleFullScreen(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const cardMp4 = document.getElementById("player-card-mp4");
+    if (!cardMp4) return;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const willBeFullscreen = !cardMp4.classList.contains("is-fullscreen");
+
+    // 1. 切換高相容偽全螢幕類別（確保字幕與背景音效絕對不中斷）
+    cardMp4.classList.toggle("is-fullscreen", willBeFullscreen);
+
+    // 2. 如果為 Android / 電腦瀏覽器，同步觸發 Fullscreen API
+    if (!isIOS) {
+      if (willBeFullscreen) {
+        if (cardMp4.requestFullscreen) cardMp4.requestFullscreen().catch(()=>{});
+        else if (cardMp4.webkitRequestFullscreen) cardMp4.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+        else if (document.webkitExitFullscreen && document.webkitFullscreenElement) document.webkitExitFullscreen();
+      }
+    }
+
+    showToast(willBeFullscreen ? "📺 已切換滿版橫向全螢幕模式" : "📺 已退出全螢幕視窗");
+  }
+
+  function unlockAutoplayConstraints() {
+    if (window.customClimaxData && window.customClimaxData.audioBlob && climaxAudioEl.paused) {
+      if (!climaxAudioEl.src) climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
+      climaxAudioEl.play().then(() => { if (!isClimaxState) climaxAudioEl.pause(); }).catch(()=>{});
+    }
+  }
+
+  const request = indexedDB.open("ASMR_Categorized_DB_V44", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
-    db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
-    db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
+    if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
+    if (!db.objectStoreNames.contains("tracks")) db.createObjectStore("tracks", { keyPath: "id", autoIncrement: true });
+    if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "key" });
   };
   request.onsuccess = (e) => { db = e.target.result; loadData(); };
 
-  function loadData() {
-    const tx = db.transaction(["albums", "tracks"], "readonly");
-    tx.objectStore("albums").getAll().onsuccess = (e) => { albums = e.target.result; renderAlbums(); };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => { tracks = e.target.result; };
-  }
-
-  function switchPage(page, id=null) {
-    document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
-    if(page === 'home') document.getElementById("view-home").classList.add("active");
-    if(page === 'detail') { document.getElementById("view-detail").classList.add("active"); renderDetail(id); }
-  }
-
-  function renderAlbums() {
-    const list = document.getElementById("album-list"); list.innerHTML = "";
-    albums.forEach(album => {
-      let card = document.createElement("div");
-      card.className = album.albumType === 'mp4' ? "album-youtube-card" : "album-grid-card";
-      
-      if (album.albumType === 'mp4') {
-        card.innerHTML = `
-          <div class="album-youtube-thumb-container">
-             <div style="width:100%; height:100%; background:#1f1f2e; display:flex; align-items:center; justify-content:center; color:#ff79c6; font-weight:bold;">▶ YouTube 樣式專區</div>
-          </div>
-          <div class="album-youtube-info">
-            <div><div class="album-grid-title">${album.title}</div><span class="album-badge badge-mp4">MP4 影片</span></div>
-          </div>
-        `;
-      } else {
-        card.innerHTML = `
-          <div class="album-grid-thumb"></div>
-          <div class="album-grid-info">
-            <div class="album-grid-title">${album.title}</div><span class="album-badge badge-mp3">MP3 音訊</span>
-          </div>
-        `;
+  window.addEventListener('DOMContentLoaded', () => {
+    onAlbumTypeChange();
+    try {
+      const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
+      if (cachedBgData) {
+        const bgObj = JSON.parse(cachedBgData);
+        if (bgObj && bgObj.url) {
+          if (bgObj.type.startsWith("video")) {
+            bgImg.style.display = "none"; bgVideo.style.display = "block";
+            bgVideo.src = bgObj.url; bgVideo.muted = true; bgVideo.play().catch(()=>{});
+          } else {
+            bgVideo.style.display = "none"; bgImg.style.display = "block"; bgImg.src = bgObj.url;
+          }
+        }
       }
-      card.onclick = () => switchPage('detail', album.id);
-      list.appendChild(card);
-    });
-    
-    const sel = document.getElementById("select-album");
-    sel.innerHTML = '<option value="">-- 選擇 --</option>';
-    albums.forEach(a => { sel.innerHTML += `<option value="${a.id}">${a.title}</option>`; });
+    } catch(err) {}
+  });
+
+  function onAlbumTypeChange() {
+    const typeSel = document.getElementById("album-type");
+    if (!typeSel) return;
+    const isMp4 = typeSel.value === 'mp4';
+    const coverGroup = document.getElementById("group-album-covers");
+    const trackAudioLabel = document.getElementById("track-audio-label");
+    const batchAudioLabel = document.getElementById("batch-audio-label");
+    const trackAudioInput = document.getElementById("track-audio");
+    const batchAudioInput = document.getElementById("batch-audios");
+    const singleVideoGroup = document.getElementById("single-video-group");
+    const batchVideoGroup = document.getElementById("batch-video-group");
+
+    if (isMp4) {
+      if (coverGroup) coverGroup.style.display = "none";
+      if (singleVideoGroup) singleVideoGroup.style.display = "block";
+      if (batchVideoGroup) batchVideoGroup.style.display = "block";
+      if (trackAudioLabel) trackAudioLabel.innerText = "專屬主音檔 (MP3 / WAV / M4A - 作為整部影片之真正音源)";
+      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有專屬音檔 (.mp3 / .wav / .m4a)";
+      if (trackAudioInput) trackAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.aac";
+      if (batchAudioInput) batchAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.aac";
+    } else {
+      if (coverGroup) coverGroup.style.display = "block";
+      if (singleVideoGroup) singleVideoGroup.style.display = "none";
+      if (batchVideoGroup) batchVideoGroup.style.display = "none";
+      if (trackAudioLabel) trackAudioLabel.innerText = "音訊檔案 (MP3 / WAV / M4A)";
+      if (batchAudioLabel) batchAudioLabel.innerText = "複選所有音訊檔案 (.mp3 / .wav / .m4a)";
+      if (trackAudioInput) trackAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.flac,.aac";
+      if (batchAudioInput) batchAudioInput.accept = "audio/*,.mp3,.wav,.m4a,.flac,.aac";
+    }
   }
 
-  function renderDetail(albumId) {
-    const album = albums.find(a => a.id === albumId);
-    document.getElementById("detail-album-title").innerText = album.title;
-    const list = document.getElementById("chapter-list-container"); list.innerHTML = "";
-    let tList = tracks.filter(t => t.albumId === albumId);
-    tList.forEach((track, idx) => {
-      let div = document.createElement("div"); div.className = "chapter-file-item";
-      div.innerHTML = `<div class="chapter-info-left" onclick="startPlay(${albumId}, ${idx})"><div class="play-icon-circle">▶</div><div class="chapter-name">${track.title}</div></div>`;
-      list.appendChild(div);
+  function loadData() {
+    if (!db) return;
+    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+    tx.objectStore("albums").getAll().onsuccess = (e) => {
+      albums = e.target.result;
+      updateAlbumSelect();
+      renderHomeAlbums();
+    };
+    tx.objectStore("tracks").getAll().onsuccess = (e) => {
+      tracks = e.target.result;
+      if (currentActiveAlbumId) renderDetailView(currentActiveAlbumId);
+    };
+    tx.objectStore("settings").get("globalBackgrounds").onsuccess = (e) => {
+      if (e.target.result && e.target.result.blobs && e.target.result.blobs.length > 0) {
+        globalBackgrounds = e.target.result.blobs;
+        bgIndex = 0;
+        startGlobalBgRotation();
+      }
+    };
+    tx.objectStore("settings").get("climaxCustomData").onsuccess = (e) => {
+      if (e.target.result) {
+        window.customClimaxData = e.target.result;
+        if (!climaxAudioEl.src && window.customClimaxData.audioBlob) {
+           climaxAudioEl.src = URL.createObjectURL(window.customClimaxData.audioBlob);
+        }
+      }
+    };
+  }
+
+  function toggleAdminDrawer() {
+    document.getElementById("admin-drawer").classList.toggle("open");
+  }
+
+  function switchPage(pageName, albumId) {
+    document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
+    if (pageName === 'home') {
+      document.getElementById("view-home").classList.add("active");
+      currentActiveAlbumId = null;
+      renderHomeAlbums();
+    } else if (pageName === 'detail') {
+      document.getElementById("view-detail").classList.add("active");
+      currentActiveAlbumId = albumId;
+      renderDetailView(albumId);
+    }
+  }
+
+  function updateAlbumSelect() {
+    const sel = document.getElementById("select-album");
+    sel.innerHTML = '<option value="">-- 請選擇分區 --</option>';
+    albums.forEach(a => {
+      let opt = document.createElement("option");
+      opt.value = a.id;
+      opt.innerText = `${a.title} [${a.albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
+      sel.appendChild(opt);
     });
+  }
+
+  async function saveGlobalBackgrounds() {
+    const input = document.getElementById("global-bg-input");
+    if (!input.files.length) return showToast("請先選取圖片或影片檔案！");
+    let blobs = [];
+    for (let f of input.files) blobs.push(f);
+    
+    if (blobs.length > 0) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          localStorage.setItem("asmr_quick_global_bg", JSON.stringify({ url: e.target.result, type: blobs[0].type }));
+        } catch(err) {}
+      };
+      reader.readAsDataURL(blobs[0]);
+    }
+
+    const tx = db.transaction("settings", "readwrite");
+    tx.objectStore("settings").put({ key: "globalBackgrounds", blobs: blobs });
+    tx.oncomplete = () => {
+      globalBackgrounds = blobs;
+      bgIndex = 0;
+      startGlobalBgRotation();
+      showToast("✅ 全域背景儲存成功！");
+    };
+  }
+
+  function startGlobalBgRotation() {
+    if (bgTimer) clearInterval(bgTimer);
+    if (!globalBackgrounds.length) return;
+    applyGlobalBackground(globalBackgrounds[bgIndex]);
+    bgTimer = setInterval(() => {
+      if (!isCustomAlbumPlaying && globalBackgrounds.length > 0) {
+        bgIndex = (bgIndex + 1) % globalBackgrounds.length;
+        applyGlobalBackground(globalBackgrounds[bgIndex]);
+      }
+    }, 30000);
+  }
+
+  function applyGlobalBackground(blob) {
+    if (!blob) return;
+    const url = createTrackedObjectURL(blob);
+    if (blob.type.startsWith("video")) {
+      bgImg.style.display = "none"; bgVideo.style.display = "block";
+      bgVideo.src = url; bgVideo.muted = true; bgVideo.play().catch(()=>{});
+    } else {
+      bgVideo.style.display = "none"; bgVideo.pause();
+      bgImg.style.display = "block"; bgImg.src = url;
+    }
   }
 
   async function createAlbum() {
-    let t = document.getElementById("album-title").value, type = document.getElementById("album-type").value;
-    if(!t) return;
-    db.transaction("albums", "readwrite").objectStore("albums").add({ title: t, albumType: type }).onsuccess = () => { loadData(); showToast("建立成功！"); };
+    const title = document.getElementById("album-title").value.trim();
+    const albumType = document.getElementById("album-type").value;
+    const coverInput = document.getElementById("album-covers");
+    const bgInput = document.getElementById("album-bgs");
+    if (!title) return showToast("請填寫分區名稱！");
+
+    let coverBlobs = [];
+    if (albumType === 'mp3' && coverInput) {
+      for (let f of coverInput.files) coverBlobs.push(f);
+    }
+    let bgBlobs = [];
+    for (let f of bgInput.files) bgBlobs.push(f);
+
+    const tx = db.transaction("albums", "readwrite");
+    tx.objectStore("albums").add({ title, albumType, covers: coverBlobs, backgrounds: bgBlobs });
+    tx.oncomplete = () => {
+      document.getElementById("album-title").value = "";
+      if(coverInput) coverInput.value = "";
+      bgInput.value = "";
+      loadData();
+      showToast(`✅ ${albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'} 建立成功！`);
+    };
   }
 
-  async function addTrack() {
-    let aId = parseInt(document.getElementById("select-album").value);
-    let aFile = document.getElementById("track-audio").files[0];
-    let vFile = document.getElementById("track-video").files[0];
-    let lFile = document.getElementById("track-lrc").files[0];
-    if(!aId || !aFile) return showToast("缺漏檔案！");
-    
-    let lrcText = lFile ? await lFile.text() : "";
-    let data = { albumId: aId, title: aFile.name.split('.')[0], audioBlob: aFile, videoBlob: vFile, lrcText };
-    db.transaction("tracks", "readwrite").objectStore("tracks").add(data).onsuccess = () => { loadData(); showToast("新增成功！"); };
+  function renderHomeAlbums() {
+    const listEl = document.getElementById("album-list");
+    const paginationEl = document.getElementById("pagination-container");
+    listEl.innerHTML = ""; paginationEl.innerHTML = "";
+
+    if (!albums.length) {
+      listEl.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">尚無作品分區，請從上方「管理選單」建立。</div>';
+      return;
+    }
+
+    const totalPages = Math.ceil(albums.length / itemsPerPage);
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+
+    let start = (currentPage - 1) * itemsPerPage;
+    let end = start + itemsPerPage;
+    let paginatedAlbums = albums.slice(start, end);
+
+    paginatedAlbums.forEach(album => {
+      let albumTracks = tracks.filter(t => t.albumId === album.id);
+
+      if (album.albumType === 'mp4') {
+        let ytThumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='225'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='18' font-weight='bold'>Hanime1 滿版影片專區</text></svg>";
+        if (albumTracks.length > 0 && albumTracks[0].videoBlob) {
+          ytThumbUrl = createTrackedObjectURL(albumTracks[0].videoBlob);
+        }
+
+        let ytCard = document.createElement("div");
+        ytCard.className = "album-youtube-card";
+        ytCard.innerHTML = `
+          <div class="album-youtube-thumb-container">
+            <video src="${ytThumbUrl}" muted playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+            <div style="position:absolute; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:4px 8px; border-radius:6px; font-size:0.75rem; color:#ff79c6; font-weight:700;">▶ 點擊觀看滿版影片 (${albumTracks.length} 則)</div>
+          </div>
+          <div class="album-youtube-info">
+            <div>
+              <div style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(album.title)}</div>
+              <span class="album-badge badge-mp4">🌸 Hanime1 滿版影片專區 (無原音、音檔驅動循環、永久同步字幕與愛心)</span>
+            </div>
+            <div class="btn-action-col">
+              <button class="btn-album-action" onclick="event.stopPropagation(); playTrackFromAlbum(${album.id}, 0)">播放影片</button>
+              <button class="btn-album-del" onclick="event.stopPropagation(); deleteAlbum(${album.id})">刪除</button>
+            </div>
+          </div>
+        `;
+        ytCard.onclick = () => {
+          if (albumTracks.length > 0) playTrackFromAlbum(album.id, 0);
+          else switchPage('detail', album.id);
+        };
+        listEl.appendChild(ytCard);
+
+      } else {
+        let thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
+        if (album.covers && album.covers.length > 0) {
+          let firstCover = album.covers[0];
+          if (firstCover.type && firstCover.type.startsWith("video")) {
+            thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%231f1f2e'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='14'>影片封面</text></svg>";
+          } else {
+            thumbUrl = createTrackedObjectURL(firstCover);
+          }
+        }
+
+        let card = document.createElement("div");
+        card.className = "album-grid-card";
+        card.innerHTML = `
+          <img class="album-grid-thumb" src="${thumbUrl}">
+          <div class="album-grid-info">
+            <div class="album-grid-title">${escapeHTML(album.title)}</div>
+            <div class="album-grid-count">📁 篇章數量：${albumTracks.length} 則</div>
+            <span class="album-badge badge-mp3">🎵 純音訊 MP3 專區 (省電、懸浮窗)</span>
+          </div>
+          <div class="btn-action-col">
+            <button class="btn-album-action" onclick="event.stopPropagation(); switchPage('detail', ${album.id})">開啟</button>
+            <button class="btn-album-del" onclick="event.stopPropagation(); deleteAlbum(${album.id})">刪除</button>
+          </div>
+        `;
+        card.onclick = () => switchPage('detail', album.id);
+        listEl.appendChild(card);
+      }
+    });
+
+    if (totalPages > 1) {
+      paginationEl.innerHTML = `
+        <div class="pagination-bar">
+          <button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(-1)">上一頁</button>
+          <span class="page-info">第 ${currentPage} / ${totalPages} 頁</span>
+          <button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(1)">下一頁</button>
+        </div>
+      `;
+    }
+  }
+
+  function changePage(direction) {
+    currentPage += direction;
+    renderHomeAlbums();
+  }
+
+  function deleteAlbum(id) {
+    showConfirmModal("確定要刪除此作品分區及其所有篇章嗎？", () => {
+      const tx = db.transaction(["albums", "tracks"], "readwrite");
+      tx.objectStore("albums").delete(id);
+      let indexStore = tx.objectStore("tracks");
+      indexStore.getAll().onsuccess = (e) => {
+        e.target.result.forEach(t => { if (t.albumId === id) indexStore.delete(t.id); });
+      };
+      tx.oncomplete = () => { loadData(); showToast("已刪除！"); };
+    });
+  }
+
+  function renderDetailView(albumId) {
+    const album = albums.find(a => a.id === albumId);
+    if (!album) return;
+    document.getElementById("detail-album-title").innerText = `${album.title} [${album.albumType === 'mp4' ? 'Hanime1 滿版影片專區' : '純音訊 MP3 專區'}]`;
+
+    const container = document.getElementById("chapter-list-container");
+    container.innerHTML = "";
+    let albumTracks = tracks.filter(t => t.albumId === albumId);
+
+    if (!albumTracks.length) {
+      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">此分區尚無篇章，請從管理選單新增。</div>';
+      return;
+    }
+
+    albumTracks.forEach((track, idx) => {
+      let item = document.createElement("div");
+      item.className = "chapter-file-item";
+      let isPlayingThis = (currentIndex !== -1 && currentTrackList[currentIndex] && currentTrackList[currentIndex].id === track.id);
+      
+      item.innerHTML = `
+        <div class="chapter-info-left" onclick="playTrackFromAlbum(${albumId}, ${idx})">
+          <div class="play-icon-circle">${isPlayingThis ? '❚❚' : '▶'}</div>
+          <div class="chapter-meta-text">
+            <div class="chapter-name">${escapeHTML(track.title)}</div>
+            <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'} ${track.videoBlob && album.albumType === 'mp4' ? ' | 🌸 影片無原音、音檔驅動循環播放' : ''}</div>
+          </div>
+        </div>
+        <div class="btn-action-group">
+          <button class="btn-sm btn-sm-edit" onclick="editTrack(${track.id})">編輯</button>
+          <button class="btn-sm btn-sm-del" onclick="deleteTrack(${track.id})">刪除</button>
+        </div>
+      `;
+      container.appendChild(item);
+    });
+  }
+
+  function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
   }
 
   function parseUniversalLyrics(rawText) {
     if (!rawText) return [];
-    const lines = rawText.split('\n'), lyrics = [];
+    const lines = rawText.split('\n');
+    const lyrics = [];
     const lrcTimeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
-    lines.forEach(line => {
-      const match = lrcTimeReg.exec(line);
-      if (match) {
-        let t = parseInt(match[1])*60 + parseInt(match[2]) + parseInt(match[3].padEnd(3,'0'))/1000;
-        let text = line.replace(lrcTimeReg, '').trim();
-        if (text) lyrics.push({ time: t, text });
+    let isLrcFormat = false;
+
+    for (let line of lines) {
+      if (lrcTimeReg.test(line)) { isLrcFormat = true; break; }
+    }
+
+    if (isLrcFormat) {
+      for (let line of lines) {
+        const match = lrcTimeReg.exec(line);
+        if (match) {
+          const minutes = parseInt(match[1], 10);
+          const seconds = parseInt(match[2], 10);
+          const msStr = match[3].padEnd(3, '0');
+          const milliseconds = parseInt(msStr, 10);
+          const time = minutes * 60 + seconds + milliseconds / 1000;
+          let text = line.replace(lrcTimeReg, '').trim();
+          if (text) lyrics.push({ time, text });
+        }
       }
-    });
+    } else {
+      const timeRangeReg = /(\d{2}):(\d{2}):(\d{2})[\.,](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[\.,](\d{3})/;
+      let currentStartTime = null;
+      let textBuffer = [];
+
+      for (let line of lines) {
+        line = line.trim();
+        const match = timeRangeReg.exec(line);
+        if (match) {
+          if (currentStartTime !== null && textBuffer.length > 0) {
+            lyrics.push({ time: currentStartTime, text: textBuffer.join(' ') });
+            textBuffer = [];
+          }
+          const h = parseInt(match[1], 10);
+          const m = parseInt(match[2], 10);
+          const s = parseInt(match[3], 10);
+          const ms = parseInt(match[4], 10);
+          currentStartTime = h * 3600 + m * 60 + s + ms / 1000;
+        } else if (line === '' || !isNaN(line) || line.toUpperCase() === 'WEBVTT') {
+          if (currentStartTime !== null && textBuffer.length > 0) {
+            lyrics.push({ time: currentStartTime, text: textBuffer.join(' ') });
+            textBuffer = [];
+            currentStartTime = null;
+          }
+        } else if (currentStartTime !== null) {
+          let cleanLine = line.replace(/<[^>]*>/g, '');
+          if (cleanLine) textBuffer.push(cleanLine);
+        }
+      }
+      if (currentStartTime !== null && textBuffer.length > 0) {
+        lyrics.push({ time: currentStartTime, text: textBuffer.join(' ') });
+      }
+    }
+
+    if (lyrics.length === 0) {
+      let validLines = lines.map(l => l.trim()).filter(l => l && !l.startsWith('WEBVTT'));
+      validLines.forEach((text, i) => { lyrics.push({ time: i * 4.0, text }); });
+    }
+
+    lyrics.sort((a, b) => a.time - b.time);
     return lyrics;
   }
-  function getSubtitle(time) {
-    let txt = "";
-    for(let i=0; i<currentLrc.length; i++) { if(time >= currentLrc[i].time) txt = currentLrc[i].text; else break; }
-    return txt;
-  }
-  // YT 風格時間格式 (去掉不必要的 00)
-  function formatTime(secs) {
-    if(isNaN(secs)) return "0:00";
-    let m = Math.floor(secs/60), s = Math.floor(secs%60);
-    return `${m}:${s.toString().padStart(2,'0')}`;
+
+  async function addTrack() {
+    const albumId = parseInt(document.getElementById("select-album").value);
+    const titleInput = document.getElementById("track-title-input").value.trim();
+    const audioInput = document.getElementById("track-audio");
+    const videoInput = document.getElementById("track-video");
+    const lrcInput = document.getElementById("track-lrc");
+
+    if (!albumId) return showToast("請先選擇目標作品分區！");
+    const album = albums.find(a => a.id === albumId);
+    const isMp4 = album && album.albumType === 'mp4';
+
+    if (isMp4 && !videoInput.files.length) return showToast("請選擇影片檔案！");
+    if (!audioInput.files.length) return showToast("請選擇音訊/音檔檔案！");
+
+    const audioFile = audioInput.files[0];
+    const videoFile = isMp4 ? videoInput.files[0] : null;
+    const lrcFile = lrcInput.files[0];
+    let title = titleInput || (isMp4 ? videoFile.name.replace(/\.[^/.]+$/, "") : audioFile.name.replace(/\.[^/.]+$/, ""));
+    let lrcText = "";
+
+    if (lrcFile) lrcText = await lrcFile.text();
+
+    let trackData = { albumId, title, lrcText, audioBlob: audioFile };
+    if (isMp4) {
+      trackData.videoBlob = videoFile;
+    }
+
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").add(trackData);
+    tx.oncomplete = () => {
+      document.getElementById("track-title-input").value = "";
+      audioInput.value = "";
+      if(videoInput) videoInput.value = "";
+      lrcInput.value = "";
+      loadData();
+      showToast("✅ 單一篇章新增成功 (影片靜音、音檔與字幕完美同步)！");
+    };
   }
 
-  function startPlay(albumId, trackIdx) {
+  function readFileAsTextAsync(file) {
+    return new Promise((resolve) => {
+      if (!file) { resolve(""); return; }
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result || "");
+      reader.onerror = () => resolve("");
+      reader.readAsText(file);
+    });
+  }
+
+  async function batchUploadAndPair() {
+    const albumId = parseInt(document.getElementById("select-album").value);
+    const audioInput = document.getElementById("batch-audios");
+    const videoInput = document.getElementById("batch-videos");
+    const lrcInput = document.getElementById("batch-lrcs");
+    const btn = document.getElementById("btn-batch-upload");
+
+    if (!albumId) return showToast("請先選擇目標作品分區！");
+    if (!audioInput.files.length) return showToast("請至少選取音檔檔案！");
+
     const album = albums.find(a => a.id === albumId);
+    const isMp4 = album && album.albumType === 'mp4';
+
+    if (isMp4 && !videoInput.files.length) return showToast("請同時選取對應的影片檔案！");
+
+    btn.disabled = true;
+    btn.innerText = "⚡ 正在配對並匯入...";
+
+    let audios = Array.from(audioInput.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+    let videos = isMp4 ? Array.from(videoInput.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true})) : [];
+    let lrcs = Array.from(lrcInput.files);
+
+    let lrcMapData = [];
+    for (let l of lrcs) {
+      let text = await readFileAsTextAsync(l);
+      let lBase = l.name.replace(/\.[^/.]+$/, "").trim();
+      lrcMapData.push({ base: lBase, text: text });
+    }
+
+    try {
+      const tx = db.transaction("tracks", "readwrite");
+      const store = tx.objectStore("tracks");
+
+      for (let i = 0; i < audios.length; i++) {
+        let audioFile = audios[i];
+        let baseName = audioFile.name.replace(/\.[^/.]+$/, "").trim();
+        let matchedLrcText = "";
+
+        let found = lrcMapData.find(item => {
+          let lBase = item.base;
+          return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
+        });
+        if (found) matchedLrcText = found.text;
+
+        let trackObj = { albumId, title: baseName, lrcText: matchedLrcText, audioBlob: audioFile };
+        if (isMp4 && videos[i]) {
+          trackObj.videoBlob = videos[i];
+          trackObj.title = videos[i].name.replace(/\.[^/.]+$/, "").trim();
+        }
+        store.add(trackObj);
+      }
+
+      tx.oncomplete = () => {
+        audioInput.value = ""; if(videoInput) videoInput.value = ""; lrcInput.value = "";
+        btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
+        loadData();
+        showToast(`✅ 成功批量匯入篇章！`);
+      };
+    } catch(e) {
+      btn.disabled = false; btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
+      showToast("❌ 發生未預期的錯誤。");
+    }
+  }
+
+  function deleteTrack(id) {
+    showConfirmModal("確定要刪除此篇章嗎？", () => {
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").delete(id);
+      tx.oncomplete = () => { loadData(); showToast("已刪除！"); };
+    });
+  }
+
+  function editTrack(id) {
+    const track = tracks.find(t => t.id === id);
+    if (!track) return;
+    let newTitle = prompt("修改篇章名稱：", track.title);
+    if (newTitle === null) return;
+    track.title = newTitle.trim() || track.title;
+
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => { loadData(); showToast("修改成功！"); };
+  }
+
+  async function playTrackFromAlbum(albumId, trackIndex) {
+    const album = albums.find(a => a.id === albumId);
+    if (!album) return;
     currentTrackList = tracks.filter(t => t.albumId === albumId);
-    currentIndex = trackIdx;
+    if (!currentTrackList.length || !currentTrackList[trackIndex]) return showToast("找不到此篇章！");
+
+    currentIndex = trackIndex;
+    currentPlayingAlbumId = albumId;
     currentAlbumType = album.albumType;
     let track = currentTrackList[currentIndex];
-    currentLrc = parseUniversalLyrics(track.lrcText);
 
-    mp3Audio.pause(); mp4Audio.pause(); mp4Video.pause();
+    currentLrc = parseUniversalLyrics(track.lrcText);
+    unlockAutoplayConstraints();
+
+    if (album.backgrounds && album.backgrounds.length > 0) {
+      isCustomAlbumPlaying = true;
+      currentAlbumBgBlobs = album.backgrounds;
+      albumBgIndex = 0;
+      applyAlbumBackground(currentAlbumBgBlobs, albumBgIndex);
+    } else {
+      isCustomAlbumPlaying = false;
+      if (globalBackgrounds.length > 0) applyGlobalBackground(globalBackgrounds[bgIndex]);
+    }
+
+    audio.pause();
+    mainVideoPlayer.pause();
+
+    // 關鍵優化：音檔作為真正主音源驅動
+    audio.src = createTrackedObjectURL(track.audioBlob);
+    audio.load();
 
     if (currentAlbumType === 'mp4') {
-      const overlay = document.getElementById("mp4-modern-overlay");
-      overlay.classList.add("active");
-      
-      document.getElementById("player-card-mp3").classList.add("minimized");
-      document.getElementById("mini-player").classList.add("hidden");
-      
-      mp4Audio.src = createObjectURLTracked(track.audioBlob);
-      if (track.videoBlob) mp4Video.src = createObjectURLTracked(track.videoBlob);
-      else mp4Video.removeAttribute('src');
-      
-      mp4Audio.play();
-      if(mp4Video.src) mp4Video.play();
-      
-      syncMp4UI(); resetMp4IdleTimer();
-      
-      // 自動嘗試進入全螢幕 (手機端橫向)
-      tryAutoFullscreen();
-      
-    } else {
-      document.getElementById("mp4-modern-overlay").classList.remove("active");
-      document.getElementById("player-card-mp3").classList.remove("minimized");
-      document.getElementById("mini-player").classList.remove("hidden");
-      document.getElementById("mini-title").innerText = track.title;
-      mp3Audio.src = createObjectURLTracked(track.audioBlob);
-      mp3Audio.play();
-      syncMp3UI();
-    }
-  }
-
-  function playNextTrack() {
-    if (currentIndex < currentTrackList.length - 1) startPlay(currentTrackList[0].albumId, currentIndex + 1);
-  }
-  function playPrevTrack() {
-    if (currentIndex > 0) startPlay(currentTrackList[0].albumId, currentIndex - 1);
-  }
-
-  /* MP3 控制 (維持不變) */
-  function toggleMp3Play() {
-    if(mp3Audio.paused) mp3Audio.play(); else mp3Audio.pause();
-    syncMp3UI();
-  }
-  function syncMp3UI() {
-    let sym = mp3Audio.paused ? "▶" : "❚❚";
-    document.getElementById("btn-play-mp3").innerText = sym;
-    document.getElementById("mini-btn-play").innerText = sym;
-  }
-  function minimizeMp3Player() { document.getElementById("player-card-mp3").classList.add("minimized"); }
-  function expandMp3Player() { document.getElementById("player-card-mp3").classList.remove("minimized"); }
-  
-  mp3Audio.addEventListener('timeupdate', () => {
-    document.getElementById("seek-slider-mp3").value = (mp3Audio.currentTime / mp3Audio.duration) * 100 || 0;
-    document.getElementById("time-current-mp3").innerText = formatTime(mp3Audio.currentTime);
-    document.getElementById("time-duration-mp3").innerText = formatTime(mp3Audio.duration);
-    let txt = getSubtitle(mp3Audio.currentTime) || "♪ 播放中 ♪";
-    document.getElementById("lrc-box-mp3").innerText = txt;
-    document.getElementById("mini-lrc").innerText = txt;
-  });
-  mp3Audio.addEventListener('ended', playNextTrack);
-  document.getElementById("seek-slider-mp3").addEventListener('input', (e) => { mp3Audio.currentTime = (e.target.value/100)*mp3Audio.duration; });
-
-
-  /* ======================================================== */
-  /* 🔥 MP4 全新播放控制邏輯 🔥 */
-  /* ======================================================== */
-  let mp4IdleTimer = null;
-  const mp4Overlay = document.getElementById("mp4-modern-overlay");
-  const mp4CenterIcon = document.getElementById("mp4-center-icon");
-
-  // 智慧隱藏 UI 邏輯
-  function resetMp4IdleTimer() {
-    mp4Overlay.classList.remove("hide-ui");
-    clearTimeout(mp4IdleTimer);
-    if (!mp4Audio.paused) {
-      mp4IdleTimer = setTimeout(() => { mp4Overlay.classList.add("hide-ui"); }, 2500);
-    }
-  }
-  mp4Overlay.addEventListener("mousemove", resetMp4IdleTimer);
-  mp4Overlay.addEventListener("touchstart", resetMp4IdleTimer);
-
-  // 播放/暫停與中央動畫圖示
-  function toggleMp4Play() {
-    if (mp4Audio.paused) {
-      mp4Audio.play(); if(mp4Video.src) mp4Video.play();
-      showCenterIcon("▶");
-    } else {
-      mp4Audio.pause(); if(mp4Video.src) mp4Video.pause();
-      showCenterIcon("❚❚");
-    }
-    syncMp4UI(); resetMp4IdleTimer();
-  }
-  
-  function showCenterIcon(icon) {
-    mp4CenterIcon.innerText = icon;
-    mp4CenterIcon.classList.add("pop");
-    setTimeout(() => mp4CenterIcon.classList.remove("pop"), 300);
-  }
-
-  function syncMp4UI() {
-    document.getElementById("btn-play-mp4").innerText = mp4Audio.paused ? "▶" : "❚❚";
-  }
-
-  function closeMp4Player() {
-    mp4Audio.pause(); mp4Video.pause();
-    mp4Overlay.classList.remove("active");
-    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
-  }
-
-  // 時間同步與進度條更新
-  mp4Audio.addEventListener('timeupdate', () => {
-    // 影片時間防脫鉤校正
-    if(mp4Video.duration) {
-      let expected = mp4Audio.currentTime % mp4Video.duration;
-      if (Math.abs(mp4Video.currentTime - expected) > 0.5) mp4Video.currentTime = expected;
-    }
-    
-    let dur = mp4Audio.duration || 0;
-    let pct = dur ? (mp4Audio.currentTime / dur) * 100 : 0;
-    document.getElementById("mp4-progress-fill").style.width = pct + "%";
-    document.getElementById("mp4-time-current").innerText = formatTime(mp4Audio.currentTime);
-    document.getElementById("mp4-time-duration").innerText = formatTime(dur);
-    
-    // 處理字幕 (無字幕時隱藏背景黑底)
-    let subTxt = getSubtitle(mp4Audio.currentTime);
-    const subContainer = document.querySelector(".mp4-subtitles span");
-    if(subTxt) {
-      subContainer.innerText = subTxt;
-      subContainer.style.display = "inline-block";
-    } else {
-      subContainer.style.display = "none";
-    }
-  });
-  mp4Audio.addEventListener('ended', playNextTrack);
-
-  // 點擊進度條跳轉
-  document.getElementById("mp4-progress-container").addEventListener('click', (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pos = (e.clientX - rect.left) / rect.width;
-    mp4Audio.currentTime = pos * mp4Audio.duration;
-    if(mp4Video.duration) mp4Video.currentTime = mp4Audio.currentTime % mp4Video.duration;
-  });
-
-  // 真正的全螢幕機制 (解決圖片1的問題)
-  function tryAutoFullscreen() {
-    // 如果是手機，預設嘗試進入全螢幕並橫向
-    if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-      toggleMp4Fullscreen(true);
-    }
-  }
-
-  function toggleMp4Fullscreen(forceEnter = false) {
-    const container = document.getElementById("mp4-modern-overlay");
-    
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      if (container.requestFullscreen) {
-        container.requestFullscreen().catch(()=>{});
-      } else if (container.webkitRequestFullscreen) { /* Safari */
-        container.webkitRequestFullscreen();
+      if (track.videoBlob) {
+        mainVideoPlayer.src = createTrackedObjectURL(track.videoBlob);
+        mainVideoPlayer.muted = true; // 徹底靜音影片原音
+        mainVideoPlayer.volume = 0;
+        mainVideoPlayer.loop = true;  // 影片循環播放
+        mainVideoPlayer.load();
+        mainVideoPlayer.play().catch(()=>{});
       }
-      // 嘗試強制橫向
-      try { screen.orientation.lock('landscape').catch(()=>{}); } catch(e){}
-    } else if (!forceEnter) {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      playerCardMp3.classList.add("minimized");
+      playerCardMp4.classList.remove("minimized");
+      miniPlayer.classList.add("hidden");
+      initAudioAnalysis();
+    } else {
+      playerCardMp4.classList.add("minimized");
+      playerCardMp3.classList.remove("minimized");
+      miniPlayer.classList.remove("hidden");
+      setupMp3Covers(album, track);
+    }
+
+    try {
+      await audio.play();
+      syncPlayButtons(true);
+      updateMiniPlayerInfo(track, album.title);
+      showToast(`▶ 正在播放：${track.title}`);
+    } catch(e) {
+      showToast("點擊播放按鈕以啟動語音。");
+      syncPlayButtons(false);
     }
   }
 
+  function setupMp3Covers(album, track) {
+    coverElements = [];
+    if (album.covers && album.covers.length > 0) {
+      album.covers.forEach((blob, i) => {
+        let url = createTrackedObjectURL(blob);
+        let isVid = blob.type && blob.type.startsWith("video");
+        let el = document.createElement(isVid ? "video" : "img");
+        el.src = url;
+        if (isVid) { el.muted = true; el.loop = true; el.playsInline = true; el.play().catch(()=>{}); }
+        coverElements.push({ el, isVideo: isVid });
+      });
+    } else {
+      let el = document.createElement("img");
+      el.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><rect width='100%' height='100%' fill='%23121218'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ff79c6' font-size='20'>ASMR Cover</text></svg>";
+      coverElements.push({ el, isVideo: false });
+    }
+
+    const box = document.getElementById("player-cover-box");
+    box.querySelectorAll("img, video").forEach(el => el.remove());
+    activeCoverIndex = 0;
+    coverElements.forEach((item, idx) => {
+      item.el.style.display = (idx === 0) ? "block" : "none";
+      box.insertBefore(item.el, box.firstChild);
+    });
+    if (coverElements.length > 0) {
+      cachedCoverElement = coverElements[0].el;
+      isCoverVideoActive = coverElements[0].isVideo;
+    }
+    document.getElementById("cover-indicator").innerText = `1 / ${coverElements.length}`;
+  }
+
+  function prevCover() {
+    if (!coverElements.length) return;
+    coverElements[activeCoverIndex].el.style.display = "none";
+    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
+    coverElements[activeCoverIndex].el.style.display = "block";
+    cachedCoverElement = coverElements[activeCoverIndex].el;
+    isCoverVideoActive = coverElements[activeCoverIndex].isVideo;
+    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
+  }
+
+  function nextCover() {
+    if (!coverElements.length) return;
+    coverElements[activeCoverIndex].el.style.display = "none";
+    activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
+    coverElements[activeCoverIndex].el.style.display = "block";
+    cachedCoverElement = coverElements[activeCoverIndex].el;
+    isCoverVideoActive = coverElements[activeCoverIndex].isVideo;
+    document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
+  }
+
+  function togglePlay() {
+    if (currentIndex === -1) return;
+    if (audio.paused) {
+      audio.play().then(() => {
+        syncPlayButtons(true);
+        if (currentAlbumType === 'mp4') {
+          mainVideoPlayer.play().catch(()=>{});
+        }
+      });
+    } else {
+      audio.pause();
+      syncPlayButtons(false);
+      if (currentAlbumType === 'mp4') {
+        mainVideoPlayer.pause();
+      }
+    }
+  }
+
+  function syncPlayButtons(isPlaying) {
+    const symbol = isPlaying ? "❚❚" : "▶";
+    document.getElementById("btn-play-mp3").innerText = symbol;
+    document.getElementById("mini-btn-play").innerText = symbol;
+    const btnMp4 = document.getElementById("btn-play-mp4");
+    if (btnMp4) btnMp4.innerText = symbol;
+  }
+
+  function prevTrack() {
+    if (currentIndex <= 0) return showToast("已經是第一首了！");
+    playTrackFromAlbum(currentPlayingAlbumId, currentIndex - 1);
+  }
+
+  function nextTrack() {
+    if (currentIndex >= currentTrackList.length - 1) return showToast("已經是最後一首了！");
+    playTrackFromAlbum(currentPlayingAlbumId, currentIndex + 1);
+  }
+
+  function seekRelative(seconds) {
+    if (isNaN(audio.duration)) return;
+    audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration);
+    if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
+      mainVideoPlayer.currentTime = audio.currentTime % mainVideoPlayer.duration;
+    }
+  }
+
+  function toggleMute() {
+    audio.muted = !audio.muted;
+    document.getElementById("btn-mute").innerText = audio.muted ? "🔇" : "🔈";
+  }
+
+  function minimizePlayer() {
+    playerCardMp3.classList.add("minimized");
+    playerCardMp4.classList.remove("is-fullscreen"); // 離開全螢幕
+    playerCardMp4.classList.add("minimized");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
+  }
+
+  function expandPlayer() {
+    miniPlayer.classList.add("hidden");
+    if (currentAlbumType === 'mp4') {
+      playerCardMp4.classList.remove("minimized");
+      resetControlsHideTimer();
+    } else {
+      playerCardMp3.classList.remove("minimized");
+    }
+  }
+
+  function updateMiniPlayerInfo(track, albumTitle) {
+    document.getElementById("mini-title").innerText = track.title;
+    document.getElementById("mini-subtitle").innerText = albumTitle;
+    let thumb = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
+    if (currentAlbumType === 'mp4' && track.videoBlob) {
+      thumb = createTrackedObjectURL(track.videoBlob);
+    } else if (coverElements.length > 0 && !coverElements[0].isVideo) {
+      thumb = coverElements[0].el.src;
+    }
+    document.getElementById("mini-thumb").src = thumb;
+  }
+
+  function formatTime(secs) {
+    if (isNaN(secs)) return "00:00";
+    let m = Math.floor(secs / 60);
+    let s = Math.floor(secs % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function getActiveSubtitleText(currentTime) {
+    if (!currentLrc.length) return "♪ ASMR 專屬沉浸音訊播放中 ♪";
+    let activeText = "♪ ASMR 專屬沉浸音訊播放中 ♪";
+    for (let i = 0; i < currentLrc.length; i++) {
+      if (currentTime >= currentLrc[i].time) {
+        activeText = currentLrc[i].text;
+      } else {
+        break;
+      }
+    }
+    return activeText;
+  }
+
+  audio.addEventListener("timeupdate", () => {
+    if (isNaN(audio.duration)) return;
+    let progress = (audio.currentTime / audio.duration) * 100;
+    seekSlider.value = progress;
+    seekSliderMp4.value = progress;
+
+    document.getElementById("time-current").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration").innerText = formatTime(audio.duration);
+    document.getElementById("time-current-mp4").innerText = formatTime(audio.currentTime);
+    document.getElementById("time-duration-mp4").innerText = formatTime(audio.duration);
+
+    let currentText = getActiveSubtitleText(audio.currentTime);
+    document.getElementById("lrc-box").innerText = currentText;
+    document.getElementById("mini-lrc").innerText = currentText;
+    document.getElementById("video-subtitle-overlay").innerText = currentText;
+
+    // 影片時間與音訊時長保持完美同步循環
+    if (currentAlbumType === 'mp4' && mainVideoPlayer.duration) {
+      let expectedVideoTime = audio.currentTime % mainVideoPlayer.duration;
+      if (Math.abs(mainVideoPlayer.currentTime - expectedVideoTime) > 0.4) {
+        mainVideoPlayer.currentTime = expectedVideoTime;
+      }
+    }
+  });
+
+  audio.addEventListener("ended", () => {
+    if (currentIndex < currentTrackList.length - 1) {
+      nextTrack();
+    } else {
+      syncPlayButtons(false);
+      showToast("播放完畢！");
+    }
+  });
+
+  seekSlider.addEventListener("input", (e) => {
+    if (!isNaN(audio.duration)) {
+      audio.currentTime = (e.target.value / 100) * audio.duration;
+    }
+  });
+
+  seekSliderMp4.addEventListener("input", (e) => {
+    if (!isNaN(audio.duration)) {
+      audio.currentTime = (e.target.value / 100) * audio.duration;
+    }
+  });
+
+  volumeSlider.addEventListener("input", (e) => {
+    audio.volume = e.target.value;
+  });
+
+  function uploadCurrentTrackLrc(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      let text = evt.target.result;
+      let track = currentTrackList[currentIndex];
+      track.lrcText = text;
+      currentLrc = parseUniversalLyrics(text);
+      
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => showToast("✅ 字幕匯入並更新成功！");
+    };
+    reader.readAsText(file);
+  }
+
+  function pasteCurrentTrackLrc() {
+    let raw = prompt("請貼上 LRC / VTT / SRT / 文字字幕內容：");
+    if (raw === null) return;
+    let track = currentTrackList[currentIndex];
+    track.lrcText = raw;
+    currentLrc = parseUniversalLyrics(raw);
+
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => showToast("✅ 字幕貼上並更新成功！");
+  }
+
+  function inspectCurrentTrackLrc() {
+    let track = currentTrackList[currentIndex];
+    if (!track) return;
+    let newRaw = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
+    if (newRaw === null) return;
+    track.lrcText = newRaw;
+    currentLrc = parseUniversalLyrics(newRaw);
+
+    const tx = db.transaction("tracks", "readwrite");
+    tx.objectStore("tracks").put(track);
+    tx.oncomplete = () => showToast("✅ 字幕已成功更新！");
+  }
 </script>
 </body>
 </html>
