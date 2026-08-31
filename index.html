@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
+  <title>ASMR 私人隨身庫 軟軟專用肉棒</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -15,6 +15,8 @@
       --text-sub: #9494ab;
       --border-glass: rgba(255, 255, 255, 0.08);
       --border-glass-hover: rgba(255, 121, 198, 0.35);
+      --accent-green: #50fa7b;
+      --accent-blue: #3b82f6;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
@@ -27,20 +29,20 @@
     #bg-video, #bg-img {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       object-fit: cover; background-color: var(--bg-dark);
-      z-index: -2; display: none; filter: brightness(0.7) blur(4px);
+      z-index: -2; display: none; filter: brightness(0.65) blur(5px);
       transform: scale(1); transition: opacity 1s ease, transform 1s ease;
       will-change: transform, opacity;
     }
     @media (max-width: 768px) {
       #bg-video, #bg-img {
         top: -10vh; left: -10vw; width: 120vw; height: 120vh;
-        transform: scale(0.8);
+        transform: scale(0.85);
       }
     }
 
     #bg-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: radial-gradient(circle, rgba(7,7,10,0.3) 0%, rgba(7,7,10,0.88) 100%);
+      background: radial-gradient(circle, rgba(7,7,10,0.35) 0%, rgba(7,7,10,0.92) 100%);
       z-index: -1; pointer-events: none;
     }
 
@@ -50,7 +52,7 @@
     .top-actions { display: flex; gap: 8px; }
     .btn-clean-mem {
       background: rgba(80, 250, 123, 0.15); border: 1px solid rgba(80, 250, 123, 0.4);
-      color: #50fa7b; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
+      color: var(--accent-green); padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; font-weight: 700; cursor: pointer;
       transition: all 0.25s ease; backdrop-filter: blur(10px);
     }
     .btn-clean-mem:hover { background: rgba(80, 250, 123, 0.3); box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
@@ -62,7 +64,7 @@
     .btn-toggle-admin:hover { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); box-shadow: 0 0 15px var(--pink-glow); }
 
     .admin-drawer { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 100%; will-change: max-height; }
-    .admin-drawer.open { max-height: 3500px; }
+    .admin-drawer.open { max-height: 4000px; }
 
     .glass-card {
       background: var(--card-glass); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
@@ -171,7 +173,7 @@
 
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
-      max-height: 92vh; height: auto; overflow-y: auto; overflow-x: hidden;
+      max-height: 94vh; height: auto; overflow-y: auto; overflow-x: hidden;
       background: rgba(16, 16, 22, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       padding: 4px 18px 24px 18px; box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
@@ -184,18 +186,14 @@
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
     .cover-box { 
-      width: 100%; height: 240px; border-radius: 16px; 
+      width: 100%; height: 230px; border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
     }
-    .cover-box img { 
+    .cover-box img, .cover-box video { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
-    }
-    .cover-box video { 
-      width: 100%; height: 100%; object-fit: cover; display: none; 
-      position: absolute; top: 0; left: 0; border-radius: 12px;
     }
 
     .btn-cover-nav {
@@ -229,8 +227,12 @@
     }
 
     .seek-slider { width: 100%; height: 6px; accent-color: var(--primary-pink); cursor: pointer; border-radius: 3px; background: rgba(255,255,255,0.1); }
-    .time-box { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin-top: 4px; margin-bottom: 10px; font-weight: 500; }
+    .time-box { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-sub); margin-top: 4px; margin-bottom: 8px; font-weight: 500; }
     
+    .controls-extra { display: flex; justify-content: space-around; align-items: center; margin-bottom: 8px; padding: 0 10px; }
+    .btn-extra { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 10px; padding: 4px 10px; font-size: 0.78rem; cursor: pointer; transition: all 0.2s; }
+    .btn-extra.active { background: rgba(255, 121, 198, 0.25); border-color: var(--primary-pink); color: var(--primary-pink); font-weight: 700; }
+
     .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
     .btn-ctrl { background: none; border: none; color: #fff; font-size: 1.25rem; cursor: pointer; padding: 6px; transition: transform 0.15s, color 0.2s; }
     .btn-ctrl:hover { color: var(--primary-pink); transform: scale(1.1); }
@@ -271,6 +273,15 @@
     .mini-title { font-size: 0.88rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
     .mini-subtitle { font-size: 0.75rem; color: var(--primary-pink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
     .mini-btn { background: none; border: none; color: #fff; font-size: 1.15rem; padding: 6px; cursor: pointer; }
+
+    /* Toast 通知 */
+    .toast-msg {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+      background: rgba(255, 121, 198, 0.95); color: #07070a; padding: 10px 20px; border-radius: 20px;
+      font-weight: 700; font-size: 0.9rem; box-shadow: 0 8px 25px rgba(255, 121, 198, 0.4);
+      z-index: 3000; opacity: 0; transition: all 0.3s ease; pointer-events: none;
+    }
+    .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -278,6 +289,7 @@
 <video id="bg-video" autoplay loop muted playsinline></video>
 <img id="bg-img" alt="全域背景">
 <div id="bg-overlay"></div>
+<div id="toast" class="toast-msg"></div>
 
 <div class="container">
   <div class="top-bar">
@@ -290,11 +302,11 @@
 
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
-      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料互通 (電腦 ⇄ 手機同步)</div>
+      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料無損互通 (電腦 ⇄ 手機同步)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會下載一份 `.json` 檔案。將檔案傳到另一台裝置，再點擊「匯入備份檔案」即可完整同步所有作品、音訊與字幕！
+        點擊「匯出備份檔案」會將所有作品、音效 Blob 與字幕轉為 json 備份檔。在另一台裝置點擊「匯入備份檔案」即可完整還原！
       </div>
-      <button class="btn-blue" onclick="exportDataBackup()">📤 1. 匯出備份檔案 (電腦/手機)</button>
+      <button class="btn-blue" id="btn-export-backup" onclick="exportDataBackup()">📤 1. 匯出完整無損備份檔案 (電腦/手機)</button>
       <div class="form-group" style="margin-top: 12px;">
         <label>📥 2. 匯入備份檔案 (接收端裝置)</label>
         <input type="file" id="import-backup-input" accept=".json,application/json" onchange="importDataBackup(event)">
@@ -397,6 +409,12 @@
   <input type="range" id="seek-slider" class="seek-slider" value="0" min="0" max="100" step="0.1">
   <div class="time-box"><span id="time-current">00:00</span><span id="time-duration">00:00</span></div>
 
+  <div class="controls-extra">
+    <button class="btn-extra" id="btn-repeat-mode" onclick="toggleRepeatMode()">🔁 順序播放</button>
+    <button class="btn-extra" id="btn-speed" onclick="togglePlaybackSpeed()">⚡ 1.0x</button>
+    <button class="btn-extra" id="btn-sleep-timer" onclick="toggleSleepTimer()">🌙 關閉定時</button>
+  </div>
+
   <div class="controls">
     <button class="btn-ctrl" onclick="prevTrack()">⏮</button>
     <button class="btn-ctrl" onclick="seekRelative(-5)">↺5</button>
@@ -412,12 +430,13 @@
   </div>
 
   <div class="bottom-tools">
-    <button class="btn-pip" onclick="enablePiP('dynamic')">📺 動態專區</button>
-    <button class="btn-pip-mp3" onclick="enablePiP('mp3')">🎵 MP3專區(純字幕)</button>
+    <button class="btn-pip" onclick="enablePiP('dynamic')">📺 動態專區 (1080x1080)</button>
+    <button class="btn-pip-mp3" onclick="enablePiP('mp3')">🎵 MP3專區 (1200x350字幕)</button>
   </div>
 </div>
 
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<!-- 專門針對 iOS / Safari 優化的懸浮視窗載體影片 (必須含有 playsinline 與 muted) -->
+<video id="pip-video" playsinline muted autoplay style="position: fixed; bottom: 0; right: 0; width: 10px; height: 10px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -445,10 +464,18 @@
   let isCoverVideoActive = false;
   let isPowerSavingCover = false;
 
+  // 播放增強設定
+  let repeatMode = 0; // 0: 順序, 1: 單曲循環, 2: 隨機播放
+  const repeatModeNames = ["🔁 順序播放", "🔂 單曲循環", "🔀 隨機播放"];
+  let speedOptions = [0.75, 1.0, 1.25, 1.5, 2.0];
+  let speedIndex = 1;
+  let sleepTimerTimeout = null;
+  let sleepTimerMinutes = 0;
+
   let pipCanvas = null;
   let pipCtx = null;
-  let isPiPInitialized = false;
-  let currentPipMode = 'dynamic'; // 'dynamic' or 'mp3'
+  let isPiPRendering = false;
+  let currentPipMode = 'dynamic';
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -468,6 +495,13 @@
   let isDragging = false;
   const dragHandleArea = document.getElementById("drag-handle-area");
 
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.classList.add("show");
+    setTimeout(() => { t.classList.remove("show"); }, 2400);
+  }
+
   function createTrackedObjectURL(blob) {
     if (!blob) return "";
     const url = URL.createObjectURL(blob);
@@ -484,7 +518,7 @@
       bgVideo.removeAttribute('src');
       bgVideo.load();
     }
-    alert("⚡ 已完成快取釋放與記憶體清理！手機負載與熱量已降低。");
+    showToast("⚡ 已完成記憶體釋放與快取清理！");
   }
 
   document.addEventListener("visibilitychange", () => {
@@ -524,16 +558,17 @@
     touchCurrentY = 0;
   });
 
+  // iOS 懸浮視窗播放狀態與音訊聯動
   pipVideo.addEventListener('pause', () => {
-    if (!audio.paused) {
+    if (!audio.paused && document.pictureInPictureElement === pipVideo) {
       audio.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
     }
   });
   pipVideo.addEventListener('play', () => {
-    if (audio.paused) {
-      audio.play();
+    if (audio.paused && document.pictureInPictureElement === pipVideo) {
+      audio.play().catch(()=>{});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
@@ -556,129 +591,141 @@
     updateCoverDisplay();
   }
 
-  function initPiPEngine(mode) {
+  // --- 重大修復：畫中畫 (PiP) 引擎 (支援 iOS / Safari 規範) ---
+  function setupPiPCanvas(mode) {
     currentPipMode = mode;
-    
-    // 如果尚未建立 canvas，則建立它
     if (!pipCanvas) {
       pipCanvas = document.createElement('canvas');
     }
     
-    // 根據模式動態調整 Canvas 比例與解析度
-    // 動態專區：1:1 正方形
-    // MP3專區：極扁長條形 (1600x240)，以符合 iOS 原生控制條/通知形狀
-    if (mode === 'dynamic') {
+    // 嚴格依據要求：MP3專區畫布使用 1200 x 350 比例
+    if (mode === 'mp3') {
+      pipCanvas.width = 1200;
+      pipCanvas.height = 350;
+    } else {
+      // 動態專區使用 1080 x 1080 比例
       pipCanvas.width = 1080;
       pipCanvas.height = 1080;
-    } else if (mode === 'mp3') {
-      pipCanvas.width = 1600;
-      pipCanvas.height = 240;
     }
     
     pipCtx = pipCanvas.getContext('2d', { alpha: false });
+    
+    // 綁定動態畫面生成流
+    if (!pipVideo.srcObject) {
+      const stream = pipCanvas.captureStream(30);
+      pipVideo.srcObject = stream;
+    }
 
-    // 如果已經初始化過渲染迴圈，就不需要再次啟動，只要更新 canvas 大小即可
-    if (isPiPInitialized) return;
-
-    function renderPiPFrame() {
-      if (!pipCtx) return;
-      
-      const currentTime = audio.currentTime;
-      let currentText = getActiveSubtitleText(currentTime);
-
-      if (currentPipMode === 'dynamic') {
-        // --- 模式 1: 動態專區 (含封面) ---
-        pipCtx.fillStyle = "#07070a";
-        pipCtx.fillRect(0, 0, 1080, 1080);
-
-        if (cachedCoverElement) {
-          if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
-            cachedCoverElement.play().catch(() => {});
-          }
-          drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive && !isPowerSavingCover);
-        } else {
-          pipCtx.fillStyle = "#121218";
-          pipCtx.fillRect(0, 0, 1080, 1080);
-          pipCtx.fillStyle = "#ff79c6";
-          pipCtx.font = "bold 48px sans-serif";
-          pipCtx.textAlign = "center";
-          pipCtx.textBaseline = "alphabetic";
-          pipCtx.fillText("ASMR 隨身庫", 540, 540);
-        }
-
-        pipCtx.textAlign = "center";
-        pipCtx.textBaseline = "alphabetic";
-        pipCtx.font = "bold 64px -apple-system, BlinkMacSystemFont, 'Microsoft JhengHei', sans-serif";
-        
-        let lines = [];
-        if (pipCtx.measureText(currentText).width > 940) {
-          let mid = Math.floor(currentText.length / 2);
-          lines.push(currentText.substring(0, mid));
-          lines.push(currentText.substring(mid));
-        } else {
-          lines.push(currentText);
-        }
-
-        let startY = lines.length > 1 ? 920 : 960;
-        lines.forEach((lineText, idx) => {
-          let curY = startY + (idx * 72);
-          pipCtx.lineWidth = 9;
-          pipCtx.strokeStyle = "rgba(0, 0, 0, 0.95)";
-          pipCtx.strokeText(lineText, 540, curY);
-          pipCtx.fillStyle = "#ff79c6";
-          pipCtx.fillText(lineText, 540, curY);
-        });
-
-      } else if (currentPipMode === 'mp3') {
-        // --- 模式 2: MP3專區 (極細長條形、純文字) ---
-        // 繪製粉紅漸層背景
-        let gradient = pipCtx.createLinearGradient(0, 0, pipCanvas.width, 0);
-        gradient.addColorStop(0, "#ff79c6");
-        gradient.addColorStop(1, "#ff52b2");
-        pipCtx.fillStyle = gradient;
-        pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
-
-        pipCtx.textAlign = "center";
-        pipCtx.textBaseline = "middle";
-        
-        let fontSize = 100;
-        pipCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'SF Pro Display', sans-serif`;
-        
-        // 確保長字幕不會超出邊界，動態縮小字體
-        let textWidth = pipCtx.measureText(currentText).width;
-        let maxWidth = pipCanvas.width - 60; 
-        
-        if (textWidth > maxWidth) {
-           fontSize = Math.floor(fontSize * (maxWidth / textWidth));
-           fontSize = Math.max(50, fontSize); // 設定最小字體限制
-           pipCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'SF Pro Display', sans-serif`;
-        }
-
-        // 加上文字陰影增加質感與閱讀性
-        pipCtx.shadowColor = "rgba(0, 0, 0, 0.15)";
-        pipCtx.shadowBlur = 8;
-        pipCtx.shadowOffsetX = 0;
-        pipCtx.shadowOffsetY = 4;
-
-        pipCtx.fillStyle = "#ffffff";
-        // 稍微向下偏移 5% 使視覺置中更完美
-        pipCtx.fillText(currentText, pipCanvas.width / 2, (pipCanvas.height / 2) + (fontSize * 0.05));
-        
-        // 重置陰影避免影響下一幀
-        pipCtx.shadowColor = "transparent";
-        pipCtx.shadowBlur = 0;
-        pipCtx.shadowOffsetX = 0;
-        pipCtx.shadowOffsetY = 0;
-      }
-
+    if (!isPiPRendering) {
+      isPiPRendering = true;
       requestAnimationFrame(renderPiPFrame);
     }
-    requestAnimationFrame(renderPiPFrame);
+  }
 
-    const stream = pipCanvas.captureStream(30);
-    pipVideo.srcObject = stream;
-    pipVideo.play();
-    isPiPInitialized = true;
+  function renderPiPFrame() {
+    if (!pipCtx) return;
+    
+    const currentTime = audio.currentTime;
+    let currentText = getActiveSubtitleText(currentTime);
+
+    if (currentPipMode === 'dynamic') {
+      // --- 模式 1: 動態專區 (1080x1080) ---
+      pipCtx.fillStyle = "#07070a";
+      pipCtx.fillRect(0, 0, 1080, 1080);
+
+      if (cachedCoverElement) {
+        if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
+          cachedCoverElement.play().catch(() => {});
+        }
+        drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive && !isPowerSavingCover);
+      } else {
+        pipCtx.fillStyle = "#121218";
+        pipCtx.fillRect(0, 0, 1080, 1080);
+        pipCtx.fillStyle = "#ff79c6";
+        pipCtx.font = "bold 48px sans-serif";
+        pipCtx.textAlign = "center";
+        pipCtx.textBaseline = "middle";
+        pipCtx.fillText("ASMR 隨身庫", 540, 540);
+      }
+
+      // 繪製動態字幕
+      pipCtx.textAlign = "center";
+      pipCtx.textBaseline = "alphabetic";
+      pipCtx.font = "bold 60px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
+      
+      let lines = wrapCanvasText(pipCtx, currentText, 940);
+      let startY = lines.length > 1 ? (940 - (lines.length - 1) * 70) : 960;
+      
+      lines.forEach((lineText, idx) => {
+        let curY = startY + (idx * 70);
+        pipCtx.lineWidth = 10;
+        pipCtx.strokeStyle = "rgba(0, 0, 0, 0.9)";
+        pipCtx.strokeText(lineText, 540, curY);
+        pipCtx.fillStyle = "#ff79c6";
+        pipCtx.fillText(lineText, 540, curY);
+      });
+
+    } else if (currentPipMode === 'mp3') {
+      // --- 模式 2: MP3專區 (1200x350 高質感純白底 + 粉紅極簡字幕) ---
+      pipCtx.fillStyle = "#ffffff";
+      pipCtx.fillRect(0, 0, 1200, 350);
+
+      // 上方標籤細字
+      pipCtx.fillStyle = "#8888aa";
+      pipCtx.font = "bold 32px -apple-system, BlinkMacSystemFont, sans-serif";
+      pipCtx.textAlign = "center";
+      pipCtx.textBaseline = "top";
+      let titleTag = currentTrackList[currentIndex] ? currentTrackList[currentIndex].title : "ASMR 隨身庫";
+      pipCtx.fillText(titleTag, 600, 24);
+
+      // 主字幕樣式
+      pipCtx.fillStyle = "#ff52b2";
+      pipCtx.font = "bold 64px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
+      pipCtx.textAlign = "center";
+      pipCtx.textBaseline = "middle";
+      
+      pipCtx.shadowColor = "rgba(255, 121, 198, 0.3)";
+      pipCtx.shadowBlur = 12;
+      pipCtx.shadowOffsetY = 3;
+
+      let maxWidth = 1100;
+      let lines = wrapCanvasText(pipCtx, currentText, maxWidth);
+      
+      if (lines.length > 2) {
+        pipCtx.font = "bold 52px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
+      }
+
+      let lineHeight = (lines.length > 2) ? 62 : 75;
+      let totalHeight = lines.length * lineHeight;
+      let startY = 200 - (totalHeight / 2) + (lineHeight / 2);
+
+      lines.forEach((lineText, i) => {
+        pipCtx.fillText(lineText, 600, startY + (i * lineHeight));
+      });
+      
+      pipCtx.shadowColor = "transparent";
+      pipCtx.shadowBlur = 0;
+    }
+
+    requestAnimationFrame(renderPiPFrame);
+  }
+
+  function wrapCanvasText(ctx, text, maxWidth) {
+    let chars = text.split('');
+    let line = '';
+    let lines = [];
+    for (let n = 0; n < chars.length; n++) {
+      let testLine = line + chars[n];
+      let metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        lines.push(line);
+        line = chars[n];
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+    return lines;
   }
 
   function drawCoverToCanvas(ctx, source, size, isVideo) {
@@ -699,42 +746,40 @@
     ctx.restore();
   }
 
-  async function enablePiP(mode = 'dynamic') {
-    if (currentIndex === -1) return alert("請先播放一個篇章才能開啟桌面懸浮窗！");
-    
-    // 確保音訊正在播放
-    if (audio.paused) {
-      await audio.play().catch(() => {});
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
+  // 核心修復：iOS Safari 100% 順利觸發 PiP 懸浮窗 (嚴格同步觸發避免權限失效)
+  function enablePiP(mode = 'dynamic') {
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
+
+    if (!document.pictureInPictureEnabled && !pipVideo.webkitSupportsPresentationMode) {
+      return alert("您的瀏覽器不支援懸浮視窗 (Picture-in-Picture) 功能。");
     }
 
-    // 檢查懸浮窗是否已經開啟
+    // 同步初始化畫布
+    setupPiPCanvas(mode);
+
+    // 確保音訊與載體影片處於播放狀態
+    if (audio.paused) audio.play().catch(()=>{});
+    pipVideo.play().catch(()=>{});
+
+    // 如果已經處於 PiP 狀態，直接切換或退出
     if (document.pictureInPictureElement === pipVideo) {
-      if (currentPipMode === mode) {
-        // 如果點擊的是同一個模式，則關閉懸浮窗
-        await document.exitPictureInPicture();
-        return;
-      } else {
-        // 如果點擊不同模式，只需更新引擎 (iOS 會自動動態調整視窗形狀)
-        initPiPEngine(mode);
-        return;
-      }
+      document.exitPictureInPicture().catch(()=>{});
+      return;
     }
-    
-    // 初始化對應模式的引擎並開啟
-    initPiPEngine(mode);
-    
-    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover && mode === 'dynamic') {
-      cachedCoverElement.play().catch(() => {});
-    }
-    
+
+    // iOS/Safari 核心點擊觸發邏輯
     try {
-      await pipVideo.requestPictureInPicture();
-    } catch (err) {
-      setTimeout(async () => {
-        try { await pipVideo.requestPictureInPicture(); } catch(e) { alert("無法啟用懸浮視窗，請確認手機瀏覽器支援 PiP。"); }
-      }, 200);
+      if (pipVideo.requestPictureInPicture) {
+        pipVideo.requestPictureInPicture().catch(err => {
+          console.warn("PiP 喚醒嘗試:", err);
+          showToast("正在啟動懸浮窗...");
+        });
+      } else if (pipVideo.webkitSetPresentationMode) {
+        pipVideo.webkitSetPresentationMode("picture-in-picture");
+      }
+    } catch(e) {
+      console.error(e);
+      showToast("懸浮窗啟動失敗，請再點擊一次");
     }
   }
 
@@ -825,8 +870,7 @@
   async function saveGlobalBackgrounds() {
     const input = document.getElementById("global-bg-input");
     if (!input.files.length) return alert("請先選取圖片或影片檔案！");
-    let blobs = [];
-    for (let f of input.files) blobs.push(f);
+    let blobs = Array.from(input.files);
     
     if (blobs.length > 0) {
       const reader = new FileReader();
@@ -836,7 +880,7 @@
             url: e.target.result,
             type: blobs[0].type
           }));
-        } catch(err) { console.warn("LocalStorage 空間不足無法快取預覽圖，將僅依賴資料庫"); }
+        } catch(err) {}
       };
       reader.readAsDataURL(blobs[0]);
     }
@@ -847,7 +891,7 @@
       globalBackgrounds = blobs;
       bgIndex = 0;
       startGlobalBgRotation();
-      alert("✅ 全域背景儲存成功！");
+      showToast("✅ 全域背景儲存成功！");
     };
   }
 
@@ -904,10 +948,8 @@
     const bgInput = document.getElementById("album-bgs");
     if (!title) return alert("請填寫分區名稱！");
 
-    let coverBlobs = [];
-    for (let f of coverInput.files) coverBlobs.push(f);
-    let bgBlobs = [];
-    for (let f of bgInput.files) bgBlobs.push(f);
+    let coverBlobs = Array.from(coverInput.files);
+    let bgBlobs = Array.from(bgInput.files);
 
     const tx = db.transaction("albums", "readwrite");
     tx.objectStore("albums").add({ title, covers: coverBlobs, backgrounds: bgBlobs });
@@ -916,7 +958,7 @@
       coverInput.value = "";
       bgInput.value = "";
       loadData();
-      alert("✅ 作品分區建立成功！");
+      showToast("✅ 作品分區建立成功！");
     };
   }
 
@@ -988,7 +1030,7 @@
         if (t.albumId === id) indexStore.delete(t.id);
       });
     };
-    tx.oncomplete = () => { loadData(); alert("已刪除！"); };
+    tx.oncomplete = () => { loadData(); showToast("已刪除作品分區！"); };
   }
 
   function renderDetailView(albumId) {
@@ -1129,16 +1171,13 @@
       audioInput.value = "";
       lrcInput.value = "";
       loadData();
-      alert("✅ 單一篇章新增成功！");
+      showToast("✅ 單一篇章新增成功！");
     };
   }
 
   function readFileAsTextAsync(file) {
     return new Promise((resolve) => {
-      if (!file) {
-        resolve("");
-        return;
-      }
+      if (!file) resolve("");
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result || "");
       reader.onerror = () => resolve("");
@@ -1181,9 +1220,7 @@
           return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
         });
 
-        if (found) {
-          matchedLrcText = found.text;
-        }
+        if (found) matchedLrcText = found.text;
 
         store.add({
           albumId,
@@ -1199,20 +1236,19 @@
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
         loadData();
-        alert(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對字幕！`);
+        showToast(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對！`);
       };
 
       tx.onerror = (err) => {
         console.error(err);
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        alert("❌ 批量匯入寫入資料庫失敗，可能是檔案過大或容量不足。");
+        alert("❌ 批量匯入失敗，可能是容量不足。");
       };
     } catch(e) {
       console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-      alert("❌ 發生未預期的錯誤，請重新整理頁面後再試。");
     }
   }
 
@@ -1220,7 +1256,7 @@
     if (!confirm("確定要刪除此篇章嗎？")) return;
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").delete(id);
-    tx.oncomplete = () => { loadData(); alert("已刪除！"); };
+    tx.oncomplete = () => { loadData(); showToast("已刪除篇章！"); };
   }
 
   function editTrack(id) {
@@ -1232,7 +1268,7 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { loadData(); alert("修改成功！"); };
+    tx.oncomplete = () => { loadData(); showToast("修改篇章成功！"); };
   }
 
   function playTrackFromAlbum(albumId, index) {
@@ -1353,6 +1389,7 @@
   function loadAndPlayCurrentTrack(track, album) {
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
+    audio.playbackRate = speedOptions[speedIndex];
     audio.play().then(() => {
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
@@ -1405,7 +1442,19 @@
   }
 
   audio.addEventListener("ended", () => {
-    nextTrack();
+    if (repeatMode === 1) { // 單曲循環
+      audio.currentTime = 0;
+      audio.play();
+    } else if (repeatMode === 2) { // 隨機播放
+      let nextIdx = Math.floor(Math.random() * currentTrackList.length);
+      currentIndex = nextIdx;
+      const track = currentTrackList[currentIndex];
+      const album = albums.find(a => a.id === track.albumId);
+      setupActiveAlbumCovers(album);
+      loadAndPlayCurrentTrack(track, album);
+    } else {
+      nextTrack();
+    }
   });
 
   function togglePlay() {
@@ -1420,6 +1469,53 @@
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
       if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
+    }
+  }
+
+  function toggleRepeatMode() {
+    repeatMode = (repeatMode + 1) % 3;
+    const btn = document.getElementById("btn-repeat-mode");
+    btn.innerText = repeatModeNames[repeatMode];
+    btn.classList.toggle("active", repeatMode !== 0);
+    showToast(`切換至：${repeatModeNames[repeatMode]}`);
+  }
+
+  function togglePlaybackSpeed() {
+    speedIndex = (speedIndex + 1) % speedOptions.length;
+    let rate = speedOptions[speedIndex];
+    audio.playbackRate = rate;
+    const btn = document.getElementById("btn-speed");
+    btn.innerText = `⚡ ${rate}x`;
+    btn.classList.toggle("active", rate !== 1.0);
+    showToast(`播放速度：${rate}x`);
+  }
+
+  function toggleSleepTimer() {
+    const btn = document.getElementById("btn-sleep-timer");
+    if (sleepTimerTimeout) {
+      clearTimeout(sleepTimerTimeout);
+      sleepTimerTimeout = null;
+      sleepTimerMinutes = 0;
+      btn.innerText = "🌙 關閉定時";
+      btn.classList.remove("active");
+      showToast("睡眠定時器已取消");
+    } else {
+      let choice = prompt("請選擇倒數關閉時間(分鐘)：\n輸入 15, 30, 45, 60", "30");
+      let mins = parseInt(choice, 10);
+      if (isNaN(mins) || mins <= 0) return;
+      sleepTimerMinutes = mins;
+      btn.innerText = `🌙 ${mins}分後關閉`;
+      btn.classList.add("active");
+      showToast(`定時器已設定：${mins} 分鐘後自動停止`);
+      sleepTimerTimeout = setTimeout(() => {
+        audio.pause();
+        document.getElementById("btn-play").innerText = "▶";
+        document.getElementById("mini-btn-play").innerText = "▶";
+        btn.innerText = "🌙 關閉定時";
+        btn.classList.remove("active");
+        sleepTimerTimeout = null;
+        showToast("已自動停止播放 (睡眠定時)");
+      }, mins * 60 * 1000);
     }
   }
 
@@ -1509,11 +1605,11 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕匯入成功！"); };
+    tx.oncomplete = () => { showToast("✅ 字幕匯入成功！"); };
   }
 
   function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     let text = prompt("請貼上字幕內容 (支援 LRC / VTT / SRT / 純文字)：");
     if (text === null) return;
     const track = currentTrackList[currentIndex];
@@ -1522,11 +1618,11 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕更新成功！"); };
+    tx.oncomplete = () => { showToast("✅ 字幕更新成功！"); };
   }
 
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     const track = currentTrackList[currentIndex];
     let newText = prompt("檢視與修改目前字幕原始碼：", track.lrcText || "");
     if (newText === null) return;
@@ -1535,38 +1631,96 @@
 
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { alert("✅ 字幕已修改儲存！"); };
+    tx.oncomplete = () => { showToast("✅ 字幕已修改儲存！"); };
+  }
+
+  // --- 重大修復：Blob Base64 無損導出與還原備份 ---
+  function blobToBase64(blob) {
+    return new Promise((resolve) => {
+      if (!blob) resolve(null);
+      const reader = new FileReader();
+      reader.onloadend = () => resolve({ data: reader.result, type: blob.type });
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function base64ToBlob(base64Obj) {
+    if (!base64Obj || !base64Obj.data) return null;
+    let arr = base64Obj.data.split(',');
+    let mime = base64Obj.type || arr[0].match(/:(.*?);/)[1];
+    let bstr = atob(arr[1]);
+    let n = bstr.length;
+    let u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
   }
 
   async function exportDataBackup() {
-    const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-    let backupData = { albums: [], tracks: [], settings: [] };
+    const btn = document.getElementById("btn-export-backup");
+    btn.disabled = true;
+    btn.innerText = "⏳ 正在打包完整備份與媒體中...";
 
-    tx.objectStore("albums").getAll().onsuccess = (e) => {
-      backupData.albums = e.target.result;
-    };
-    tx.objectStore("tracks").getAll().onsuccess = (e) => {
-      backupData.tracks = e.target.result;
-    };
-    tx.objectStore("settings").getAll().onsuccess = (e) => {
-      backupData.settings = e.target.result;
-    };
+    try {
+      const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
+      let rawAlbums = [], rawTracks = [], rawSettings = [];
 
-    tx.oncomplete = () => {
-      const blob = new Blob([JSON.stringify(backupData)], { type: "application/json" });
+      await new Promise(res => {
+        tx.objectStore("albums").getAll().onsuccess = (e) => { rawAlbums = e.target.result; res(); };
+      });
+      await new Promise(res => {
+        tx.objectStore("tracks").getAll().onsuccess = (e) => { rawTracks = e.target.result; res(); };
+      });
+      await new Promise(res => {
+        tx.objectStore("settings").getAll().onsuccess = (e) => { rawSettings = e.target.result; res(); };
+      });
+
+      // 轉換 albums 內的 covers 與 backgrounds 為 base64
+      let processedAlbums = [];
+      for (let alb of rawAlbums) {
+        let coversB64 = [];
+        if (alb.covers) {
+          for (let c of alb.covers) coversB64.push(await blobToBase64(c));
+        }
+        let bgsB64 = [];
+        if (alb.backgrounds) {
+          for (let b of alb.backgrounds) bgsB64.push(await blobToBase64(b));
+        }
+        processedAlbums.push({ ...alb, covers: coversB64, backgrounds: bgsB64 });
+      }
+
+      // 轉換 tracks 內的 audioBlob
+      let processedTracks = [];
+      for (let trk of rawTracks) {
+        let audioB64 = await blobToBase64(trk.audioBlob);
+        processedTracks.push({ ...trk, audioBlob: audioB64 });
+      }
+
+      let backupObj = { albums: processedAlbums, tracks: processedTracks, settings: rawSettings, version: "v3" };
+
+      const blob = new Blob([JSON.stringify(backupObj)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-    };
+      
+      showToast("✅ 備份檔案已成功下載！");
+    } catch(err) {
+      console.error(err);
+      alert("❌ 備份匯出失敗，請確認設備記憶體是否足夠。");
+    } finally {
+      btn.disabled = false;
+      btn.innerText = "📤 1. 匯出完整無損備份檔案 (電腦/手機)";
+    }
   }
 
   async function importDataBackup(event) {
     const file = event.target.files[0];
     if (!file) return;
-    if (!confirm("匯入備份將會寫入現有資料庫，是否繼續？")) return;
+    if (!confirm("匯入備份將會覆寫現有數據庫，是否繼續？")) return;
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -1576,11 +1730,18 @@
         
         if (data.albums) {
           let store = tx.objectStore("albums");
-          data.albums.forEach(item => store.put(item));
+          for (let alb of data.albums) {
+            let restoredCovers = (alb.covers) ? alb.covers.map(c => base64ToBlob(c)).filter(Boolean) : [];
+            let restoredBgs = (alb.backgrounds) ? alb.backgrounds.map(b => base64ToBlob(b)).filter(Boolean) : [];
+            store.put({ ...alb, covers: restoredCovers, backgrounds: restoredBgs });
+          }
         }
         if (data.tracks) {
           let store = tx.objectStore("tracks");
-          data.tracks.forEach(item => store.put(item));
+          for (let trk of data.tracks) {
+            let restoredAudio = base64ToBlob(trk.audioBlob);
+            store.put({ ...trk, audioBlob: restoredAudio });
+          }
         }
         if (data.settings) {
           let store = tx.objectStore("settings");
@@ -1589,9 +1750,10 @@
 
         tx.oncomplete = () => {
           loadData();
-          alert("✅ 跨裝置備份還原成功！");
+          showToast("✅ 跨裝置備份還原成功！");
         };
       } catch (err) {
+        console.error(err);
         alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
       }
     };
