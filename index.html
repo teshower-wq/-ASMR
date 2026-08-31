@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (影片版專區與愛心玩具高潮升級版)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>ASMR 私人隨身庫 (全螢幕影片與愛心玩具升級版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
@@ -21,7 +21,7 @@
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-      margin: 0; padding: 16px; padding-bottom: 160px;
+      margin: 0; padding: 16px; padding-bottom: 150px;
       background-color: var(--bg-dark); color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, "PingFang TC", sans-serif;
       min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
@@ -85,11 +85,6 @@
       box-shadow: 0 4px 20px rgba(255, 121, 198, 0.35); transition: all 0.25s ease;
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
-    .btn-blue {
-      width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
-      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.25s ease;
-    }
     .btn-green {
       width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
@@ -111,8 +106,7 @@
       background: var(--card-glass-hover); border-color: var(--border-glass-hover);
       transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255, 121, 198, 0.15);
     }
-    .album-grid-thumb-wrap { width: 76px; height: 76px; border-radius: 14px; overflow: hidden; margin-right: 14px; flex-shrink: 0; background: #121218; position: relative; display: flex; align-items: center; justify-content: center; }
-    .album-grid-thumb { width: 100%; height: 100%; object-fit: cover; }
+    .album-grid-thumb { width: 76px; height: 76px; border-radius: 14px; object-fit: cover; margin-right: 14px; flex-shrink: 0; background: #121218; }
     .album-grid-info { flex: 1; overflow: hidden; margin-right: 10px; }
     .album-grid-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
     .album-grid-count { font-size: 0.85rem; color: var(--primary-pink); font-weight: 600; }
@@ -152,70 +146,54 @@
     .btn-sm-edit { background: rgba(255, 121, 198, 0.15); color: var(--primary-pink); border: 1px solid rgba(255, 121, 198, 0.3); }
     .btn-sm-del { background: rgba(255,255,255,0.06); color: #ff6b6b; border: 1px solid rgba(255,85,85,0.15); }
 
-    .heart-widget-card {
-      background: rgba(22, 16, 28, 0.92); border: 1px solid rgba(255, 121, 198, 0.3);
-      border-radius: 20px; padding: 16px; margin-bottom: 14px; text-align: center;
-      box-shadow: 0 8px 30px rgba(255, 121, 198, 0.15); position: relative; overflow: hidden;
-    }
-    .heart-container {
-      position: relative; width: 90px; height: 90px; margin: 0 auto 10px auto;
-      display: flex; align-items: center; justify-content: center; cursor: pointer;
-    }
-    .heart-svg {
-      width: 100%; height: 100%; filter: drop-shadow(0 0 10px rgba(255, 121, 198, 0.5));
-      transition: transform 0.2s ease;
-    }
-    .heart-svg.climaxing {
-      animation: heartClimaxPulse 0.4s infinite alternate ease-in-out;
-    }
-    @keyframes heartClimaxPulse {
-      0% { transform: scale(1) rotate(-5deg); filter: drop-shadow(0 0 25px #ff2a85); }
-      100% { transform: scale(1.25) rotate(5deg); filter: drop-shadow(0 0 45px #ff79c6); }
-    }
-    @keyframes screenShake {
-      0% { transform: translate(0, 0) rotate(0deg); }
-      20% { transform: translate(-4px, 3px) rotate(-1deg); }
-      40% { transform: translate(4px, -3px) rotate(1deg); }
-      60% { transform: translate(-3px, -2px) rotate(0deg); }
-      80% { transform: translate(3px, 2px) rotate(1deg); }
-      100% { transform: translate(0, 0) rotate(0deg); }
-    }
-    .screen-shaking {
-      animation: screenShake 0.3s ease infinite !important;
-    }
-    .heart-fill-text {
-      font-size: 0.85rem; font-weight: 800; color: var(--primary-pink); margin-top: 4px;
-    }
-    .heart-intensity-bar {
-      width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 8px; overflow: hidden;
-    }
-    .heart-intensity-fill {
-      height: 100%; background: linear-gradient(90deg, #ff79c6, #ff2a85); width: 0%; transition: width 0.3s ease;
-    }
-
+    /* 全螢幕影片播放容器 (類似 YouTube 模式) */
     .video-asmr-player-wrap {
       position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 18px;
       overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); margin-bottom: 12px; display: flex; align-items: center; justify-content: center;
     }
     .video-asmr-player-wrap video {
-      width: 100%; height: 100%; object-fit: cover;
+      width: 100%; height: 100%; object-fit: contain; background: #000;
     }
     .video-sub-box {
       min-height: 52px; background: rgba(16,16,22,0.9); border: 1px solid rgba(255,121,198,0.25);
-      border-radius: 14px; padding: 10px 16px; text-align: center; font-size: 1.1rem; font-weight: 800;
+      border-radius: 14px; padding: 10px 16px; text-align: center; font-size: 1.15rem; font-weight: 800;
       color: var(--primary-pink); text-shadow: 0 0 15px var(--pink-glow); margin-bottom: 12px; display: flex; align-items: center; justify-content: center;
     }
 
-    .video-asmr-top-heart {
-      position: absolute; top: 12px; right: 12px; width: 44px; height: 44px; background: rgba(16,16,22,0.7);
-      border: 1px solid rgba(255,121,198,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; z-index: 20; backdrop-filter: blur(4px); transition: transform 0.2s;
+    /* 愛心玩具懸浮元件 (位於影片右上角) */
+    .video-overlay-heart {
+      position: absolute; top: 12px; right: 12px; width: 54px; height: 54px;
+      z-index: 10; cursor: pointer; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.7));
+      transition: transform 0.2s ease;
     }
-    .video-asmr-top-heart:hover { transform: scale(1.1); background: rgba(255,121,198,0.2); }
+    .video-overlay-heart:active { transform: scale(1.2); }
+    .video-overlay-heart svg { width: 100%; height: 100%; }
+
+    /* 全螢幕下的動態粉紅字幕與愛心控制項 */
+    .fullscreen-sub-overlay {
+      position: absolute; bottom: 24px; left: 5%; width: 90%; text-align: center;
+      font-size: 1.4rem; font-weight: 800; color: #ff79c6;
+      text-shadow: 0 0 12px rgba(255,121,198,0.9), 0 2px 6px #000;
+      z-index: 100; pointer-events: none; display: none;
+    }
+    :fullscreen .fullscreen-sub-overlay, :-webkit-full-screen .fullscreen-sub-overlay { display: block; }
+
+    /* 全螢幕高潮特效覆蓋層 */
+    #climax-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 99999; display: none; background: #000;
+      flex-direction: column; justify-content: center; align-items: center;
+    }
+    #climax-overlay.active { display: flex; animation: flashShake 0.15s infinite alternate; }
+    #climax-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    @keyframes flashShake {
+      0% { transform: translate(-4px, 3px) scale(1.02); filter: brightness(1.2) contrast(1.1); }
+      100% { transform: translate(4px, -3px) scale(0.98); filter: brightness(0.9) contrast(1.3); }
+    }
 
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
-      max-height: 86vh; height: auto; display: flex; flex-direction: column;
+      max-height: 88vh; height: auto; display: flex; flex-direction: column;
       background: rgba(16, 16, 22, 0.98); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
       border: 1px solid rgba(255, 255, 255, 0.12); border-bottom: none; border-radius: 26px 26px 0 0;
       box-shadow: 0 -16px 50px rgba(0,0,0,0.85);
@@ -282,18 +260,7 @@
     .volume-box { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-sub); margin-bottom: 10px; padding: 0 2px; }
     .volume-slider { flex: 1; height: 5px; accent-color: var(--text-sub); cursor: pointer; }
     .btn-mute { background: none; border: none; color: var(--text-sub); font-size: 1.05rem; cursor: pointer; }
-    .bottom-tools { display: flex; gap: 8px; flex-direction: row; }
-    .btn-pip {
-      flex: 1; background: rgba(255, 121, 198, 0.12); border: 1px solid rgba(255, 121, 198, 0.3);
-      color: var(--primary-pink); padding: 12px 6px; border-radius: 12px; font-weight: 700; font-size: 0.88rem; cursor: pointer; text-align: center;
-      box-shadow: 0 4px 15px rgba(255, 121, 198, 0.15); transition: all 0.2s ease;
-    }
-    .btn-pip-mp3 {
-      flex: 1; background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%); border: none;
-      color: #fff; padding: 12px 6px; border-radius: 12px; font-weight: 800; font-size: 0.88rem; cursor: pointer; text-align: center;
-      box-shadow: 0 4px 15px rgba(255, 121, 198, 0.35); text-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: all 0.2s ease;
-    }
-
+    
     .mini-player {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; height: 64px;
       background: rgba(16, 16, 22, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -314,6 +281,11 @@
       z-index: 3000; opacity: 0; transition: all 0.3s ease; pointer-events: none;
     }
     .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .pagination-bar { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 14px; }
+    .btn-page { background: rgba(255, 121, 198, 0.15); border: 1px solid rgba(255, 121, 198, 0.3); color: var(--primary-pink); padding: 6px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+    .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-info { font-size: 0.85rem; color: var(--text-sub); }
   </style>
 </head>
 <body id="main-body">
@@ -322,6 +294,12 @@
 <img id="bg-img" alt="全域背景">
 <div id="bg-overlay"></div>
 <div id="toast" class="toast-msg"></div>
+
+<!-- 高潮全螢幕震撼覆蓋層 -->
+<div id="climax-overlay">
+  <img id="climax-img" src="" alt="高潮特效視覺">
+</div>
+<audio id="climax-audio" preload="auto"></audio>
 
 <div class="container">
   <div class="top-bar">
@@ -338,6 +316,33 @@
   </div>
 
   <div id="admin-drawer" class="admin-drawer">
+    <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
+      <div class="card-title" style="color: #60a5fa;">📥 跨裝置資料還原 (接收端備份匯入)</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        點擊下方選擇備份檔案即可無損還原所有作品、影片、音效與字幕！
+      </div>
+      <div class="form-group">
+        <label>選擇備份 .json 檔案</label>
+        <input type="file" id="import-backup-input" accept=".json,application/json" onchange="importDataBackup(event)">
+      </div>
+    </div>
+
+    <!-- 新增：愛心玩具高潮素材設定專區 -->
+    <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5);">
+      <div class="card-title" style="color: var(--primary-pink);">💖 愛心玩具高潮效果素材設定</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        當愛心填滿爆發時，自動轉換為此高潮圖片與音效，高潮結束後自動恢復播放。
+      </div>
+      <div class="form-group">
+        <label>上傳高潮圖片 (預設有動態效果)</label>
+        <input type="file" id="climax-img-input" accept="image/*" onchange="saveClimaxAsset('img', event)">
+      </div>
+      <div class="form-group">
+        <label>上傳高潮音效 (.mp3 / .wav / .m4a)</label>
+        <input type="file" id="climax-audio-input" accept="audio/*" onchange="saveClimaxAsset('audio', event)">
+      </div>
+    </div>
+
     <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒輪播)</div>
       <div class="form-group"><label>選取多張圖片或 MP4 影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
@@ -347,7 +352,7 @@
     <div class="glass-card">
       <div class="card-title">📁 建立作品分區 (修復影片封面破圖)</div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女篇"></div>
-      <div class="form-group"><label>封面素材 (支援圖片或 MP4 影片，完美修復展示)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
+      <div class="form-group"><label>封面素材 (支援圖片或 MP4 影片，預覽修復)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="createAlbum()">建立分區</button>
     </div>
@@ -376,16 +381,9 @@
       <div class="card-title" style="color: var(--primary-pink);">🎬 新增獨立影片版 ASMR 篇章</div>
       <div class="form-group"><label>影片 ASMR 標題</label><input type="text" id="v-asmr-title" placeholder="例如：極樂視聽 01"></div>
       <div class="form-group"><label>上傳影片檔 (自動轉為靜音循環播放)</label><input type="file" id="v-asmr-video" accept="video/*"></div>
-      <div class="form-group"><label>上傳對應音檔 (提供浪叫與呻吟音效)</label><input type="file" id="v-asmr-audio" accept="audio/*,.mp3,.wav,.m4a"></div>
+      <div class="form-group"><label>上傳對應音檔 (聲音與語音來源)</label><input type="file" id="v-asmr-audio" accept="audio/*,.mp3,.wav,.m4a"></div>
       <div class="form-group"><label>上傳字幕檔 (.lrc/.vtt/.srt/.txt)</label><input type="file" id="v-asmr-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
-      <button class="btn-pink" onclick="addVideoAsmrTrack()">上傳影片版 ASMR</button>
-    </div>
-
-    <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4);">
-      <div class="card-title" style="color: #60a5fa;">💖 設定愛心玩具高潮存檔區 (高潮圖片與音檔)</div>
-      <div class="form-group"><label>上傳高潮觸發時顯示的圖片 (或動態短片)</label><input type="file" id="climax-image-input" accept="image/*,video/*"></div>
-      <div class="form-group"><label>上傳高潮觸發時播放的專屬呻吟/高潮音檔 (.mp3/.wav)</label><input type="file" id="climax-audio-input" accept="audio/*,.mp3,.wav,.m4a"></div>
-      <button class="btn-blue" onclick="saveClimaxCustomMedia()">儲存高潮專屬素材</button>
+      <button class="btn-pink" onclick="addVideoAsmrTrack()">上傳獨立影片版 ASMR</button>
     </div>
   </div>
 
@@ -410,25 +408,9 @@
     <div class="glass-card">
       <div class="card-title">🎬 獨立影片版 ASMR 專區</div>
       <div style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 14px;">
-        影片自動靜音循環並隨音檔同步播放，粉紅色字幕位於影片下方。影片右上角內建愛心玩具高潮器！
+        影片自動靜音循環，隨語音音軌時間同步播放。支援全螢幕模式與右上角愛心玩具！
       </div>
       <div id="video-asmr-list" class="chapter-file-list"></div>
-    </div>
-  </div>
-
-  <div class="heart-widget-card" id="heart-widget-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-      <span style="font-weight:700; font-size:0.95rem; color:var(--primary-pink);">💖 愛心玩具高潮特效器</span>
-      <span id="heart-status-text" style="font-size:0.75rem; color:var(--text-sub);">靜音/待機中</span>
-    </div>
-    <div class="heart-container" onclick="triggerManualHeartBoost()" title="點擊加速高潮累積！">
-      <svg class="heart-svg" id="heart-svg" viewBox="0 0 24 24" fill="none" stroke="#ff79c6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" id="heart-path" fill="rgba(255,121,198,0)"></path>
-      </svg>
-    </div>
-    <div class="heart-fill-text" id="heart-fill-text">高潮儲能進度: 0%</div>
-    <div class="heart-intensity-bar">
-      <div class="heart-intensity-fill" id="heart-intensity-fill"></div>
     </div>
   </div>
 
@@ -450,18 +432,38 @@
   </div>
 
   <div class="player-scroll-area" id="player-scroll-area">
+    <!-- 獨立影片版 ASMR 播放專區 (含全螢幕與懸浮愛心) -->
     <div id="player-video-asmr-box" style="display:none; margin-bottom: 12px;">
-      <div class="video-asmr-player-wrap">
+      <div class="video-asmr-player-wrap" id="video-container-wrap">
         <video id="active-asmr-video" muted loop playsinline></video>
-        <div class="video-asmr-top-heart" onclick="triggerManualHeartBoost()" title="點擊加速高潮累積！">
-          <svg style="width:26px; height:26px;" viewBox="0 0 24 24" fill="rgba(255,121,198,0.3)" stroke="#ff79c6" stroke-width="2">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+        
+        <!-- 右上角愛心玩具懸浮元件 -->
+        <div class="video-overlay-heart" onclick="triggerManualHeartBoost()" title="點擊刺激愛心一鍵高潮！">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ff79c6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="heartFillGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#ff2a85" stop-opacity="1" id="gradStop1"/>
+                <stop offset="0%" stop-color="transparent" stop-opacity="0" id="gradStop2"/>
+              </linearGradient>
+            </defs>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="url(#heartFillGrad)"></path>
           </svg>
         </div>
+
+        <!-- YouTube 全螢幕視訊粉紅字幕覆蓋 -->
+        <div id="fullscreen-sub" class="fullscreen-sub-overlay">♪ 影片專區字幕區 ♪</div>
       </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <button onclick="toggleVideoFullscreen()" style="flex:1; padding:8px; background:rgba(255,121,198,0.15); border:1px solid rgba(255,121,198,0.4); color:var(--primary-pink); border-radius:12px; font-weight:700; cursor:pointer;">
+          📺 開啟 YouTube 級全螢幕播放
+        </button>
+      </div>
+
       <div class="video-sub-box" id="video-asmr-sub">♪ 影片專區字幕區 ♪</div>
     </div>
 
+    <!-- 音訊作品封面專區 -->
     <div class="cover-box" id="player-cover-box">
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
@@ -500,17 +502,10 @@
       <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="1">
       <span>🔊</span>
     </div>
-
-    <div class="bottom-tools">
-      <button class="btn-pip" onclick="enablePiP('dynamic')">📺 動態專區 (懸浮全屏)</button>
-      <button class="btn-pip-mp3" onclick="enablePiP('mp3')">🎵 MP3專區 (全屏視頻)</button>
-    </div>
   </div>
 </div>
 
-<video id="pip-video" playsinline muted autoplay style="position: fixed; bottom: 0; right: 0; width: 1px; height: 1px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
-<audio id="climax-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
   let db;
@@ -545,16 +540,11 @@
   let sleepTimerTimeout = null;
   let sleepTimerMinutes = 0;
 
-  let pipCanvas = null;
-  let pipCtx = null;
-  let isPiPRendering = false;
-  let currentPipMode = 'dynamic';
-
   let currentPage = 1;
   const itemsPerPage = 4;
   let activeCreatedUrls = [];
 
-  // Heart Toy & Climax State Variables
+  // 愛心玩具與高潮系統變數
   let heartProgress = 0; // 0 to 100
   let isClimaxActive = false;
   let climaxTimer = null;
@@ -563,18 +553,21 @@
   let dataArray = null;
   let isAudioAnalyserInitialized = false;
 
-  let climaxCustomMedia = { blob: null, type: '', audioBlob: null };
+  let customClimaxImgUrl = "";
+  let customClimaxAudioUrl = "";
 
   const audio = document.getElementById("main-audio");
-  const climaxAudio = document.getElementById("climax-audio");
   const bgVideo = document.getElementById("bg-video");
   const bgImg = document.getElementById("bg-img");
-  const pipVideo = document.getElementById("pip-video");
   const activeAsmrVideo = document.getElementById("active-asmr-video");
   const playerCard = document.getElementById("player-card");
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
+
+  const climaxOverlay = document.getElementById("climax-overlay");
+  const climaxImg = document.getElementById("climax-img");
+  const climaxAudio = document.getElementById("climax-audio");
 
   let touchStartY = 0;
   let touchCurrentY = 0;
@@ -644,21 +637,6 @@
     touchCurrentY = 0;
   });
 
-  pipVideo.addEventListener('pause', () => {
-    if (!audio.paused && document.pictureInPictureElement === pipVideo) {
-      audio.pause();
-      document.getElementById("btn-play").innerText = "▶";
-      document.getElementById("mini-btn-play").innerText = "▶";
-    }
-  });
-  pipVideo.addEventListener('play', () => {
-    if (audio.paused && document.pictureInPictureElement === pipVideo) {
-      audio.play().catch(()=>{});
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
-    }
-  });
-
   function togglePowerSavingCover() {
     isPowerSavingCover = !isPowerSavingCover;
     const btn = document.getElementById("btn-power-saving");
@@ -693,8 +671,9 @@
     }
   }
 
+  // 愛心充能與即時語音強度檢測
   function updateHeartToyProgress() {
-    if (!audio.paused && currentIndex !== -1 && !isClimaxActive) {
+    if (!audio.paused && currentIndex !== -1) {
       if (!isAudioAnalyserInitialized && audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
@@ -707,312 +686,118 @@
           sum += dataArray[i];
         }
         let avg = sum / dataArray.length;
-        intensityFactor = 1.0 + (avg / 20.0); 
+        // 女性浪叫/強烈音效增強時，聲音平均值提高，愛心充能顯著加快！
+        intensityFactor = 1.0 + (avg / 15.0); 
       }
 
-      // Very slow base fill speed, speeds up when moaning/intensity is higher
-      heartProgress += 0.05 * intensityFactor;
-      if (heartProgress >= 100) {
-        heartProgress = 100;
-        triggerClimaxEffect();
+      if (!isClimaxActive) {
+        // 極慢的基礎充能速度，浪叫強烈時自動加快
+        heartProgress += 0.05 * intensityFactor;
+        if (heartProgress >= 100) {
+          heartProgress = 100;
+          triggerClimaxEffect();
+        }
       }
     }
 
-    let path = document.getElementById("heart-path");
-    let text = document.getElementById("heart-fill-text");
-    let fillBar = document.getElementById("heart-intensity-fill");
-    let statusText = document.getElementById("heart-status-text");
-
-    let currentFillPercent = Math.min(100, Math.max(0, heartProgress));
-    text.innerText = `高潮儲能進度: ${Math.floor(currentFillPercent)}%`;
-    fillBar.style.width = `${currentFillPercent}%`;
-
-    path.setAttribute("fill", `rgba(255, 121, 198, ${currentFillPercent / 100})`);
-    statusText.innerText = audio.paused ? "暫停中" : (isClimaxActive ? "🔥 高潮狀態中！" : "💖 蓄力中...");
+    // 更新 SVG 愛心填滿漸層
+    let pct = Math.min(100, Math.max(0, heartProgress));
+    let stop1 = document.getElementById("gradStop1");
+    let stop2 = document.getElementById("gradStop2");
+    if (stop1 && stop2) {
+      stop1.setAttribute("offset", `${pct}%`);
+      stop2.setAttribute("offset", `${pct}%`);
+    }
 
     requestAnimationFrame(updateHeartToyProgress);
   }
 
   function triggerManualHeartBoost() {
-    heartProgress += 12;
+    heartProgress += 20;
     if (heartProgress >= 100) {
       heartProgress = 100;
       triggerClimaxEffect();
+    } else {
+      showToast("💖 愛心玩具強力刺激！充能加快！");
     }
-    showToast("💖 愛心玩具強力刺激！進度加快！");
   }
 
+  // 觸發高潮震撼特效
   function triggerClimaxEffect() {
     if (isClimaxActive) return;
     isClimaxActive = true;
-    let svg = document.getElementById("heart-svg");
-    let body = document.getElementById("main-body");
 
-    svg.classList.add("climaxing");
-    body.classList.add("screen-shaking");
-    showToast("🔥 啊啊... 太快了！愛心玩具達到高潮！");
+    // 暫停原本的影片與音訊
+    audio.pause();
+    if (activeAsmrVideo) activeAsmrVideo.pause();
 
-    // Pause main playback and show climax image/audio if available
-    let wasPlaying = !audio.paused;
-    if (wasPlaying) audio.pause();
-    if (!activeAsmrVideo.paused) activeAsmrVideo.pause();
+    // 設定高潮圖片與音效
+    if (customClimaxImgUrl) {
+      climaxImg.src = customClimaxImgUrl;
+    } else {
+      // 預設動態生成的 SVG 高潮藝術圖
+      climaxImg.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'><rect width='100%' height='100%' fill='%23050508'/><path d='M400 150 C300 50, 150 200, 400 500 C650 200, 500 50, 400 150 Z' fill='%23ff2a85'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='48' font-weight='900'>💖 極樂高潮 💖</text></svg>";
+    }
 
-    // If custom climax audio is provided, play it
-    let climaxDuration = 5000;
-    if (climaxCustomMedia.audioBlob) {
-      let cAudioUrl = createTrackedObjectURL(climaxCustomMedia.audioBlob);
-      climaxAudio.src = cAudioUrl;
+    climaxOverlay.classList.add("active");
+
+    if (customClimaxAudioUrl) {
+      climaxAudio.src = customClimaxAudioUrl;
       climaxAudio.play().catch(()=>{});
     }
 
-    // If custom climax image/video is provided, temporarily display it in the cover box or asmr box
-    let originalVideoDisplay = activeAsmrVideo.style.display;
-    let originalCoverDisplay = document.getElementById("player-cover-box").style.display;
+    showToast("🔥 啊啊... 愛心玩具達到滿額高潮！");
 
-    if (climaxCustomMedia.blob) {
-      let cMediaUrl = createTrackedObjectURL(climaxCustomMedia.blob);
-      if (climaxCustomMedia.type.startsWith("video")) {
-        activeAsmrVideo.src = cMediaUrl;
-        activeAsmrVideo.muted = false; // play sound if desired or keep
-        document.getElementById("player-video-asmr-box").style.display = "block";
-        document.getElementById("player-cover-box").style.display = "none";
-        activeAsmrVideo.play().catch(()=>{});
-      } else {
-        // Show as cover or overlay
-        let box = document.getElementById("player-cover-box");
-        box.style.display = "flex";
-        let tempImg = document.createElement("img");
-        tempImg.src = cMediaUrl;
-        tempImg.style.cssText = "width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0; z-index:99; border-radius:12px;";
-        box.appendChild(tempImg);
-        setTimeout(() => { try { tempImg.remove(); } catch(e){} }, 5500);
-      }
-    }
+    // 聽取高潮音效結束或定時器結束
+    const climaxDuration = (customClimaxAudioUrl && climaxAudio.duration) ? (climaxAudio.duration * 1000) : 5000;
 
     if (climaxTimer) clearTimeout(climaxTimer);
     climaxTimer = setTimeout(() => {
-      svg.classList.remove("climaxing");
-      body.classList.remove("screen-shaking");
+      climaxOverlay.classList.remove("active");
+      if (!climaxAudio.paused) climaxAudio.pause();
+      
       heartProgress = 0;
       isClimaxActive = false;
 
-      if (climaxAudio) {
-        climaxAudio.pause();
-        climaxAudio.currentTime = 0;
-      }
+      // 恢復原本的影片與音訊播放
+      audio.play().catch(()=>{});
+      if (activeAsmrVideo) activeAsmrVideo.play().catch(()=>{});
 
-      if (wasPlaying) {
-        audio.play().catch(()=>{});
-        if (activeAsmrVideo.src) activeAsmrVideo.play().catch(()=>{});
-      }
-      showToast("✨ 高潮特效結束，重新開始儲能！");
+      showToast("✨ 高潮結束，重置愛心重新累積！");
     }, climaxDuration);
   }
 
-  async function saveClimaxCustomMedia() {
-    const imgInput = document.getElementById("climax-image-input");
-    const audioInput = document.getElementById("climax-audio-input");
-    if (!imgInput.files.length && !audioInput.files.length) return showToast("請至少選取高潮圖片或音檔！");
-
-    let mediaBlob = imgInput.files.length ? imgInput.files[0] : null;
-    let audioBlob = audioInput.files.length ? audioInput.files[0] : null;
-
-    climaxCustomMedia = {
-      blob: mediaBlob,
-      type: mediaBlob ? mediaBlob.type : '',
-      audioBlob: audioBlob
-    };
-
-    const tx = db.transaction("settings", "readwrite");
-    tx.objectStore("settings").put({ key: "climaxCustomMedia", mediaBlob, audioBlob, type: climaxCustomMedia.type });
-    tx.oncomplete = () => {
-      imgInput.value = "";
-      audioInput.value = "";
-      showToast("✅ 愛心玩具高潮專屬素材儲存成功！");
-    };
-  }
-
-  function initPiPEngine() {
-    if (!pipCanvas) {
-      pipCanvas = document.createElement('canvas');
-      pipCtx = pipCanvas.getContext('2d', { alpha: false });
-    }
-  }
-
-  function setupPiPCanvas(mode) {
-    currentPipMode = mode;
-    initPiPEngine();
-    
-    if (mode === 'mp3') {
-      pipCanvas.width = 1200;
-      pipCanvas.height = 350;
+  function saveClimaxAsset(type, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const url = createTrackedObjectURL(file);
+    if (type === 'img') {
+      customClimaxImgUrl = url;
+      showToast("✅ 已成功更新高潮照片！");
     } else {
-      pipCanvas.width = 1080;
-      pipCanvas.height = 1080;
-    }
-    
-    if (!pipVideo.srcObject) {
-      const stream = pipCanvas.captureStream(30);
-      pipVideo.srcObject = stream;
-    }
-
-    if (!isPiPRendering) {
-      isPiPRendering = true;
-      requestAnimationFrame(renderPiPFrame);
+      customClimaxAudioUrl = url;
+      showToast("✅ 已成功更新高潮音效！");
     }
   }
 
-  function renderPiPFrame() {
-    if (!pipCtx || !isPiPRendering) return;
-    
-    const currentTime = audio.currentTime;
-    let currentText = getActiveSubtitleText(currentTime);
+  // YouTube 級全螢幕播放切換
+  function toggleVideoFullscreen() {
+    const wrap = document.getElementById("video-container-wrap");
+    if (!wrap) return;
 
-    if (currentPipMode === 'dynamic') {
-      pipCtx.fillStyle = "#07070a";
-      pipCtx.fillRect(0, 0, 1080, 1080);
-
-      // If active asmr video is playing, draw video frame
-      if (activeAsmrVideo && activeAsmrVideo.readyState >= 2 && !activeAsmrVideo.paused) {
-        drawCoverToCanvas(pipCtx, activeAsmrVideo, 1080, true);
-      } else if (cachedCoverElement) {
-        if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
-          cachedCoverElement.play().catch(() => {});
-        }
-        drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive && !isPowerSavingCover);
+    if (activeAsmrVideo.webkitEnterFullscreen) {
+      // iOS Safari 原生影片全螢幕
+      activeAsmrVideo.webkitEnterFullscreen();
+    } else if (wrap.requestFullscreen) {
+      if (!document.fullscreenElement) {
+        wrap.requestFullscreen().catch(err => console.log(err));
       } else {
-        pipCtx.fillStyle = "#121218";
-        pipCtx.fillRect(0, 0, 1080, 1080);
-        pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 48px sans-serif";
-        pipCtx.textAlign = "center";
-        pipCtx.textBaseline = "middle";
-        pipCtx.fillText("ASMR 私人隨身庫", 540, 540);
+        document.exitFullscreen();
       }
-
-      pipCtx.textAlign = "center";
-      pipCtx.textBaseline = "alphabetic";
-      pipCtx.font = "bold 60px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
-      
-      let lines = wrapCanvasText(pipCtx, currentText, 940);
-      let startY = lines.length > 1 ? (940 - (lines.length - 1) * 70) : 960;
-      
-      lines.forEach((lineText, idx) => {
-        let curY = startY + (idx * 70);
-        pipCtx.lineWidth = 10;
-        pipCtx.strokeStyle = "rgba(0, 0, 0, 0.9)";
-        pipCtx.strokeText(lineText, 540, curY);
-        pipCtx.fillStyle = "#ff79c6";
-        pipCtx.fillText(lineText, 540, curY);
-      });
-
-    } else if (currentPipMode === 'mp3') {
-      pipCtx.fillStyle = "#0e0e14";
-      pipCtx.fillRect(0, 0, 1200, 350);
-
-      pipCtx.strokeStyle = "rgba(255, 121, 198, 0.15)";
-      pipCtx.lineWidth = 4;
-      pipCtx.beginPath();
-      pipCtx.moveTo(100, 40);
-      pipCtx.lineTo(1100, 40);
-      pipCtx.moveTo(100, 310);
-      pipCtx.lineTo(1100, 310);
-      pipCtx.stroke();
-
-      pipCtx.fillStyle = "#ff79c6";
-      pipCtx.font = "bold 72px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
-      pipCtx.textAlign = "center";
-      pipCtx.textBaseline = "middle";
-      
-      pipCtx.shadowColor = "rgba(255, 121, 198, 0.55)";
-      pipCtx.shadowBlur = 18;
-
-      let maxWidth = 1080;
-      let lines = wrapCanvasText(pipCtx, currentText, maxWidth);
-      if (lines.length > 2) {
-        pipCtx.font = "bold 58px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
-      }
-
-      let lineHeight = (lines.length > 2) ? 70 : 88;
-      let totalHeight = lines.length * lineHeight;
-      let startY = 175 - (totalHeight / 2) + (lineHeight / 2);
-
-      lines.forEach((lineText, i) => {
-        pipCtx.fillText(lineText, 600, startY + (i * lineHeight));
-      });
-      
-      pipCtx.shadowColor = "transparent";
-      pipCtx.shadowBlur = 0;
-    }
-
-    requestAnimationFrame(renderPiPFrame);
-  }
-
-  function wrapCanvasText(ctx, text, maxWidth) {
-    let chars = text.split('');
-    let line = '';
-    let lines = [];
-    for (let n = 0; n < chars.length; n++) {
-      let testLine = line + chars[n];
-      let metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && n > 0) {
-        lines.push(line);
-        line = chars[n];
-      } else {
-        line = testLine;
-      }
-    }
-    lines.push(line);
-    return lines;
-  }
-
-  function drawCoverToCanvas(ctx, source, size, isVideo) {
-    let imgWidth = source.videoWidth || source.width;
-    let imgHeight = source.videoHeight || source.height;
-    if (!imgWidth || !imgHeight) return;
-
-    ctx.save();
-    ctx.fillStyle = "#050508";
-    ctx.fillRect(0, 0, size, size);
-
-    let hRatio = size / imgWidth;
-    let vRatio = size / imgHeight;
-    let ratio = Math.max(hRatio, vRatio);
-    let centerShiftX = (size - imgWidth * ratio) / 2;
-    let centerShiftY = (size - imgHeight * ratio) / 2;
-    ctx.drawImage(source, 0, 0, imgWidth, imgHeight, centerShiftX, centerShiftY, imgWidth * ratio, imgHeight * ratio);
-    ctx.restore();
-  }
-
-  function enablePiP(mode = 'dynamic') {
-    if (currentIndex === -1) return showToast("請先播放一個篇章！");
-
-    if (!document.pictureInPictureEnabled && !pipVideo.webkitSupportsPresentationMode) {
-      return showToast("您的瀏覽器不支援懸浮視窗功能。");
-    }
-
-    setupPiPCanvas(mode);
-
-    if (audio.paused) audio.play().catch(()=>{});
-    pipVideo.play().catch(()=>{});
-
-    if (document.pictureInPictureElement === pipVideo) {
-      document.exitPictureInPicture().catch(()=>{});
-      return;
-    }
-
-    try {
-      if (pipVideo.requestPictureInPicture) {
-        pipVideo.requestPictureInPicture().catch(err => {
-          console.warn("PiP attempt:", err);
-          showToast("懸浮視窗啟動中...");
-        });
-      } else if (pipVideo.webkitSetPresentationMode) {
-        pipVideo.webkitSetPresentationMode("picture-in-picture");
-      }
-    } catch(e) {
-      console.error(e);
-      showToast("請再點擊一次開啟懸浮視窗");
+    } else if (wrap.webkitRequestFullscreen) {
+      wrap.webkitRequestFullscreen();
+    } else if (wrap.msRequestFullscreen) {
+      wrap.msRequestFullscreen();
     }
   }
 
@@ -1028,7 +813,6 @@
     db = e.target.result; 
     loadData(); 
     initMediaSession(); 
-    initPiPEngine();
     requestAnimationFrame(updateHeartToyProgress);
   };
 
@@ -1075,15 +859,6 @@
         globalBackgrounds = e.target.result.blobs;
         bgIndex = 0;
         startGlobalBgRotation();
-      }
-    };
-    tx.objectStore("settings").get("climaxCustomMedia").onsuccess = (e) => {
-      if (e.target.result) {
-        climaxCustomMedia = {
-          blob: e.target.result.mediaBlob,
-          type: e.target.result.type || '',
-          audioBlob: e.target.result.audioBlob
-        };
       }
     };
   }
@@ -1227,6 +1002,7 @@
     };
   }
 
+  // 渲染作品集（修正影片封面破圖問題）
   function renderHomeAlbums() {
     const listEl = document.getElementById("album-list");
     const paginationEl = document.getElementById("pagination-container");
@@ -1253,7 +1029,6 @@
         let firstCover = album.covers[0];
         let coverUrl = createTrackedObjectURL(firstCover);
         if (firstCover.type && firstCover.type.startsWith("video")) {
-          // Perfectly fixed video thumbnail rendering without breaking layout
           coverHtml = `<video class="album-grid-thumb" src="${coverUrl}" muted loop playsinline autoplay></video>`;
         } else {
           coverHtml = `<img class="album-grid-thumb" src="${coverUrl}">`;
@@ -1263,7 +1038,7 @@
       let card = document.createElement("div");
       card.className = "album-grid-card";
       card.innerHTML = `
-        <div class="album-grid-thumb-wrap">${coverHtml}</div>
+        ${coverHtml}
         <div class="album-grid-info">
           <div class="album-grid-title">${escapeHTML(album.title)}</div>
           <div class="album-grid-count">📁 篇章數量：${albumTracks.length} 則</div>
@@ -1392,7 +1167,7 @@
           <div class="play-icon-circle" style="background: linear-gradient(135deg, #ff79c6 0%, #ff52b2 100%);">🎬</div>
           <div class="chapter-meta-text">
             <div class="chapter-name">${escapeHTML(item.title)}</div>
-            <div class="chapter-duration-sub">影片靜音循環 + 同步語音 & 粉紅字幕</div>
+            <div class="chapter-duration-sub">靜音影片循環 + 同步語音 & 粉紅字幕</div>
           </div>
         </div>
         <div class="btn-action-group">
@@ -1404,7 +1179,7 @@
   }
 
   function deleteVideoAsmrTrack(id) {
-    if (!confirm("確定要刪除此影片版 ASMR 篇章嗎？")) return;
+    if (!confirm("確定要刪除此獨立影片版篇章嗎？")) return;
     const tx = db.transaction("videoAsmrTracks", "readwrite");
     tx.objectStore("videoAsmrTracks").delete(id);
     tx.oncomplete = () => { loadData(); showToast("已刪除影片版篇章！"); };
@@ -1418,7 +1193,7 @@
     currentIndex = index;
     isCustomAlbumPlaying = false;
 
-    // Setup Audio
+    // 設定音訊語音
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
     audio.playbackRate = speedOptions[speedIndex];
@@ -1430,7 +1205,7 @@
 
     currentLrc = parseUniversalLyrics(track.lrcText);
 
-    // Setup Video ASMR Display
+    // 設定靜音循環影片
     const videoBox = document.getElementById("player-video-asmr-box");
     const coverBox = document.getElementById("player-cover-box");
     videoBox.style.display = "block";
@@ -1438,7 +1213,7 @@
 
     const videoUrl = createTrackedObjectURL(track.videoBlob);
     activeAsmrVideo.src = videoUrl;
-    activeAsmrVideo.muted = true; // Muted as requested
+    activeAsmrVideo.muted = true;
     activeAsmrVideo.loop = true;
     activeAsmrVideo.play().catch(()=>{});
 
@@ -1762,6 +1537,7 @@
     let currentText = getActiveSubtitleText(audio.currentTime);
     document.getElementById("lrc-box").innerText = currentText;
     document.getElementById("video-asmr-sub").innerText = currentText;
+    document.getElementById("fullscreen-sub").innerText = currentText;
     document.getElementById("mini-lrc").innerText = currentText;
   });
 
@@ -1982,6 +1758,70 @@
     const tx = db.transaction(storeName, "readwrite");
     tx.objectStore(storeName).put(track);
     tx.oncomplete = () => { showToast("✅ 字幕已修改儲存！"); };
+  }
+
+  function base64ToBlob(base64Obj) {
+    if (!base64Obj || !base64Obj.data) return null;
+    let arr = base64Obj.data.split(',');
+    let mime = base64Obj.type || arr[0].match(/:(.*?);/)[1];
+    let bstr = atob(arr[1]);
+    let n = bstr.length;
+    let u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
+
+  async function importDataBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!confirm("匯入備份將會覆寫現有數據庫，是否繼續？")) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        const tx = db.transaction(["albums", "tracks", "videoAsmrTracks", "settings"], "readwrite");
+        
+        if (data.albums) {
+          let store = tx.objectStore("albums");
+          for (let alb of data.albums) {
+            let restoredCovers = (alb.covers) ? alb.covers.map(c => base64ToBlob(c)).filter(Boolean) : [];
+            let restoredBgs = (alb.backgrounds) ? alb.backgrounds.map(b => base64ToBlob(b)).filter(Boolean) : [];
+            store.put({ ...alb, covers: restoredCovers, backgrounds: restoredBgs });
+          }
+        }
+        if (data.tracks) {
+          let store = tx.objectStore("tracks");
+          for (let trk of data.tracks) {
+            let restoredAudio = base64ToBlob(trk.audioBlob);
+            store.put({ ...trk, audioBlob: restoredAudio });
+          }
+        }
+        if (data.videoAsmrTracks) {
+          let store = tx.objectStore("videoAsmrTracks");
+          for (let vtrk of data.videoAsmrTracks) {
+            let restoredVideo = base64ToBlob(vtrk.videoBlob);
+            let restoredAudio = base64ToBlob(vtrk.audioBlob);
+            store.put({ ...vtrk, videoBlob: restoredVideo, audioBlob: restoredAudio });
+          }
+        }
+        if (data.settings) {
+          let store = tx.objectStore("settings");
+          data.settings.forEach(item => store.put(item));
+        }
+
+        tx.oncomplete = () => {
+          loadData();
+          showToast("✅ 跨裝置備份還原成功！");
+        };
+      } catch (err) {
+        console.error(err);
+        showToast("❌ 備份檔案解析失敗。");
+      }
+    };
+    reader.readAsText(file);
   }
 
   function initMediaSession() {
