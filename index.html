@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景記憶永久修復版)</title>
+  <title>軟軟騷穴專用肉棒</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -417,7 +417,8 @@
   </div>
 </div>
 
-<video id="pip-video" crossorigin="anonymous" playsinline muted style="position: fixed; bottom: 0; right: 0; width: 2px; height: 2px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
+<!-- 針對 iOS 優化的 PiP 影片載體 (確保有實際大小但不可見) -->
+<video id="pip-video" crossorigin="anonymous" playsinline muted autoplay style="position: fixed; bottom: 0; right: 0; width: 100px; height: 100px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
 <script>
@@ -448,7 +449,7 @@
   let pipCanvas = null;
   let pipCtx = null;
   let isPiPInitialized = false;
-  let currentPipMode = 'dynamic'; // 'dynamic' or 'mp3'
+  let currentPipMode = 'dynamic';
 
   let currentPage = 1;
   const itemsPerPage = 4;
@@ -525,14 +526,14 @@
   });
 
   pipVideo.addEventListener('pause', () => {
-    if (!audio.paused) {
+    if (!audio.paused && document.pictureInPictureElement === pipVideo) {
       audio.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
     }
   });
   pipVideo.addEventListener('play', () => {
-    if (audio.paused) {
+    if (audio.paused && document.pictureInPictureElement === pipVideo) {
       audio.play();
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
@@ -559,25 +560,21 @@
   function initPiPEngine(mode) {
     currentPipMode = mode;
     
-    // 如果尚未建立 canvas，則建立它
     if (!pipCanvas) {
       pipCanvas = document.createElement('canvas');
     }
     
-    // 根據模式動態調整 Canvas 比例與解析度
-    // 動態專區：1:1 正方形
-    // MP3專區：極扁長條形 (1600x240)，以符合 iOS 原生控制條/通知形狀
+    // 解決 iOS 比例與文字過大問題：使用較溫和的比例 (1200x350)
     if (mode === 'dynamic') {
       pipCanvas.width = 1080;
       pipCanvas.height = 1080;
     } else if (mode === 'mp3') {
-      pipCanvas.width = 1600;
-      pipCanvas.height = 240;
+      pipCanvas.width = 1200;
+      pipCanvas.height = 350;
     }
     
     pipCtx = pipCanvas.getContext('2d', { alpha: false });
 
-    // 如果已經初始化過渲染迴圈，就不需要再次啟動，只要更新 canvas 大小即可
     if (isPiPInitialized) return;
 
     function renderPiPFrame() {
@@ -587,7 +584,7 @@
       let currentText = getActiveSubtitleText(currentTime);
 
       if (currentPipMode === 'dynamic') {
-        // --- 模式 1: 動態專區 (含封面) ---
+        // --- 模式 1: 動態專區 ---
         pipCtx.fillStyle = "#07070a";
         pipCtx.fillRect(0, 0, 1080, 1080);
 
@@ -630,45 +627,66 @@
         });
 
       } else if (currentPipMode === 'mp3') {
-        // --- 模式 2: MP3專區 (極細長條形、純文字) ---
-        // 繪製粉紅漸層背景
-        let gradient = pipCtx.createLinearGradient(0, 0, pipCanvas.width, 0);
-        gradient.addColorStop(0, "#ff79c6");
-        gradient.addColorStop(1, "#ff52b2");
-        pipCtx.fillStyle = gradient;
+        // --- 模式 2: MP3專區 (高畫質白底粉字 + 智慧折行) ---
+        // 1. 純白背景
+        pipCtx.fillStyle = "#ffffff";
         pipCtx.fillRect(0, 0, pipCanvas.width, pipCanvas.height);
 
+        // 2. 高畫質粉紅字體設定
         pipCtx.textAlign = "center";
         pipCtx.textBaseline = "middle";
+        pipCtx.fillStyle = "#ff79c6";
         
-        let fontSize = 100;
+        // 加入淡淡陰影增加立體感與質感
+        pipCtx.shadowColor = "rgba(255, 121, 198, 0.25)";
+        pipCtx.shadowBlur = 10;
+        pipCtx.shadowOffsetX = 0;
+        pipCtx.shadowOffsetY = 2;
+        
+        let fontSize = 85;
         pipCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'SF Pro Display', sans-serif`;
         
-        // 確保長字幕不會超出邊界，動態縮小字體
-        let textWidth = pipCtx.measureText(currentText).width;
-        let maxWidth = pipCanvas.width - 60; 
+        // 3. 智慧折行演算法 (避免字超出邊框或變太小)
+        let maxWidth = pipCanvas.width - 100; // 左右留白
+        let lineHeight = fontSize * 1.3;
         
-        if (textWidth > maxWidth) {
-           fontSize = Math.floor(fontSize * (maxWidth / textWidth));
-           fontSize = Math.max(50, fontSize); // 設定最小字體限制
+        // 將字串拆分為單字(對於中文字幕最保險)
+        let chars = currentText.split('');
+        let line = '';
+        let lines = [];
+        
+        for(let n = 0; n < chars.length; n++) {
+            let testLine = line + chars[n];
+            let metrics = pipCtx.measureText(testLine);
+            if (metrics.width > maxWidth && n > 0) {
+                lines.push(line);
+                line = chars[n];
+            } else {
+                line = testLine;
+            }
+        }
+        lines.push(line);
+
+        // 4. 置中繪製多行文字
+        let totalHeight = (lines.length - 1) * lineHeight;
+        let startY = (pipCanvas.height / 2) - (totalHeight / 2);
+        
+        // 如果行數過多，稍微動態縮小字體 (極端防護)
+        if (lines.length > 2) {
+           fontSize = 65;
+           lineHeight = fontSize * 1.3;
            pipCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, 'PingFang TC', 'SF Pro Display', sans-serif`;
+           startY = (pipCanvas.height / 2) - (((lines.length - 1) * lineHeight) / 2);
         }
 
-        // 加上文字陰影增加質感與閱讀性
-        pipCtx.shadowColor = "rgba(0, 0, 0, 0.15)";
-        pipCtx.shadowBlur = 8;
-        pipCtx.shadowOffsetX = 0;
-        pipCtx.shadowOffsetY = 4;
-
-        pipCtx.fillStyle = "#ffffff";
-        // 稍微向下偏移 5% 使視覺置中更完美
-        pipCtx.fillText(currentText, pipCanvas.width / 2, (pipCanvas.height / 2) + (fontSize * 0.05));
+        for (let i = 0; i < lines.length; i++) {
+            // 稍微往下偏移 5% 使視覺更居中
+            pipCtx.fillText(lines[i], pipCanvas.width / 2, startY + (i * lineHeight) + (fontSize * 0.05));
+        }
         
         // 重置陰影避免影響下一幀
         pipCtx.shadowColor = "transparent";
         pipCtx.shadowBlur = 0;
-        pipCtx.shadowOffsetX = 0;
-        pipCtx.shadowOffsetY = 0;
       }
 
       requestAnimationFrame(renderPiPFrame);
@@ -677,7 +695,7 @@
 
     const stream = pipCanvas.captureStream(30);
     pipVideo.srcObject = stream;
-    pipVideo.play();
+    pipVideo.play().catch(()=>{});
     isPiPInitialized = true;
   }
 
@@ -699,42 +717,53 @@
     ctx.restore();
   }
 
+  // 針對 iOS 重新優化的非同步懸浮視窗啟動機制
   async function enablePiP(mode = 'dynamic') {
     if (currentIndex === -1) return alert("請先播放一個篇章才能開啟桌面懸浮窗！");
     
-    // 確保音訊正在播放
+    // 如果已經在畫中畫模式
+    if (document.pictureInPictureElement === pipVideo) {
+      if (currentPipMode === mode) {
+        // 同一模式：關閉
+        await document.exitPictureInPicture();
+        return;
+      } else {
+        // 不同模式：iOS 要求必須先退出，等待完整退出後，改變設定再進入
+        await document.exitPictureInPicture();
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+    
+    // 強制更新/初始化畫布模式
+    initPiPEngine(mode);
+    
+    // 確保音訊在播放狀態 (此舉會取得 iOS 使用者手勢權限)
     if (audio.paused) {
-      await audio.play().catch(() => {});
+      audio.play().catch(() => {});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
     }
 
-    // 檢查懸浮窗是否已經開啟
-    if (document.pictureInPictureElement === pipVideo) {
-      if (currentPipMode === mode) {
-        // 如果點擊的是同一個模式，則關閉懸浮窗
-        await document.exitPictureInPicture();
-        return;
-      } else {
-        // 如果點擊不同模式，只需更新引擎 (iOS 會自動動態調整視窗形狀)
-        initPiPEngine(mode);
-        return;
-      }
-    }
-    
-    // 初始化對應模式的引擎並開啟
-    initPiPEngine(mode);
-    
     if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover && mode === 'dynamic') {
       cachedCoverElement.play().catch(() => {});
     }
     
+    // 核心修復：iOS Safari 喚醒 Canvas PiP 流程
     try {
+      await pipVideo.play();
       await pipVideo.requestPictureInPicture();
     } catch (err) {
-      setTimeout(async () => {
-        try { await pipVideo.requestPictureInPicture(); } catch(e) { alert("無法啟用懸浮視窗，請確認手機瀏覽器支援 PiP。"); }
-      }, 200);
+      console.warn("第一次喚醒 PiP 失敗 (iOS常見現象)，正在嘗試備用喚醒方案...", err);
+      // 備用方案：監聽 loadeddata 或強迫延遲再次呼叫
+      const tryPipAgain = async () => {
+        try { await pipVideo.requestPictureInPicture(); } catch(e) { console.error("PiP 徹底失敗", e); }
+      };
+      
+      pipVideo.addEventListener('loadeddata', tryPipAgain, { once: true });
+      pipVideo.addEventListener('playing', tryPipAgain, { once: true });
+      
+      // 最後的防線強迫觸發
+      setTimeout(tryPipAgain, 250);
     }
   }
 
