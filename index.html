@@ -210,31 +210,31 @@
     .heart-toy-container:active { transform: scale(0.92); }
     .heart-svg { width: 100%; height: 100%; pointer-events: none; }
 
-    /* 阿嘿顏圖片放大 15% */
+    /* 阿嘿顏圖片放大 25% 且置頂 (scale 1.47 * 1.25 = 1.84, top 12%) */
     .ahegao-center-img {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.47);
-      max-width: 95%; max-height: 95%; z-index: 20; pointer-events: none; display: none;
+      position: absolute; top: 12%; left: 50%; transform: translateX(-50%) scale(1.84);
+      max-width: 95%; max-height: 85%; z-index: 20; pointer-events: none; display: none;
       filter: drop-shadow(0 0 15px rgba(255, 121, 198, 0.9));
       object-fit: contain;
     }
 
-    /* 狀聲詞動態漂浮容器：速度再慢 50%（3.8s）、數量增加 50%、不重疊 */
+    /* 狀聲詞動態漂浮容器：速度再慢 50%（7.6s）、數量增加、不重疊、更有動畫感 */
     .sfx-container {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 25; overflow: hidden; display: none;
     }
     .sfx-item {
       position: absolute; color: #ff79c6; font-weight: 900;
-      font-size: 1.25rem; font-family: "SF Pro Display", "PingFang TC", "Comic Sans MS", cursive, sans-serif;
-      text-shadow: 0 0 10px rgba(255, 121, 198, 0.95), 0 0 20px rgba(255, 105, 180, 0.85), 2px 2px 5px rgba(0, 0, 0, 0.9);
-      animation: floatSfxSlow 3.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      font-size: 1.35rem; font-family: "SF Pro Display", "PingFang TC", "Comic Sans MS", cursive, sans-serif;
+      text-shadow: 0 0 12px rgba(255, 121, 198, 0.95), 0 0 25px rgba(255, 105, 180, 0.85), 2px 2px 6px rgba(0, 0, 0, 0.9);
+      animation: floatSfxSlower 7.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       white-space: nowrap; user-select: none;
     }
-    @keyframes floatSfxSlow {
-      0% { opacity: 0; transform: translateY(20px) scale(0.6) rotate(-8deg); filter: blur(2px); }
-      15% { opacity: 1; transform: translateY(0px) scale(1.15) rotate(2deg); filter: blur(0px); }
-      75% { opacity: 0.95; transform: translateY(-35px) scale(1.05) rotate(-3deg); }
-      100% { opacity: 0; transform: translateY(-65px) scale(0.85) rotate(8deg); filter: blur(1px); }
+    @keyframes floatSfxSlower {
+      0% { opacity: 0; transform: translateY(30px) scale(0.5) rotate(-10deg); filter: blur(3px); }
+      20% { opacity: 1; transform: translateY(0px) scale(1.25) rotate(3deg); filter: blur(0px); }
+      80% { opacity: 0.95; transform: translateY(-50px) scale(1.1) rotate(-4deg); }
+      100% { opacity: 0; transform: translateY(-90px) scale(0.9) rotate(10deg); filter: blur(2px); }
     }
 
     @keyframes ahegaoShakeAnim {
@@ -571,18 +571,20 @@
   let analyserNode = null;
   let audioSourceNode = null;
 
-  // 豐富且每次不重複的阿嘿顏狀聲詞清單
+  // 更新後更色氣且包含肚子部位描寫的狀聲詞清單（已刪除全身麻痺了、斯哈）
   const hSfxList = [
     "啊♥", "嗯啊…♥", "好舒服♥", "要去了♥", "好棒♥", 
     "要高潮了♥", "嗯嗯…♥", "呀啊♥", "救命♥", "要壞掉了♥",
     "哈啊…♥", "好深♥", "腦袋空白了♥", "不行了♥", "啊哈♥",
     "頂到了♥", "快停下♥", "裡面好熱♥", "要融化了♥", "啊呣♥",
-    "全身麻痺了♥", "斯哈…♥", "太快了♥", "滿出來了♥", "好厲害♥",
+    "肚子好脹♥", "肚子裡好滿♥", "肚子熱呼呼的♥", "肚子被撐大了♥", "肚子凸起來了♥",
+    "肚子裡面好舒服♥", "肚子好重、快滿出來了♥", "太快了♥", "滿出來了♥", "好厲害♥",
     "不行、要滿出來了♥", "啊呣…♥", "腦袋融化了♥", "好深、好棒♥", "救命啊♥"
   ];
   let lastSfxIndex = -1;
   let sfxLoopTimer = null;
   let activePipSfxItems = [];
+  let usedSfxPositions = [];
 
   let repeatMode = 0;
   const repeatModeNames = ["🔁 順序播放", "🔂 單曲循環", "🔀 隨機播放"];
@@ -784,16 +786,31 @@
     ahegaoAudio.onended = () => resetOrgasmState();
   }
 
+  function getNonOverlappingPosition() {
+    let posX, posY, overlapping;
+    let attempts = 0;
+    do {
+      posX = 6 + Math.random() * 80;
+      posY = 15 + Math.random() * 65;
+      overlapping = usedSfxPositions.some(p => Math.abs(p.x - posX) < 18 && Math.abs(p.y - posY) < 12);
+      attempts++;
+    } while (overlapping && attempts < 10);
+    
+    usedSfxPositions.push({ x: posX, y: posY });
+    if (usedSfxPositions.length > 10) usedSfxPositions.shift();
+    return { x: posX, y: posY };
+  }
+
   function startSfxAnimation() {
     const sfxContainer = document.getElementById("sfx-container");
     sfxContainer.style.display = "block";
     sfxContainer.innerHTML = "";
     activePipSfxItems = [];
+    usedSfxPositions = [];
 
     const createSfxItem = () => {
       if (!isOrgasmTriggered) return;
       
-      // 確保每次隨機且不與上次重複
       let randIdx;
       do {
         randIdx = Math.floor(Math.random() * hSfxList.length);
@@ -805,14 +822,12 @@
       el.className = "sfx-item";
       el.innerText = text;
       
-      // 分散位置，避免重疊（增加 50% 密集度）
-      const posX = 6 + Math.random() * 80;
-      const posY = 15 + Math.random() * 65;
-      el.style.left = posX + "%";
-      el.style.top = posY + "%";
+      let pos = getNonOverlappingPosition();
+      el.style.left = pos.x + "%";
+      el.style.top = pos.y + "%";
       
       sfxContainer.appendChild(el);
-      setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 3800);
+      setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 7600); // 配合速度再慢 50% (7.6s)
 
       const pipItem = {
         text: text,
@@ -826,8 +841,9 @@
       activePipSfxItems.push(pipItem);
     };
 
-    for (let i = 0; i < 7; i++) {
-      setTimeout(createSfxItem, i * 180);
+    // 數量增加且不重疊
+    for (let i = 0; i < 10; i++) {
+      setTimeout(createSfxItem, i * 140);
     }
 
     sfxLoopTimer = setInterval(() => {
@@ -836,7 +852,7 @@
       } else {
         clearInterval(sfxLoopTimer);
       }
-    }, 400); // 縮短間隔以增加 50% 數量
+    }, 300); 
   }
 
   function resetOrgasmState() {
@@ -849,6 +865,7 @@
     sfxContainer.style.display = "none";
     sfxContainer.innerHTML = "";
     activePipSfxItems = [];
+    usedSfxPositions = [];
 
     const coverBox = document.getElementById("player-cover-box");
     coverBox.classList.remove("ahegao-shaking", "pink-orgasm-fx");
@@ -977,21 +994,22 @@
       if (isVideoTrackPlaying) drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
 
       if (isOrgasmTriggered && ahegaoProcessedCanvas) {
-        let pW = 860, pH = 860;
-        pipCtx.drawImage(ahegaoProcessedCanvas, 540 - pW/2, 540 - pH/2, pW, pH);
+        let pW = 950, pH = 950;
+        // 圖片放大並置頂
+        pipCtx.drawImage(ahegaoProcessedCanvas, 540 - pW/2, 60, pW, pH);
       }
 
-      // 影片 PiP 動態狀聲詞同步慢速動畫感
+      // PiP 狀聲詞動態層同步（速度再慢 50%，豐富且不重疊）
       if (isOrgasmTriggered && activePipSfxItems.length > 0) {
         activePipSfxItems.forEach((item) => {
-          item.progress += 0.012; // 慢速 50%
+          item.progress += 0.006; // 配合慢速動畫
           let alpha = 1;
           if (item.progress < 0.2) alpha = item.progress / 0.2;
           else if (item.progress > 0.8) alpha = (1 - item.progress) / 0.2;
 
           if (alpha > 0) {
             pipCtx.save();
-            pipCtx.translate(item.x, item.y - (item.progress * 45));
+            pipCtx.translate(item.x, item.y - (item.progress * 55));
             pipCtx.rotate(item.angle);
             pipCtx.scale(item.scale, item.scale);
 
@@ -1424,7 +1442,8 @@
           const seconds = parseInt(match[2], 10);
           const milliseconds = parseInt(match[3].padEnd(3, '0'), 10);
           const time = minutes * 60 + seconds + milliseconds / 1000;
-          let text = line.replace(lrcTimeReg, '').trim();
+          // 修正字幕BUG：使用 global 正則表達式徹底清除所有時間標籤，只留下純字幕內容
+          let text = line.replace(/\[\d+:\d+(\.\d+)?\]/g, '').trim();
           if (text) lyrics.push({ time, text });
         }
       }
