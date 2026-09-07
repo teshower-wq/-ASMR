@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ASMR 私人隨身庫 (全域背景記憶與iOS懸浮大升級版)</title>
+  <title>ASMR 私人隨身庫 (全域背景與阿嘿顏大升級版)</title>
   <style>
     :root {
       --primary-pink: #ff79c6;
@@ -171,7 +171,7 @@
     .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
     .page-info { font-size: 0.85rem; color: var(--text-sub); }
 
-    /* --- 播放面板重點優化 (修正 iOS 控制與可見度) --- */
+    /* --- 播放面板 --- */
     .player-card {
       position: fixed; bottom: 0; left: 0; right: 0; margin: auto; max-width: 680px; width: 100%; 
       max-height: 86vh; height: auto; display: flex; flex-direction: column;
@@ -189,7 +189,6 @@
     }
     .drag-handle { width: 50px; height: 5px; background: rgba(255, 255, 255, 0.45); border-radius: 10px; }
 
-    /* 面頁內容滑動區 (支援獨立滾動) */
     .player-scroll-area {
       overflow-y: auto; overflow-x: hidden; width: 100%;
       padding: 4px 18px 24px 18px; -webkit-overflow-scrolling: touch;
@@ -201,7 +200,7 @@
       position: relative; box-shadow: 0 6px 20px rgba(0,0,0,0.5); 
       display: flex; align-items: center; justify-content: center;
     }
-    .cover-box img, .cover-box video { 
+    .cover-box img.main-media, .cover-box video.main-media { 
       width: 100%; height: 100%; object-fit: cover; display: none; position: absolute; 
       top: 0; left: 0; border-radius: 12px;
     }
@@ -292,6 +291,34 @@
       z-index: 3000; opacity: 0; transition: all 0.3s ease; pointer-events: none;
     }
     .toast-msg.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* --- 高潮愛心系統 UI --- */
+    .heart-ui-container {
+      position: absolute; top: 12px; right: 12px; width: 32px; height: 32px;
+      z-index: 20; pointer-events: none; display: none; opacity: 0; transition: opacity 0.5s ease;
+    }
+    .ahegao-shake { animation: shake 0.4s infinite; }
+    .pink-flash { animation: pinkPulse 1.5s infinite; }
+
+    #climax-ui-img {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 90%; height: 90%; object-fit: contain; z-index: 15; display: none; pointer-events: none;
+      filter: drop-shadow(0 0 15px rgba(255,121,198,0.6));
+    }
+
+    @keyframes shake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      20% { transform: translate(-2px, -1px) rotate(-1deg); }
+      40% { transform: translate(-1px, 2px) rotate(1deg); }
+      60% { transform: translate(2px, 1px) rotate(0deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+    @keyframes pinkPulse {
+      0% { box-shadow: inset 0 0 0 rgba(255,121,198,0); }
+      50% { box-shadow: inset 0 0 60px rgba(255,121,198,0.7); }
+      100% { box-shadow: inset 0 0 0 rgba(255,121,198,0); }
+    }
   </style>
 </head>
 <body>
@@ -324,13 +351,26 @@
     </div>
 
     <div class="glass-card">
+      <div class="card-title">💓 專屬影片與阿嘿顏專區設定</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        影片播放時右上方會出現粉色小愛心。會隨女性聲音起伏緩慢填滿。滿了之後會觸發阿嘿顏高潮特效、顯示下方設定的圖片與專屬高潮音檔！(桌面懸浮視窗也會同步特效)
+      </div>
+      <div class="form-group"><label>高潮觸發圖片 (阿嘿顏圖片，建議透明背景 png)</label><input type="file" id="climax-img" accept="image/*"></div>
+      <div class="form-group"><label>高潮觸發音效 (高潮聲檔)</label><input type="file" id="climax-audio" accept="audio/*"></div>
+      <button class="btn-pink" onclick="saveClimaxData()">儲存專屬高潮設定</button>
+    </div>
+
+    <div class="glass-card">
       <div class="card-title">🖼️ 設定預設全域背景 (支援多張、每30秒自動輪播)</div>
       <div class="form-group"><label>選取多張圖片或 MP4 影片素材</label><input type="file" id="global-bg-input" accept="image/*,video/*" multiple></div>
       <button class="btn-pink" onclick="saveGlobalBackgrounds()">儲存全域背景素材</button>
     </div>
 
     <div class="glass-card">
-      <div class="card-title">📁 建立作品分區 (封面手動切換)</div>
+      <div class="card-title">📁 建立作品分區 (影片區建立在此)</div>
+      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
+        💡 <b>影片區教學：</b>若要建立會發聲的影片區，請在封面選擇「影片」，隨後再將音訊檔放入下方篇章中，播放時即為音檔搭配影片的完美結合。
+      </div>
       <div class="form-group"><label>作品分區名稱</label><input type="text" id="album-title" placeholder="例如：巫女"></div>
       <div class="form-group"><label>封面素材 (支援複選多張圖片或 MP4 影片)</label><input type="file" id="album-covers" accept="image/*,video/*" multiple></div>
       <div class="form-group"><label>此分區專屬背景 (支援複選多張)</label><input type="file" id="album-bgs" accept="image/*,video/*" multiple></div>
@@ -395,7 +435,6 @@
   <button class="mini-btn" onclick="event.stopPropagation(); expandPlayer();">▲</button>
 </div>
 
-<!-- 播放器面板 (高度與滾動優化) -->
 <div id="player-card" class="player-card minimized">
   <div class="drag-handle-area" id="drag-handle-area" title="向下滑動關閉面板">
     <div class="drag-handle"></div>
@@ -403,6 +442,17 @@
 
   <div class="player-scroll-area" id="player-scroll-area">
     <div class="cover-box" id="player-cover-box">
+      <img id="climax-ui-img">
+      <div id="heart-overlay" class="heart-ui-container">
+        <svg viewBox="0 0 32 30" width="100%" height="100%">
+          <path d="M16 28.5C16 28.5 3 20 3 10C3 5 7 2 11 2C13.5 2 15.5 3.5 16 5.5C16.5 3.5 18.5 2 21 2C25 2 29 5 29 10C29 20 16 28.5 16 28.5Z" fill="none" stroke="#ff79c6" stroke-width="2.5"/>
+          <clipPath id="heart-ui-clip">
+            <rect id="heart-ui-rect" x="0" y="30" width="32" height="0" />
+          </clipPath>
+          <path d="M16 28.5C16 28.5 3 20 3 10C3 5 7 2 11 2C13.5 2 15.5 3.5 16 5.5C16.5 3.5 18.5 2 21 2C25 2 29 5 29 10C29 20 16 28.5 16 28.5Z" fill="#ff79c6" clip-path="url(#heart-ui-clip)"/>
+        </svg>
+      </div>
+
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
@@ -448,7 +498,6 @@
   </div>
 </div>
 
-<!-- iOS / Safari 懸浮視窗專用載體影片 (必須 playsinline 與 muted) -->
 <video id="pip-video" playsinline muted autoplay style="position: fixed; bottom: 0; right: 0; width: 1px; height: 1px; opacity: 0.001; pointer-events: none; z-index: -999;"></video>
 <audio id="main-audio" crossorigin="anonymous" preload="auto"></audio>
 
@@ -478,7 +527,7 @@
   let isPowerSavingCover = false;
 
   // 播放增強設定
-  let repeatMode = 0; // 0: 順序, 1: 單曲循環, 2: 隨機播放
+  let repeatMode = 0; 
   const repeatModeNames = ["🔁 順序播放", "🔂 單曲循環", "🔀 隨機播放"];
   let speedOptions = [0.75, 1.0, 1.25, 1.5, 2.0];
   let speedIndex = 1;
@@ -493,6 +542,15 @@
   let currentPage = 1;
   const itemsPerPage = 4;
   let activeCreatedUrls = [];
+
+  // --- 高潮系統變數 ---
+  let audioCtx, analyser, dataArray, mediaSource;
+  let heartProgress = 0; // 0 to 100
+  let isClimax = false;
+  let climaxSettings = { imgUrl: null, audioUrl: null };
+  let climaxImgObj = new Image();
+  let climaxAudioObj = new Audio();
+  // --- 
 
   const audio = document.getElementById("main-audio");
   const bgVideo = document.getElementById("bg-video");
@@ -542,7 +600,7 @@
     }
   });
 
-  // iOS 手勢拖拽改進：綁定 dragHandleArea 控制展開與收合
+  // iOS 手勢拖拽改進
   dragHandleArea.addEventListener("touchstart", (e) => {
     touchStartY = e.touches[0].clientY;
     isDragging = true;
@@ -572,7 +630,6 @@
     touchCurrentY = 0;
   });
 
-  // iOS 懸浮視窗播放狀態與主音訊連動
   pipVideo.addEventListener('pause', () => {
     if (!audio.paused && document.pictureInPictureElement === pipVideo) {
       audio.pause();
@@ -605,7 +662,87 @@
     updateCoverDisplay();
   }
 
-  // --- 重大優化：懸浮視窗 (PiP) 初始化與幀繪製 ---
+  // --- 高潮系統核心邏輯 ---
+  function initAudioContext() {
+    if (!audioCtx) {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        mediaSource = audioCtx.createMediaElementSource(audio);
+        mediaSource.connect(analyser);
+        analyser.connect(audioCtx.destination);
+        requestAnimationFrame(updateHeartLogic);
+      } catch (e) { console.warn("AudioContext init error:", e); }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function updateHeartLogic() {
+    if (!audio.paused && !isClimax && analyser && isCoverVideoActive) {
+      analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+      let avg = sum / dataArray.length;
+
+      if (avg > 25) {
+        heartProgress += 0.02; 
+      } else if (avg > 10) {
+        heartProgress += 0.005;
+      }
+
+      if (heartProgress >= 100) {
+        heartProgress = 100;
+        triggerClimax();
+      }
+      
+      // 更新主 UI 的愛心填充度
+      document.getElementById("heart-ui-rect").setAttribute("y", 30 - (30 * heartProgress / 100));
+      document.getElementById("heart-ui-rect").setAttribute("height", 30 * heartProgress / 100);
+    }
+    requestAnimationFrame(updateHeartLogic);
+  }
+
+  function triggerClimax() {
+    if (isClimax) return;
+    isClimax = true;
+    audio.pause();
+    document.getElementById("btn-play").innerText = "▶";
+    document.getElementById("mini-btn-play").innerText = "▶";
+
+    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
+    
+    if (climaxAudioObj.src) {
+      climaxAudioObj.play().catch(e => console.log(e));
+    }
+
+    // UI 特效觸發
+    document.getElementById("heart-overlay").classList.add("ahegao-shake");
+    document.getElementById("player-cover-box").classList.add("pink-flash");
+    
+    if (climaxImgObj.src) {
+      const uiImg = document.getElementById("climax-ui-img");
+      uiImg.src = climaxImgObj.src;
+      uiImg.style.display = "block";
+    }
+  }
+
+  function resetClimax() {
+    isClimax = false;
+    heartProgress = 0;
+    document.getElementById("heart-overlay").classList.remove("ahegao-shake");
+    document.getElementById("player-cover-box").classList.remove("pink-flash");
+    document.getElementById("climax-ui-img").style.display = "none";
+    document.getElementById("heart-ui-rect").setAttribute("y", 30);
+    document.getElementById("heart-ui-rect").setAttribute("height", 0);
+    climaxAudioObj.pause();
+    climaxAudioObj.currentTime = 0;
+  }
+  // --- 結束 ---
+
   function initPiPEngine() {
     if (!pipCanvas) {
       pipCanvas = document.createElement('canvas');
@@ -625,7 +762,6 @@
       pipCanvas.height = 1080;
     }
     
-    // 初始化畫面串流 (預先載入，避免觸發時失控)
     if (!pipVideo.srcObject) {
       const stream = pipCanvas.captureStream(30);
       pipVideo.srcObject = stream;
@@ -637,6 +773,15 @@
     }
   }
 
+  function drawCanvasHeart(ctx, x, y, size) {
+    ctx.beginPath();
+    ctx.moveTo(x, y + size / 4);
+    ctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + size / 4);
+    ctx.bezierCurveTo(x - size / 2, y + size / 2.2, x, y + size * 0.8, x, y + size);
+    ctx.bezierCurveTo(x, y + size * 0.8, x + size / 2, y + size / 2.2, x + size / 2, y + size / 4);
+    ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + size / 4);
+  }
+
   function renderPiPFrame() {
     if (!pipCtx || !isPiPRendering) return;
     
@@ -644,12 +789,12 @@
     let currentText = getActiveSubtitleText(currentTime);
 
     if (currentPipMode === 'dynamic') {
-      // --- 模式 1: 動態專區 (1080x1080) ---
+      // 模式 1: 動態專區 (1080x1080)
       pipCtx.fillStyle = "#07070a";
       pipCtx.fillRect(0, 0, 1080, 1080);
 
       if (cachedCoverElement) {
-        if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover) {
+        if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover && !isClimax) {
           cachedCoverElement.play().catch(() => {});
         }
         drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive && !isPowerSavingCover);
@@ -662,6 +807,42 @@
         pipCtx.textBaseline = "middle";
         pipCtx.fillText("ASMR 隨身庫", 540, 540);
       }
+
+      // --- 懸浮視窗的阿嘿顏特效與愛心繪製 ---
+      if (isCoverVideoActive) {
+        let hx = 980, hy = 50, hSize = 50;
+        pipCtx.save();
+        
+        // 邊框
+        pipCtx.strokeStyle = "#ff79c6";
+        pipCtx.lineWidth = 4;
+        drawCanvasHeart(pipCtx, hx, hy, hSize);
+        if (isClimax) {
+          pipCtx.shadowColor = "#ff79c6";
+          pipCtx.shadowBlur = 20; // 高潮發光
+        }
+        pipCtx.stroke();
+        
+        // 填滿進度
+        pipCtx.clip();
+        pipCtx.fillStyle = "rgba(255, 121, 198, 0.9)";
+        let fillHeight = (hSize * 1.5) * (heartProgress / 100); 
+        pipCtx.fillRect(hx - hSize, hy + hSize - fillHeight, hSize * 2, fillHeight);
+        pipCtx.restore();
+      }
+
+      if (isClimax) {
+        pipCtx.fillStyle = "rgba(255, 121, 198, 0.25)";
+        pipCtx.fillRect(0, 0, 1080, 1080);
+        
+        if (climaxImgObj.src) {
+          let cRatio = Math.min(900 / climaxImgObj.width, 900 / climaxImgObj.height);
+          let cW = climaxImgObj.width * cRatio;
+          let cH = climaxImgObj.height * cRatio;
+          pipCtx.drawImage(climaxImgObj, (1080 - cW) / 2, (1080 - cH) / 2, cW, cH);
+        }
+      }
+      // ------------------------------------
 
       // 繪製動態字幕
       pipCtx.textAlign = "center";
@@ -681,11 +862,10 @@
       });
 
     } else if (currentPipMode === 'mp3') {
-      // --- 模式 2: MP3專區 (1200x350 霧面深黑底 + 霓虹粉大字體) ---
+      // 模式 2: MP3專區
       pipCtx.fillStyle = "#0e0e14";
       pipCtx.fillRect(0, 0, 1200, 350);
 
-      // 背景裝飾微光線條
       pipCtx.strokeStyle = "rgba(255, 121, 198, 0.15)";
       pipCtx.lineWidth = 4;
       pipCtx.beginPath();
@@ -695,7 +875,6 @@
       pipCtx.lineTo(1100, 310);
       pipCtx.stroke();
 
-      // 字幕極致放大與排版 (刪除上方篇章名稱)
       pipCtx.fillStyle = "#ff79c6";
       pipCtx.font = "bold 72px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
       pipCtx.textAlign = "center";
@@ -762,7 +941,6 @@
     ctx.restore();
   }
 
-  // --- 重大修復：100% 一次順利喚醒 iOS / Desktop 懸浮視窗 ---
   function enablePiP(mode = 'dynamic') {
     if (currentIndex === -1) return showToast("請先播放一個篇章！");
 
@@ -770,31 +948,25 @@
       return alert("您的瀏覽器不支援懸浮視窗 (Picture-in-Picture) 功能。");
     }
 
-    // 1. 同步設定 Canvas 模式
     setupPiPCanvas(mode);
 
-    // 2. 確保載體影音播放
-    if (audio.paused) audio.play().catch(()=>{});
+    if (audio.paused && !isClimax) audio.play().catch(()=>{});
     pipVideo.play().catch(()=>{});
 
-    // 3. 如果當前已在 PiP 模式中，則直接退出
     if (document.pictureInPictureElement === pipVideo) {
       document.exitPictureInPicture().catch(()=>{});
       return;
     }
 
-    // 4. 第一時間同步調用，保障原生 API 不被非同步阻斷
     try {
       if (pipVideo.requestPictureInPicture) {
         pipVideo.requestPictureInPicture().catch(err => {
-          console.warn("PiP 喚醒嘗試:", err);
           showToast("懸浮視窗啟動中...");
         });
       } else if (pipVideo.webkitSetPresentationMode) {
         pipVideo.webkitSetPresentationMode("picture-in-picture");
       }
     } catch(e) {
-      console.error(e);
       showToast("請再點擊一次開啟懸浮視窗");
     }
   }
@@ -810,7 +982,7 @@
     db = e.target.result; 
     loadData(); 
     initMediaSession(); 
-    initPiPEngine(); // 預先初始化 PiP
+    initPiPEngine(); 
   };
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -832,7 +1004,7 @@
           }
         }
       }
-    } catch(err) { console.error(err); }
+    } catch(err) {}
   });
 
   function loadData() {
@@ -854,11 +1026,21 @@
         startGlobalBgRotation();
       }
     };
+    tx.objectStore("settings").get("climaxData").onsuccess = (e) => {
+      if (e.target.result) {
+        if (e.target.result.imageBlob) {
+          climaxSettings.imgUrl = createTrackedObjectURL(e.target.result.imageBlob);
+          climaxImgObj.src = climaxSettings.imgUrl;
+        }
+        if (e.target.result.audioBlob) {
+          climaxSettings.audioUrl = createTrackedObjectURL(e.target.result.audioBlob);
+          climaxAudioObj.src = climaxSettings.audioUrl;
+        }
+      }
+    };
   }
 
-  function toggleAdminDrawer() {
-    document.getElementById("admin-drawer").classList.toggle("open");
-  }
+  function toggleAdminDrawer() { document.getElementById("admin-drawer").classList.toggle("open"); }
 
   function switchPage(pageName, albumId) {
     document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
@@ -884,6 +1066,24 @@
     });
   }
 
+  // --- 儲存阿嘿顏專區設定 ---
+  async function saveClimaxData() {
+    const imgFile = document.getElementById("climax-img").files[0];
+    const audFile = document.getElementById("climax-audio").files[0];
+    if (!imgFile && !audFile) return showToast("未選取檔案");
+    
+    const tx = db.transaction("settings", "readwrite");
+    tx.objectStore("settings").put({
+      key: "climaxData",
+      imageBlob: imgFile,
+      audioBlob: audFile
+    });
+    tx.oncomplete = () => {
+      showToast("✅ 阿嘿顏特效設定儲存成功！");
+      setTimeout(() => location.reload(), 1000);
+    };
+  }
+
   async function saveGlobalBackgrounds() {
     const input = document.getElementById("global-bg-input");
     if (!input.files.length) return alert("請先選取圖片或影片檔案！");
@@ -892,12 +1092,7 @@
     if (blobs.length > 0) {
       const reader = new FileReader();
       reader.onload = function(e) {
-        try {
-          localStorage.setItem("asmr_quick_global_bg", JSON.stringify({
-            url: e.target.result,
-            type: blobs[0].type
-          }));
-        } catch(err) {}
+        try { localStorage.setItem("asmr_quick_global_bg", JSON.stringify({ url: e.target.result, type: blobs[0].type })); } catch(err) {}
       };
       reader.readAsDataURL(blobs[0]);
     }
@@ -1255,15 +1450,7 @@
         loadData();
         showToast(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對！`);
       };
-
-      tx.onerror = (err) => {
-        console.error(err);
-        btn.disabled = false;
-        btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
-        alert("❌ 批量匯入失敗，可能是容量不足。");
-      };
     } catch(e) {
-      console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
     }
@@ -1289,6 +1476,8 @@
   }
 
   function playTrackFromAlbum(albumId, index) {
+    resetClimax(); // 換歌時重置高潮狀態
+
     const albumTracks = tracks.filter(t => t.albumId === albumId);
     if (!albumTracks.length) return;
     currentTrackList = albumTracks;
@@ -1318,23 +1507,26 @@
 
   function buildCoverElements() {
     const box = document.getElementById("player-cover-box");
-    box.innerHTML = `
-      <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
-      <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
-      <div class="cover-indicator" id="cover-indicator">1 / 1</div>
-    `;
+    // 保留原本 UI 元件，避免清空
+    Array.from(box.children).forEach(child => {
+      if(child.tagName === 'IMG' && child.id !== 'climax-ui-img') child.remove();
+      if(child.tagName === 'VIDEO') child.remove();
+    });
+
     coverElements = [];
     cachedCoverElement = null;
 
     if (!activeAlbumCoverBlobs.length) {
       let img = document.createElement("img");
+      img.className = "main-media";
       img.src = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
       img.style.display = "block";
-      box.appendChild(img);
+      box.insertBefore(img, document.getElementById("heart-overlay"));
       coverElements.push(img);
       cachedCoverElement = img;
       isCoverVideoActive = false;
       document.getElementById("cover-indicator").innerText = "1 / 1";
+      document.getElementById("heart-overlay").style.display = "none";
       return;
     }
 
@@ -1342,27 +1534,31 @@
       let url = createTrackedObjectURL(blob);
       if (blob.type.startsWith("video")) {
         let vid = document.createElement("video");
+        vid.className = "main-media";
         vid.src = url;
         vid.muted = true;
         vid.loop = true;
         vid.playsInline = true;
         vid.style.display = (i === 0) ? "block" : "none";
-        box.appendChild(vid);
+        box.insertBefore(vid, document.getElementById("heart-overlay"));
         coverElements.push(vid);
         if (i === 0) {
           cachedCoverElement = vid;
           isCoverVideoActive = true;
+          document.getElementById("heart-overlay").style.display = "block"; // 開啟愛心
           if (!isPowerSavingCover) vid.play().catch(()=>{});
         }
       } else {
         let img = document.createElement("img");
+        img.className = "main-media";
         img.src = url;
         img.style.display = (i === 0) ? "block" : "none";
-        box.appendChild(img);
+        box.insertBefore(img, document.getElementById("heart-overlay"));
         coverElements.push(img);
         if (i === 0) {
           cachedCoverElement = img;
           isCoverVideoActive = false;
+          document.getElementById("heart-overlay").style.display = "none"; // 關閉愛心
         }
       }
     });
@@ -1376,8 +1572,10 @@
         el.style.display = "block";
         cachedCoverElement = el;
         isCoverVideoActive = (el.tagName === 'VIDEO');
+        document.getElementById("heart-overlay").style.display = isCoverVideoActive ? "block" : "none";
+
         if (el.tagName === 'VIDEO') {
-          if (isPowerSavingCover) {
+          if (isPowerSavingCover || isClimax) {
             el.pause();
           } else {
             el.play().catch(()=>{});
@@ -1407,6 +1605,10 @@
     const audioUrl = createTrackedObjectURL(track.audioBlob);
     audio.src = audioUrl;
     audio.playbackRate = speedOptions[speedIndex];
+    
+    // 初始化 Audio Context 確保高潮系統生效
+    initAudioContext();
+    
     audio.play().then(() => {
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
@@ -1459,15 +1661,16 @@
   }
 
   audio.addEventListener("ended", () => {
-    if (repeatMode === 1) { // 單曲循環
+    if (repeatMode === 1) { 
       audio.currentTime = 0;
       audio.play();
-    } else if (repeatMode === 2) { // 隨機播放
+    } else if (repeatMode === 2) { 
       let nextIdx = Math.floor(Math.random() * currentTrackList.length);
       currentIndex = nextIdx;
       const track = currentTrackList[currentIndex];
       const album = albums.find(a => a.id === track.albumId);
       setupActiveAlbumCovers(album);
+      resetClimax();
       loadAndPlayCurrentTrack(track, album);
     } else {
       nextTrack();
@@ -1476,6 +1679,14 @@
 
   function togglePlay() {
     if (currentIndex === -1) return;
+    
+    // 如果處於高潮狀態且被暫停，按下播放則解除高潮並恢復主影片
+    if (isClimax) {
+      resetClimax();
+    }
+
+    initAudioContext();
+    
     if (audio.paused) {
       audio.play();
       document.getElementById("btn-play").innerText = "⏸";
@@ -1542,6 +1753,7 @@
     const track = currentTrackList[currentIndex];
     const album = albums.find(a => a.id === track.albumId);
     setupActiveAlbumCovers(album);
+    resetClimax();
     loadAndPlayCurrentTrack(track, album);
     if (currentAlbumBgBlobs.length > 0) {
       albumBgIndex++;
@@ -1555,6 +1767,7 @@
     const track = currentTrackList[currentIndex];
     const album = albums.find(a => a.id === track.albumId);
     setupActiveAlbumCovers(album);
+    resetClimax();
     loadAndPlayCurrentTrack(track, album);
   }
 
@@ -1724,7 +1937,6 @@
       
       showToast("✅ 備份檔案已成功下載！");
     } catch(err) {
-      console.error(err);
       alert("❌ 備份匯出失敗，請確認設備記憶體是否足夠。");
     } finally {
       btn.disabled = false;
@@ -1768,7 +1980,6 @@
           showToast("✅ 跨裝置備份還原成功！");
         };
       } catch (err) {
-        console.error(err);
         alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
       }
     };
