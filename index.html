@@ -17,7 +17,7 @@
       --border-glass-hover: rgba(255, 121, 198, 0.35);
       --accent-green: #50fa7b;
       --accent-blue: #3b82f6;
-      --cover-height: 280px; /* 預設調大供 iOS 手機檢視 */
+      --cover-height: 280px;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
@@ -187,7 +187,6 @@
       padding: 4px 18px 28px 18px; -webkit-overflow-scrolling: touch;
     }
 
-    /* 影片/封面區域：支援自由控制大小與 iOS 放大 */
     .cover-box { 
       width: 100%; height: var(--cover-height); border-radius: 16px; 
       overflow: hidden; background: #050508; margin: 0 auto 10px auto; 
@@ -200,7 +199,7 @@
       top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 愛心玩具與高潮特效 - 支援可點擊一鍵高潮 */
+    /* 愛心玩具與高潮特效 */
     .heart-toy-container {
       position: absolute; top: 12px; right: 12px; z-index: 30; width: 46px; height: 46px;
       pointer-events: auto; cursor: pointer; filter: drop-shadow(0 0 6px rgba(255, 121, 198, 0.8));
@@ -219,7 +218,7 @@
       object-fit: contain;
     }
 
-    /* 狀聲詞動態漂浮容器 (速度放慢 50% 並具備極佳流暢動畫感) */
+    /* 狀聲詞動態漂浮容器：速度再慢 50%（3.8s）、數量增加 50%、不重疊 */
     .sfx-container {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 25; overflow: hidden; display: none;
@@ -238,7 +237,6 @@
       100% { opacity: 0; transform: translateY(-65px) scale(0.85) rotate(8deg); filter: blur(1px); }
     }
 
-    /* 中小型晃動特效 */
     @keyframes ahegaoShakeAnim {
       0% { transform: translate(0, 0) rotate(0deg); }
       20% { transform: translate(-2.5px, 2px) rotate(-1deg); }
@@ -247,9 +245,7 @@
       80% { transform: translate(2px, 1.5px) rotate(0.8deg); }
       100% { transform: translate(0, 0) rotate(0deg); }
     }
-    .ahegao-shaking {
-      animation: ahegaoShakeAnim 0.12s infinite !important;
-    }
+    .ahegao-shaking { animation: ahegaoShakeAnim 0.12s infinite !important; }
     .pink-orgasm-fx {
       box-shadow: inset 0 0 60px #ff79c6, 0 0 40px #ff79c6 !important;
       border: 2px solid #ff79c6 !important;
@@ -362,10 +358,10 @@
     <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5); background: rgba(28, 16, 28, 0.9);">
       <div class="card-title" style="color: var(--primary-pink);">🥵 阿嘿顏高潮專區 (影片專屬高潮設置)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        【影片區域專屬】當影片右上角的愛心隨聲音升滿（或直接點擊愛心一鍵高潮）後，將觸發阿嘿顏高潮：畫面晃動、粉光特效、暫停影片聲音並切換播放「高潮聲音檔」，且顯示阿嘿顏圖片與流暢慢速動畫狀聲詞。
+        【影片區域專屬】當愛心隨聲音升滿（或點擊愛心一鍵高潮）後，觸發阿嘿顏高潮：畫面晃動、粉光特效、切換播放高潮音檔，並顯示阿嘿顏圖片與升級版慢速、豐富、不重疊的動態狀聲詞。
       </div>
       <div class="form-group">
-        <label>🖼️ 高潮阿嘿顏圖片 (支援上傳去背/ PNG 透明圖，保持原圖品質)</label>
+        <label>🖼️ 高潮阿嘿顏圖片 (支援上傳去背 PNG 透明圖)</label>
         <input type="file" id="ahegao-img-input" accept="image/*" onchange="saveAhegaoImage(event)">
       </div>
       <div class="form-group">
@@ -374,7 +370,7 @@
       </div>
       <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="ahegao-remove-bg-check" style="width: auto;" onchange="toggleAutoRemoveBg(event)">
-        <label for="ahegao-remove-bg-check" style="margin: 0; cursor: pointer; color: #fff;">開啟阿嘿顏圖片自動白/淺色底去背景處理 (若已去背請保持關閉)</label>
+        <label for="ahegao-remove-bg-check" style="margin: 0; cursor: pointer; color: #fff;">開啟阿嘿顏圖片自動白/淺色底去背景處理</label>
       </div>
     </div>
 
@@ -409,23 +405,17 @@
       </div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (純 MP3/音訊區，無愛心功能)</div>
-        <div class="form-group">
-          <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
-          <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
-        </div>
-        <div class="form-group">
-          <label>複選所有字幕/文檔 (.lrc / .vtt / .srt / .txt 全格式)</label>
-          <input type="file" id="batch-lrcs" accept=".lrc,.vtt,.srt,.txt" multiple>
-        </div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (純 MP3/音訊區)</div>
+        <div class="form-group"><label>複選所有音訊檔</label><input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple></div>
+        <div class="form-group"><label>複選所有字幕/文檔</label><input type="file" id="batch-lrcs" accept=".lrc,.vtt,.srt,.txt" multiple></div>
         <button id="btn-batch-upload" class="btn-green" onclick="batchUploadAndPair()">⚡ 一鍵配對並自動匯入篇章</button>
       </div>
 
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
         <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增 (純 MP3音訊檔)</div>
-        <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
+        <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場"></div>
         <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac"></div>
-        <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
+        <div class="form-group"><label>字幕/文檔</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
         <button class="btn-pink" onclick="addTrack()">新增單一篇章</button>
       </div>
     </div>
@@ -467,7 +457,7 @@
 
   <div class="player-scroll-area" id="player-scroll-area">
     <div class="cover-box" id="player-cover-box">
-      <!-- 愛心玩具 (點擊即可一鍵高潮) -->
+      <!-- 愛心玩具 (點擊一鍵高潮) -->
       <div class="heart-toy-container" id="heart-toy-box" onclick="oneClickOrgasm(event)" title="點擊一鍵高潮！">
         <svg class="heart-svg" viewBox="0 0 32 32">
           <defs>
@@ -571,7 +561,7 @@
   let currentCoverHeightPx = 280;
 
   // 阿嘿顏與愛心玩具變數
-  let heartFillPercent = 0; // 0 ~ 100
+  let heartFillPercent = 0;
   let isOrgasmTriggered = false;
   let ahegaoImageElement = null;
   let ahegaoProcessedCanvas = null;
@@ -581,20 +571,20 @@
   let analyserNode = null;
   let audioSourceNode = null;
 
-  // 豐富的阿嘿顏狀聲詞清單（多樣化且每次不重複）
+  // 豐富且每次不重複的阿嘿顏狀聲詞清單
   const hSfxList = [
     "啊♥", "嗯啊…♥", "好舒服♥", "要去了♥", "好棒♥", 
     "要高潮了♥", "嗯嗯…♥", "呀啊♥", "救命♥", "要壞掉了♥",
     "哈啊…♥", "好深♥", "腦袋空白了♥", "不行了♥", "啊哈♥",
     "頂到了♥", "快停下♥", "裡面好熱♥", "要融化了♥", "啊呣♥",
-    "全身麻痺了♥", "斯哈…♥", "太快了♥", "滿出來了♥", "好厲害♥"
+    "全身麻痺了♥", "斯哈…♥", "太快了♥", "滿出來了♥", "好厲害♥",
+    "不行、要滿出來了♥", "啊呣…♥", "腦袋融化了♥", "好深、好棒♥", "救命啊♥"
   ];
   let lastSfxIndex = -1;
   let sfxLoopTimer = null;
   let activePipSfxItems = [];
 
-  // 播放增強設定
-  let repeatMode = 0; // 0: 順序, 1: 單曲循環, 2: 隨機播放
+  let repeatMode = 0;
   const repeatModeNames = ["🔁 順序播放", "🔂 單曲循環", "🔀 隨機播放"];
   let speedOptions = [0.75, 1.0, 1.25, 1.5, 2.0];
   let speedIndex = 1;
@@ -651,7 +641,6 @@
     showToast("⚡ 已完成記憶體釋放與快取清理！");
   }
 
-  // 影片區域大小自由調整函數 (專為 iOS 手機支援放大縮小)
   function adjustVideoSize(direction) {
     currentCoverHeightPx += direction * 45;
     if (currentCoverHeightPx < 200) currentCoverHeightPx = 200;
@@ -678,9 +667,7 @@
     if (!isDragging) return;
     touchCurrentY = e.touches[0].clientY;
     let diff = touchCurrentY - touchStartY;
-    if (diff > 0) {
-      playerCard.style.transform = `translateY(${diff}px)`;
-    }
+    if (diff > 0) playerCard.style.transform = `translateY(${diff}px)`;
   }, { passive: true });
 
   dragHandleArea.addEventListener("touchend", () => {
@@ -688,28 +675,9 @@
     isDragging = false;
     playerCard.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
     let diff = touchCurrentY - touchStartY;
-    if (diff > 70) {
-      minimizePlayer();
-    } else {
-      playerCard.style.transform = 'translateY(0)';
-    }
-    touchStartY = 0; 
-    touchCurrentY = 0;
-  });
-
-  pipVideo.addEventListener('pause', () => {
-    if (!audio.paused && document.pictureInPictureElement === pipVideo) {
-      audio.pause();
-      document.getElementById("btn-play").innerText = "▶";
-      document.getElementById("mini-btn-play").innerText = "▶";
-    }
-  });
-  pipVideo.addEventListener('play', () => {
-    if (audio.paused && document.pictureInPictureElement === pipVideo) {
-      audio.play().catch(()=>{});
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
-    }
+    if (diff > 70) minimizePlayer();
+    else playerCard.style.transform = 'translateY(0)';
+    touchStartY = 0; touchCurrentY = 0;
   });
 
   function togglePowerSavingCover() {
@@ -729,7 +697,6 @@
     updateCoverDisplay();
   }
 
-  // --- Web Audio 頻率監測與愛心速度調整系統 ---
   function initAudioAnalyzer() {
     if (audioCtx) return;
     try {
@@ -752,8 +719,7 @@
       const dataArray = new Uint8Array(bufferLength);
       analyserNode.getByteFrequencyData(dataArray);
 
-      let sum = 0;
-      let count = 0;
+      let sum = 0, count = 0;
       for (let i = 8; i < 70 && i < bufferLength; i++) {
         sum += dataArray[i];
         count++;
@@ -766,9 +732,7 @@
         heartFillPercent += speed;
         if (heartFillPercent > 100) heartFillPercent = 100;
         renderHeartUI();
-        if (heartFillPercent >= 100) {
-          triggerAhegaoOrgasm();
-        }
+        if (heartFillPercent >= 100) triggerAhegaoOrgasm();
       }
     }
   }
@@ -787,9 +751,7 @@
     if (e) e.stopPropagation();
     if (currentIndex === -1) return showToast("請先選擇影片篇章播放！");
     const currentTrack = currentTrackList[currentIndex];
-    if (!currentTrack || !currentTrack.videoBlob) {
-      return showToast("⚠️ 愛心高潮功能為【影片專區】專屬！");
-    }
+    if (!currentTrack || !currentTrack.videoBlob) return showToast("⚠️ 愛心高潮功能為【影片專區】專屬！");
     heartFillPercent = 100;
     renderHeartUI();
     triggerAhegaoOrgasm();
@@ -800,9 +762,7 @@
     isOrgasmTriggered = true;
 
     audio.pause();
-    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') {
-      cachedCoverElement.pause();
-    }
+    if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
 
     if (ahegaoAudioBlob) {
       ahegaoAudio.src = createTrackedObjectURL(ahegaoAudioBlob);
@@ -821,9 +781,7 @@
     startSfxAnimation();
     showToast("🥵 阿嘿顏高潮爆發！");
 
-    ahegaoAudio.onended = () => {
-      resetOrgasmState();
-    };
+    ahegaoAudio.onended = () => resetOrgasmState();
   }
 
   function startSfxAnimation() {
@@ -847,8 +805,9 @@
       el.className = "sfx-item";
       el.innerText = text;
       
-      const posX = 8 + Math.random() * 74;
-      const posY = 18 + Math.random() * 60;
+      // 分散位置，避免重疊（增加 50% 密集度）
+      const posX = 6 + Math.random() * 80;
+      const posY = 15 + Math.random() * 65;
       el.style.left = posX + "%";
       el.style.top = posY + "%";
       
@@ -857,8 +816,8 @@
 
       const pipItem = {
         text: text,
-        x: 100 + Math.random() * 880,
-        y: 150 + Math.random() * 750,
+        x: 80 + Math.random() * 900,
+        y: 120 + Math.random() * 800,
         progress: 0,
         life: 1,
         scale: 0.85 + Math.random() * 0.45,
@@ -867,8 +826,8 @@
       activePipSfxItems.push(pipItem);
     };
 
-    for (let i = 0; i < 5; i++) {
-      setTimeout(createSfxItem, i * 250);
+    for (let i = 0; i < 7; i++) {
+      setTimeout(createSfxItem, i * 180);
     }
 
     sfxLoopTimer = setInterval(() => {
@@ -877,7 +836,7 @@
       } else {
         clearInterval(sfxLoopTimer);
       }
-    }, 550);
+    }, 400); // 縮短間隔以增加 50% 數量
   }
 
   function resetOrgasmState() {
@@ -917,9 +876,7 @@
       const data = imgData.data;
       for (let i = 0; i < data.length; i += 4) {
         let r = data[i], g = data[i+1], b = data[i+2];
-        if (r > 220 && g > 220 && b > 220) {
-          data[i+3] = 0;
-        }
+        if (r > 220 && g > 220 && b > 220) data[i+3] = 0;
       }
       ctx.putImageData(imgData, 0, 0);
     }
@@ -959,13 +916,10 @@
 
   function toggleAutoRemoveBg(e) {
     autoRemoveBg = e.target.checked;
-    if (ahegaoImageElement) {
-      ahegaoProcessedCanvas = processAutoRemoveBg(ahegaoImageElement);
-    }
-    showToast(autoRemoveBg ? "已開啟白底自動去背景" : "已切換為原圖/已去背 PNG 模式");
+    if (ahegaoImageElement) ahegaoProcessedCanvas = processAutoRemoveBg(ahegaoImageElement);
+    showToast(autoRemoveBg ? "已開啟白底自動去背景" : "已切換為原圖模式");
   }
 
-  // --- 懸浮視窗 (PiP) 初始化與幀繪製 (保持 MP3 桌面懸浮不動，僅改善影片區域 PiP) ---
   function initPiPEngine() {
     if (!pipCanvas) {
       pipCanvas = document.createElement('canvas');
@@ -976,19 +930,10 @@
   function setupPiPCanvas(mode) {
     currentPipMode = mode;
     initPiPEngine();
+    if (mode === 'mp3') { pipCanvas.width = 1200; pipCanvas.height = 350; }
+    else { pipCanvas.width = 1080; pipCanvas.height = 1080; }
     
-    if (mode === 'mp3') {
-      pipCanvas.width = 1200;
-      pipCanvas.height = 350;
-    } else {
-      pipCanvas.width = 1080;
-      pipCanvas.height = 1080;
-    }
-    
-    if (!pipVideo.srcObject) {
-      const stream = pipCanvas.captureStream(30);
-      pipVideo.srcObject = stream;
-    }
+    if (!pipVideo.srcObject) pipVideo.srcObject = pipCanvas.captureStream(30);
 
     if (!isPiPRendering) {
       isPiPRendering = true;
@@ -998,7 +943,6 @@
 
   function renderPiPFrame() {
     if (!pipCtx || !isPiPRendering) return;
-    
     updateHeartProgress();
     const currentTime = audio.currentTime;
     let currentText = getActiveSubtitleText(currentTime);
@@ -1019,18 +963,10 @@
       pipCtx.fillRect(-20, -20, 1120, 1120);
 
       if (cachedCoverElement) {
-        if (cachedCoverElement.tagName === 'VIDEO' && cachedCoverElement.paused && !isPowerSavingCover && !isOrgasmTriggered) {
-          cachedCoverElement.play().catch(() => {});
-        }
         drawCoverToCanvas(pipCtx, cachedCoverElement, 1080, isCoverVideoActive && !isPowerSavingCover);
       } else {
         pipCtx.fillStyle = "#121218";
         pipCtx.fillRect(0, 0, 1080, 1080);
-        pipCtx.fillStyle = "#ff79c6";
-        pipCtx.font = "bold 48px sans-serif";
-        pipCtx.textAlign = "center";
-        pipCtx.textBaseline = "middle";
-        pipCtx.fillText("ASMR 隨身庫", 540, 540);
       }
 
       if (isOrgasmTriggered) {
@@ -1038,19 +974,17 @@
         pipCtx.fillRect(0, 0, 1080, 1080);
       }
 
-      if (isVideoTrackPlaying) {
-        drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
-      }
+      if (isVideoTrackPlaying) drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
 
       if (isOrgasmTriggered && ahegaoProcessedCanvas) {
         let pW = 860, pH = 860;
         pipCtx.drawImage(ahegaoProcessedCanvas, 540 - pW/2, 540 - pH/2, pW, pH);
       }
 
-      // 影片 PiP 動態狀聲詞（與主畫面同步慢速動畫感）
+      // 影片 PiP 動態狀聲詞同步慢速動畫感
       if (isOrgasmTriggered && activePipSfxItems.length > 0) {
         activePipSfxItems.forEach((item) => {
-          item.progress += 0.015; // 速度再慢 50%
+          item.progress += 0.012; // 慢速 50%
           let alpha = 1;
           if (item.progress < 0.2) alpha = item.progress / 0.2;
           else if (item.progress > 0.8) alpha = (1 - item.progress) / 0.2;
@@ -1096,37 +1030,20 @@
       });
 
     } else if (currentPipMode === 'mp3') {
-      // MP3 桌面懸浮保持不動與乾淨
       pipCtx.fillStyle = "#0e0e14";
       pipCtx.fillRect(-20, -20, 1240, 390);
 
-      pipCtx.strokeStyle = "rgba(255, 121, 198, 0.15)";
-      pipCtx.lineWidth = 4;
-      pipCtx.beginPath();
-      pipCtx.moveTo(100, 40);
-      pipCtx.lineTo(1100, 40);
-      pipCtx.moveTo(100, 310);
-      pipCtx.lineTo(1100, 310);
-      pipCtx.stroke();
-
-      if (isVideoTrackPlaying) {
-        drawHeartToCanvas(pipCtx, 1100, 50, 45, heartFillPercent);
-      }
+      if (isVideoTrackPlaying) drawHeartToCanvas(pipCtx, 1100, 50, 45, heartFillPercent);
 
       pipCtx.fillStyle = "#ff79c6";
       pipCtx.font = "bold 72px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
       pipCtx.textAlign = "center";
       pipCtx.textBaseline = "middle";
-      
       pipCtx.shadowColor = "rgba(255, 121, 198, 0.55)";
       pipCtx.shadowBlur = 18;
 
-      let maxWidth = 1080;
-      let lines = wrapCanvasText(pipCtx, currentText, maxWidth);
-      
-      if (lines.length > 2) {
-        pipCtx.font = "bold 58px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
-      }
+      let lines = wrapCanvasText(pipCtx, currentText, 1080);
+      if (lines.length > 2) pipCtx.font = "bold 58px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
 
       let lineHeight = (lines.length > 2) ? 70 : 88;
       let totalHeight = lines.length * lineHeight;
@@ -1135,9 +1052,6 @@
       lines.forEach((lineText, i) => {
         pipCtx.fillText(lineText, 600, startY + (i * lineHeight));
       });
-      
-      pipCtx.shadowColor = "transparent";
-      pipCtx.shadowBlur = 0;
     }
 
     pipCtx.restore();
@@ -1154,11 +1068,9 @@
     ctx.bezierCurveTo(x, y + size, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
     ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
     ctx.closePath();
-
     ctx.lineWidth = 4;
     ctx.strokeStyle = "#ff79c6";
     ctx.stroke();
-
     ctx.clip();
     let fillHeight = (size + topCurveHeight) * (fillPct / 100);
     ctx.fillStyle = "#ff79c6";
@@ -1168,8 +1080,7 @@
 
   function wrapCanvasText(ctx, text, maxWidth) {
     let chars = text.split('');
-    let line = '';
-    let lines = [];
+    let line = '', lines = [];
     for (let n = 0; n < chars.length; n++) {
       let testLine = line + chars[n];
       let metrics = ctx.measureText(testLine);
@@ -1204,13 +1115,10 @@
 
   function enablePiP(mode = 'dynamic') {
     if (currentIndex === -1) return showToast("請先播放一個篇章！");
-
     if (!document.pictureInPictureEnabled && !pipVideo.webkitSupportsPresentationMode) {
-      return alert("您的瀏覽器不支援懸浮視窗 (Picture-in-Picture) 功能。");
+      return alert("您的瀏覽器不支援懸浮視窗功能。");
     }
-
     setupPiPCanvas(mode);
-
     if (audio.paused) audio.play().catch(()=>{});
     pipVideo.play().catch(()=>{});
 
@@ -1221,20 +1129,14 @@
 
     try {
       if (pipVideo.requestPictureInPicture) {
-        pipVideo.requestPictureInPicture().catch(err => {
-          console.warn("PiP 喚醒嘗試:", err);
-          showToast("懸浮視窗啟動中...");
-        });
+        pipVideo.requestPictureInPicture().catch(() => showToast("懸浮視窗啟動中..."));
       } else if (pipVideo.webkitSetPresentationMode) {
         pipVideo.webkitSetPresentationMode("picture-in-picture");
       }
-    } catch(e) {
-      console.error(e);
-      showToast("請再點擊一次開啟懸浮視窗");
-    }
+    } catch(e) { showToast("請再點擊一次開啟懸浮視窗"); }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V30", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V31", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1244,31 +1146,8 @@
   request.onsuccess = (e) => { 
     db = e.target.result; 
     loadData(); 
-    initMediaSession(); 
     initPiPEngine();
   };
-
-  window.addEventListener('DOMContentLoaded', () => {
-    try {
-      const cachedBgData = localStorage.getItem("asmr_quick_global_bg");
-      if (cachedBgData) {
-        const bgObj = JSON.parse(cachedBgData);
-        if (bgObj && bgObj.url) {
-          if (bgObj.type.startsWith("video")) {
-            bgImg.style.display = "none";
-            bgVideo.style.display = "block";
-            bgVideo.src = bgObj.url;
-            bgVideo.muted = true;
-            bgVideo.play().catch(()=>{});
-          } else {
-            bgVideo.style.display = "none";
-            bgImg.style.display = "block";
-            bgImg.src = bgObj.url;
-          }
-        }
-      }
-    } catch(err) { console.error(err); }
-  });
 
   function loadData() {
     if (!db) return;
@@ -1304,15 +1183,11 @@
       }
     };
     tx.objectStore("settings").get("ahegaoAudioBlob").onsuccess = (e) => {
-      if (e.target.result && e.target.result.blob) {
-        ahegaoAudioBlob = e.target.result.blob;
-      }
+      if (e.target.result && e.target.result.blob) ahegaoAudioBlob = e.target.result.blob;
     };
   }
 
-  function toggleAdminDrawer() {
-    document.getElementById("admin-drawer").classList.toggle("open");
-  }
+  function toggleAdminDrawer() { document.getElementById("admin-drawer").classList.toggle("open"); }
 
   function switchPage(pageName, albumId) {
     document.querySelectorAll(".page-view").forEach(el => el.classList.remove("active"));
@@ -1347,10 +1222,7 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         try {
-          localStorage.setItem("asmr_quick_global_bg", JSON.stringify({
-            url: e.target.result,
-            type: blobs[0].type
-          }));
+          localStorage.setItem("asmr_quick_global_bg", JSON.stringify({ url: e.target.result, type: blobs[0].type }));
         } catch(err) {}
       };
       reader.readAsDataURL(blobs[0]);
@@ -1448,15 +1320,12 @@
     if (currentPage > totalPages) currentPage = totalPages || 1;
 
     let start = (currentPage - 1) * itemsPerPage;
-    let end = start + itemsPerPage;
-    let paginatedAlbums = albums.slice(start, end);
+    let paginatedAlbums = albums.slice(start, start + itemsPerPage);
 
     paginatedAlbums.forEach(album => {
       let albumTracks = tracks.filter(t => t.albumId === album.id);
       let thumbUrl = "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
-      if (album.covers && album.covers.length > 0) {
-        thumbUrl = createTrackedObjectURL(album.covers[0]);
-      }
+      if (album.covers && album.covers.length > 0) thumbUrl = createTrackedObjectURL(album.covers[0]);
 
       let card = document.createElement("div");
       card.className = "album-grid-card";
@@ -1486,10 +1355,7 @@
     }
   }
 
-  function changePage(direction) {
-    currentPage += direction;
-    renderHomeAlbums();
-  }
+  function changePage(direction) { currentPage += direction; renderHomeAlbums(); }
 
   function deleteAlbum(id) {
     if (!confirm("確定要刪除此作品分區及其所有篇章嗎？")) return;
@@ -1497,9 +1363,7 @@
     tx.objectStore("albums").delete(id);
     let indexStore = tx.objectStore("tracks");
     indexStore.getAll().onsuccess = (e) => {
-      e.target.result.forEach(t => {
-        if (t.albumId === id) indexStore.delete(t.id);
-      });
+      e.target.result.forEach(t => { if (t.albumId === id) indexStore.delete(t.id); });
     };
     tx.oncomplete = () => { loadData(); showToast("已刪除作品分區！"); };
   }
@@ -1514,7 +1378,7 @@
     let albumTracks = tracks.filter(t => t.albumId === albumId);
 
     if (!albumTracks.length) {
-      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">此分區尚無篇章，請從管理選單新增。</div>';
+      container.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">此分區尚無篇章。</div>';
       return;
     }
 
@@ -1549,10 +1413,7 @@
     let isLrcFormat = false;
 
     for (let line of lines) {
-      if (lrcTimeReg.test(line)) {
-        isLrcFormat = true;
-        break;
-      }
+      if (lrcTimeReg.test(line)) { isLrcFormat = true; break; }
     }
 
     if (isLrcFormat) {
@@ -1561,54 +1422,16 @@
         if (match) {
           const minutes = parseInt(match[1], 10);
           const seconds = parseInt(match[2], 10);
-          const msStr = match[3].padEnd(3, '0');
-          const milliseconds = parseInt(msStr, 10);
+          const milliseconds = parseInt(match[3].padEnd(3, '0'), 10);
           const time = minutes * 60 + seconds + milliseconds / 1000;
           let text = line.replace(lrcTimeReg, '').trim();
           if (text) lyrics.push({ time, text });
         }
       }
     } else {
-      const timeRangeReg = /(\d{2}):(\d{2}):(\d{2})[\.,](\d{3})\s*-->\s*(\d{2}):(\d{2}):(\d{2})[\.,](\d{3})/;
-      let currentStartTime = null;
-      let textBuffer = [];
-
-      for (let line of lines) {
-        line = line.trim();
-        const match = timeRangeReg.exec(line);
-        if (match) {
-          if (currentStartTime !== null && textBuffer.length > 0) {
-            lyrics.push({ time: currentStartTime, text: textBuffer.join(' ') });
-            textBuffer = [];
-          }
-          const h = parseInt(match[1], 10);
-          const m = parseInt(match[2], 10);
-          const s = parseInt(match[3], 10);
-          const ms = parseInt(match[4], 10);
-          currentStartTime = h * 3600 + m * 60 + s + ms / 1000;
-        } else if (line === '' || !isNaN(line) || line.toUpperCase() === 'WEBVTT') {
-          if (currentStartTime !== null && textBuffer.length > 0) {
-            lyrics.push({ time: currentStartTime, text: textBuffer.join(' ') });
-            textBuffer = [];
-            currentStartTime = null;
-          }
-        } else if (currentStartTime !== null) {
-          let cleanLine = line.replace(/<[^>]*>/g, '');
-          if (cleanLine) textBuffer.push(cleanLine);
-        }
-      }
-      if (currentStartTime !== null && textBuffer.length > 0) {
-        lyrics.push({ time: currentStartTime, text: textBuffer.join(' ') });
-      }
-    }
-
-    if (lyrics.length === 0) {
       let validLines = lines.map(l => l.trim()).filter(l => l && !l.startsWith('WEBVTT'));
-      validLines.forEach((text, i) => {
-        lyrics.push({ time: i * 4.0, text });
-      });
+      validLines.forEach((text, i) => { lyrics.push({ time: i * 4.0, text }); });
     }
-
     lyrics.sort((a, b) => a.time - b.time);
     return lyrics;
   }
@@ -1628,23 +1451,13 @@
     const audioFile = audioInput.files[0];
     const lrcFile = lrcInput.files[0];
     let title = titleInput || audioFile.name.replace(/\.[^/.]+$/, "");
-    let lrcText = "";
-
-    if (lrcFile) lrcText = await lrcFile.text();
+    let lrcText = lrcFile ? await lrcFile.text() : "";
 
     const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").add({
-      albumId,
-      title,
-      audioBlob: audioFile,
-      videoBlob: videoFile,
-      lrcText
-    });
+    tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, videoBlob: videoFile, lrcText });
     tx.oncomplete = () => {
       document.getElementById("video-track-title").value = "";
-      videoInput.value = "";
-      audioInput.value = "";
-      lrcInput.value = "";
+      videoInput.value = ""; audioInput.value = ""; lrcInput.value = "";
       loadData();
       showToast("🎬 影片專屬篇章新增成功！");
     };
@@ -1662,23 +1475,13 @@
     const audioFile = audioInput.files[0];
     const lrcFile = lrcInput.files[0];
     let title = titleInput || audioFile.name.replace(/\.[^/.]+$/, "");
-    let lrcText = "";
-
-    if (lrcFile) {
-      lrcText = await lrcFile.text();
-    }
+    let lrcText = lrcFile ? await lrcFile.text() : "";
 
     const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").add({
-      albumId,
-      title,
-      audioBlob: audioFile,
-      lrcText
-    });
+    tx.objectStore("tracks").add({ albumId, title, audioBlob: audioFile, lrcText });
     tx.oncomplete = () => {
       document.getElementById("track-title-input").value = "";
-      audioInput.value = "";
-      lrcInput.value = "";
+      audioInput.value = ""; lrcInput.value = "";
       loadData();
       showToast("✅ 單一 MP3 篇章新增成功！");
     };
@@ -1712,8 +1515,7 @@
     let lrcMapData = [];
     for (let l of lrcs) {
       let text = await readFileAsTextAsync(l);
-      let lBase = l.name.replace(/\.[^/.]+$/, "").trim();
-      lrcMapData.push({ base: lBase, text: text });
+      lrcMapData.push({ base: l.name.replace(/\.[^/.]+$/, "").trim(), text });
     }
 
     try {
@@ -1723,32 +1525,20 @@
       for (let audioFile of audios) {
         let baseName = audioFile.name.replace(/\.[^/.]+$/, "").trim();
         let matchedLrcText = "";
-
-        let found = lrcMapData.find(item => {
-          let lBase = item.base;
-          return lBase === baseName || baseName.includes(lBase) || lBase.includes(baseName);
-        });
-
+        let found = lrcMapData.find(item => item.base === baseName || baseName.includes(item.base) || item.base.includes(baseName));
         if (found) matchedLrcText = found.text;
 
-        store.add({
-          albumId,
-          title: baseName,
-          audioBlob: audioFile,
-          lrcText: matchedLrcText
-        });
+        store.add({ albumId, title: baseName, audioBlob: audioFile, lrcText: matchedLrcText });
       }
 
       tx.oncomplete = () => {
-        audioInput.value = "";
-        lrcInput.value = "";
+        audioInput.value = ""; lrcInput.value = "";
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
         loadData();
-        showToast(`✅ 成功批量匯入 ${audios.length} 個 MP3 篇章並自動配對！`);
+        showToast(`✅ 成功批量匯入 ${audios.length} 個篇章！`);
       };
     } catch(e) {
-      console.error(e);
       btn.disabled = false;
       btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
     }
@@ -1767,7 +1557,6 @@
     let newTitle = prompt("修改篇章名稱：", track.title);
     if (newTitle === null) return;
     track.title = newTitle.trim() || track.title;
-
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => { loadData(); showToast("修改篇章成功！"); };
@@ -1796,11 +1585,8 @@
   }
 
   function setupActiveAlbumCovers(album, track) {
-    if (track && track.videoBlob) {
-      activeAlbumCoverBlobs = [track.videoBlob];
-    } else {
-      activeAlbumCoverBlobs = (album && album.covers && album.covers.length > 0) ? album.covers : [];
-    }
+    if (track && track.videoBlob) activeAlbumCoverBlobs = [track.videoBlob];
+    else activeAlbumCoverBlobs = (album && album.covers && album.covers.length > 0) ? album.covers : [];
     activeCoverIndex = 0;
     buildCoverElements(track);
   }
@@ -1830,9 +1616,8 @@
     `;
 
     const heartBox = document.getElementById("heart-toy-box");
-    if (track && track.videoBlob) {
-      heartBox.style.display = "flex";
-    } else {
+    if (track && track.videoBlob) heartBox.style.display = "flex";
+    else {
       heartBox.style.display = "none";
       heartFillPercent = 0;
       renderHeartUI();
@@ -1857,10 +1642,7 @@
       let url = createTrackedObjectURL(blob);
       if (blob.type.startsWith("video")) {
         let vid = document.createElement("video");
-        vid.src = url;
-        vid.muted = true;
-        vid.loop = true;
-        vid.playsInline = true;
+        vid.src = url; vid.muted = true; vid.loop = true; vid.playsInline = true;
         vid.style.display = (i === 0) ? "block" : "none";
         box.appendChild(vid);
         coverElements.push(vid);
@@ -1875,10 +1657,7 @@
         img.style.display = (i === 0) ? "block" : "none";
         box.appendChild(img);
         coverElements.push(img);
-        if (i === 0) {
-          cachedCoverElement = img;
-          isCoverVideoActive = false;
-        }
+        if (i === 0) { cachedCoverElement = img; isCoverVideoActive = false; }
       }
     });
     updateCoverDisplay();
@@ -1891,13 +1670,7 @@
         el.style.display = "block";
         cachedCoverElement = el;
         isCoverVideoActive = (el.tagName === 'VIDEO');
-        if (el.tagName === 'VIDEO') {
-          if (isPowerSavingCover) {
-            el.pause();
-          } else {
-            el.play().catch(()=>{});
-          }
-        }
+        if (el.tagName === 'VIDEO' && !isPowerSavingCover) el.play().catch(()=>{});
       } else {
         el.style.display = "none";
         if (el.tagName === 'VIDEO') el.pause();
@@ -1906,17 +1679,8 @@
     document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
   }
 
-  function nextCover() {
-    if (!coverElements.length) return;
-    activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
-    updateCoverDisplay();
-  }
-
-  function prevCover() {
-    if (!coverElements.length) return;
-    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
-    updateCoverDisplay();
-  }
+  function nextCover() { if (!coverElements.length) return; activeCoverIndex = (activeCoverIndex + 1) % coverElements.length; updateCoverDisplay(); }
+  function prevCover() { if (!coverElements.length) return; activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length; updateCoverDisplay(); }
 
   function loadAndPlayCurrentTrack(track, album) {
     const audioUrl = createTrackedObjectURL(track.audioBlob);
@@ -1924,9 +1688,7 @@
     audio.playbackRate = speedOptions[speedIndex];
     
     initAudioAnalyzer();
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
     audio.play().then(() => {
       document.getElementById("btn-play").innerText = "⏸";
@@ -1934,29 +1696,17 @@
     }).catch(e => console.log(e));
 
     currentLrc = parseUniversalLyrics(track.lrcText);
-
     document.getElementById("album-tag").innerText = album ? `📁 ${album.title}` : "📁 ASMR 隨身庫";
     document.getElementById("mini-title").innerText = track.title;
     document.getElementById("mini-player").classList.remove("hidden");
-
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: track.title,
-        artist: album ? album.title : 'ASMR 隨身庫',
-        album: 'Private ASMR Library'
-      });
-    }
   }
 
   function getActiveSubtitleText(currentTime) {
     if (!currentLrc || currentLrc.length === 0) return "♪ 享受純淨 ASMR 時光 ♪";
     let activeText = "";
     for (let i = 0; i < currentLrc.length; i++) {
-      if (currentTime >= currentLrc[i].time) {
-        activeText = currentLrc[i].text;
-      } else {
-        break;
-      }
+      if (currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
+      else break;
     }
     return activeText || "♪...";
   }
@@ -1970,58 +1720,38 @@
     const currentText = getActiveSubtitleText(audio.currentTime);
     document.getElementById("lrc-box").innerText = currentText;
     document.getElementById("mini-lrc").innerText = currentText ? `♪ ${currentText}` : "♪ 播放中";
-
     updateHeartProgress();
   });
 
   seekSlider.addEventListener("input", () => {
-    if (!isNaN(audio.duration) && audio.duration > 0) {
-      audio.currentTime = (seekSlider.value / 100) * audio.duration;
-    }
+    if (!isNaN(audio.duration) && audio.duration > 0) audio.currentTime = (seekSlider.value / 100) * audio.duration;
   });
 
   audio.addEventListener("ended", () => {
-    if (repeatMode === 1) {
-      audio.currentTime = 0;
-      audio.play().catch(()=>{});
-    } else {
-      nextTrack();
-    }
+    if (repeatMode === 1) { audio.currentTime = 0; audio.play().catch(()=>{}); }
+    else nextTrack();
   });
 
   function togglePlay() {
-    if (currentIndex === -1) {
-      if (tracks.length > 0) {
-        playTrackFromAlbum(tracks[0].albumId, 0);
-      }
-      return;
-    }
+    if (currentIndex === -1) { if (tracks.length > 0) playTrackFromAlbum(tracks[0].albumId, 0); return; }
     if (audio.paused) {
       audio.play().catch(()=>{});
       document.getElementById("btn-play").innerText = "⏸";
       document.getElementById("mini-btn-play").innerText = "⏸";
-      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover && !isOrgasmTriggered) {
-        cachedCoverElement.play().catch(()=>{});
-      }
+      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover && !isOrgasmTriggered) cachedCoverElement.play().catch(()=>{});
     } else {
       audio.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
-      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') {
-        cachedCoverElement.pause();
-      }
+      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
     }
   }
 
   function nextTrack() {
     if (!currentTrackList.length) return;
-    if (repeatMode === 2) {
-      currentIndex = Math.floor(Math.random() * currentTrackList.length);
-    } else {
-      currentIndex = (currentIndex + 1) % currentTrackList.length;
-    }
-    heartFillPercent = 0;
-    renderHeartUI();
+    if (repeatMode === 2) currentIndex = Math.floor(Math.random() * currentTrackList.length);
+    else currentIndex = (currentIndex + 1) % currentTrackList.length;
+    heartFillPercent = 0; renderHeartUI();
     const track = currentTrackList[currentIndex];
     const album = albums.find(a => a.id === track.albumId);
     setupActiveAlbumCovers(album, track);
@@ -2032,8 +1762,7 @@
   function prevTrack() {
     if (!currentTrackList.length) return;
     currentIndex = (currentIndex - 1 + currentTrackList.length) % currentTrackList.length;
-    heartFillPercent = 0;
-    renderHeartUI();
+    heartFillPercent = 0; renderHeartUI();
     const track = currentTrackList[currentIndex];
     const album = albums.find(a => a.id === track.albumId);
     setupActiveAlbumCovers(album, track);
@@ -2042,37 +1771,29 @@
   }
 
   function seekRelative(seconds) {
-    if (!isNaN(audio.duration)) {
-      audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
-    }
+    if (!isNaN(audio.duration)) audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + seconds));
   }
 
   volumeSlider.addEventListener("input", () => {
-    audio.volume = volumeSlider.value;
-    ahegaoAudio.volume = volumeSlider.value;
+    audio.volume = volumeSlider.value; ahegaoAudio.volume = volumeSlider.value;
     if (audio.volume > 0) lastVolume = audio.volume;
     document.getElementById("btn-mute").innerText = audio.volume === 0 ? "🔇" : "🔈";
   });
 
   function toggleMute() {
     if (audio.volume > 0) {
-      lastVolume = audio.volume;
-      audio.volume = 0;
-      ahegaoAudio.volume = 0;
-      volumeSlider.value = 0;
-      document.getElementById("btn-mute").innerText = "🔇";
+      lastVolume = audio.volume; audio.volume = 0; ahegaoAudio.volume = 0;
+      volumeSlider.value = 0; document.getElementById("btn-mute").innerText = "🔇";
     } else {
-      audio.volume = lastVolume;
-      ahegaoAudio.volume = lastVolume;
-      volumeSlider.value = lastVolume;
-      document.getElementById("btn-mute").innerText = "🔈";
+      audio.volume = lastVolume; ahegaoAudio.volume = lastVolume;
+      volumeSlider.value = lastVolume; document.getElementById("btn-mute").innerText = "🔈";
     }
   }
 
   function toggleRepeatMode() {
     repeatMode = (repeatMode + 1) % 3;
     document.getElementById("btn-repeat-mode").innerText = repeatModeNames[repeatMode];
-    showToast(`切換播放模式：${repeatModeNames[repeatMode]}`);
+    showToast(`切換模式：${repeatModeNames[repeatMode]}`);
   }
 
   function togglePlaybackSpeed() {
@@ -2085,110 +1806,20 @@
 
   function toggleSleepTimer() {
     const times = [0, 15, 30, 45, 60, 90];
-    let currentIdx = times.indexOf(sleepTimerMinutes);
-    sleepTimerMinutes = times[(currentIdx + 1) % times.length];
-    
-    if (sleepTimerTimeout) clearTimeout(sleepTimerTimeout);
-    
+    sleepTimerMinutes = times[(times.indexOf(sleepTimerMinutes) + 1) % times.length];
     const btn = document.getElementById("btn-sleep-timer");
-    if (sleepTimerMinutes === 0) {
-      btn.innerText = "🌙 關閉定時";
-      btn.classList.remove("active");
-      showToast("已取消睡眠定時");
-    } else {
-      btn.innerText = `🌙 ${sleepTimerMinutes}分`;
-      btn.classList.add("active");
-      showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動暫停`);
-      sleepTimerTimeout = setTimeout(() => {
-        audio.pause();
-        if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
-        document.getElementById("btn-play").innerText = "▶";
-        document.getElementById("mini-btn-play").innerText = "▶";
-        sleepTimerMinutes = 0;
-        btn.innerText = "🌙 關閉定時";
-        btn.classList.remove("active");
-        showToast("🌙 睡眠定時已觸發，播放已暫停");
-      }, sleepTimerMinutes * 60 * 1000);
-    }
+    if (sleepTimerMinutes === 0) { btn.innerText = "🌙 關閉定時"; btn.classList.remove("active"); showToast("已取消定時"); }
+    else { btn.innerText = `🌙 ${sleepTimerMinutes}分`; btn.classList.add("active"); showToast(`已設定 ${sleepTimerMinutes} 分鐘`); }
   }
 
-  function uploadCurrentTrackLrc(e) {
-    const file = e.target.files[0];
-    if (!file || currentIndex === -1) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      let lrcText = evt.target.result;
-      let track = currentTrackList[currentIndex];
-      track.lrcText = lrcText;
-      currentLrc = parseUniversalLyrics(lrcText);
-      
-      const tx = db.transaction("tracks", "readwrite");
-      tx.objectStore("tracks").put(track);
-      tx.oncomplete = () => {
-        loadData();
-        showToast("✅ 當前篇章字幕更新成功！");
-      };
-    };
-    reader.readAsText(file);
+  function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
+  function minimizePlayer() { playerCard.classList.add("minimized"); miniPlayer.classList.remove("hidden"); }
+  function formatTime(s) {
+    let m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return `${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   }
-
-  function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
-    let text = prompt("請貼上完整的字幕內容 (.lrc / .srt / .vtt / 純文字)：");
-    if (text === null) return;
-    let track = currentTrackList[currentIndex];
-    track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      loadData();
-      showToast("✅ 字幕貼上並更新成功！");
-    };
-  }
-
-  function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
-    let track = currentTrackList[currentIndex];
-    let content = track.lrcText || "目前尚無字幕內容。";
-    if (content.length > 800) content = content.substring(0, 800) + "\n...(字數過長已截斷顯示)";
-    alert(`【當前篇章字幕預覽】\n\n${content}`);
-  }
-
-  function formatTime(secs) {
-    let m = Math.floor(secs / 60);
-    let s = Math.floor(secs % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-
-  function expandPlayer() {
-    playerCard.classList.remove("minimized");
-    miniPlayer.classList.add("hidden");
-  }
-
-  function minimizePlayer() {
-    playerCard.classList.add("minimized");
-    if (currentIndex !== -1) {
-      miniPlayer.classList.remove("hidden");
-    }
-  }
-
   function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, 
-      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-    );
-  }
-
-  function initMediaSession() {
-    if ('mediaSession' in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
-      navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
-      navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
-      navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
-      navigator.mediaSession.setActionHandler('seekbackward', (details) => { seekRelative(-10); });
-      navigator.mediaSession.setActionHandler('seekforward', (details) => { seekRelative(10); });
-    }
+    return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
   }
 </script>
 </body>
