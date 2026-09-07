@@ -209,12 +209,31 @@
     .heart-toy-container:active { transform: scale(0.92); }
     .heart-svg { width: 100%; height: 100%; pointer-events: none; }
 
-    /* 阿嘿顏圖片放大 1.5 倍 (從 scale(0.85) / max 65% 調整為 scale(1.28) / max 95%) */
+    /* 阿嘿顏圖片放大 15% (縮放比例調整為 scale(1.47)) */
     .ahegao-center-img {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.28);
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.47);
       max-width: 95%; max-height: 95%; z-index: 20; pointer-events: none; display: none;
       filter: drop-shadow(0 0 15px rgba(255, 121, 198, 0.9));
       object-fit: contain;
+    }
+
+    /* 狀聲詞動態漂浮容器 */
+    .sfx-container {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 25; overflow: hidden; display: none;
+    }
+    .sfx-item {
+      position: absolute; color: #ff79c6; font-weight: 900;
+      font-size: 1.15rem; font-family: "SF Pro Display", "PingFang TC", "Comic Sans MS", cursive, sans-serif;
+      text-shadow: 0 0 8px rgba(255, 121, 198, 0.9), 0 0 15px rgba(255, 105, 180, 0.8), 2px 2px 4px rgba(0, 0, 0, 0.9);
+      animation: floatSfx 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      white-space: nowrap; user-select: none;
+    }
+    @keyframes floatSfx {
+      0% { opacity: 0; transform: translateY(15px) scale(0.7) rotate(-5deg); }
+      20% { opacity: 1; transform: translateY(0px) scale(1.1) rotate(0deg); }
+      80% { opacity: 0.9; transform: translateY(-25px) scale(1) rotate(5deg); }
+      100% { opacity: 0; transform: translateY(-40px) scale(0.8) rotate(10deg); }
     }
 
     /* 晃動調整為中小型晃動 */
@@ -341,7 +360,7 @@
     <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5); background: rgba(28, 16, 28, 0.9);">
       <div class="card-title" style="color: var(--primary-pink);">🥵 阿嘿顏高潮專區 (影片專屬高潮設置)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        【影片區域專屬】當影片右上角的愛心隨聲音升滿（或直接點擊愛心一鍵高潮）後，將觸發阿嘿顏高潮：畫面晃動、粉光特效、暫停影片聲音並切換播放「高潮聲音檔」，且顯示阿嘿顏圖片。
+        【影片區域專屬】當影片右上角的愛心隨聲音升滿（或直接點擊愛心一鍵高潮）後，將觸發阿嘿顏高潮：畫面晃動、粉光特效、暫停影片聲音並切換播放「高潮聲音檔」，且顯示阿嘿顏圖片與狀聲詞。
       </div>
       <div class="form-group">
         <label>🖼️ 高潮阿嘿顏圖片 (支援上傳去背/ PNG 透明圖，保持原圖品質)</label>
@@ -462,8 +481,11 @@
         </svg>
       </div>
 
-      <!-- 阿嘿顏高潮圖片容器 (放大 1.5 倍) -->
+      <!-- 阿嘿顏高潮圖片容器 (放大 15%) -->
       <img id="ahegao-overlay-img" class="ahegao-center-img" src="" alt="阿嘿顏高潮">
+
+      <!-- 狀聲詞動態層 -->
+      <div id="sfx-container" class="sfx-container"></div>
 
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
@@ -545,10 +567,18 @@
   let ahegaoImageElement = null;
   let ahegaoProcessedCanvas = null;
   let ahegaoAudioBlob = null;
-  let autoRemoveBg = false; // 預設關閉自動破壞性去背，完美保留用戶上傳的透明 PNG 檔
+  let autoRemoveBg = false;
   let audioCtx = null;
   let analyserNode = null;
   let audioSourceNode = null;
+
+  // H漫畫狀聲詞清單與動態系統
+  const hSfxList = [
+    "啊♥", "嗯啊…♥", "好舒服♥", "要去了♥", "好棒♥", 
+    "要高潮了♥", "嗯嗯…♥", "呀啊♥", "救命♥", "要壞掉了♥"
+  ];
+  let sfxLoopTimer = null;
+  let activePipSfxItems = [];
 
   // 播放增強設定
   let repeatMode = 0; // 0: 順序, 1: 單曲循環, 2: 隨機播放
@@ -709,10 +739,10 @@
       }
       let avg = count > 0 ? sum / count : 0;
 
-      // 愛心填滿速度：大幅調慢，穩定適中 (不至於太快也不會太慢)
+      // 愛心填滿速度：大幅減少400% (增加步進調慢至原本的25%)
       if (avg > 12) {
         let intensity = (avg - 12) / 30;
-        let speed = 0.006 + Math.pow(intensity, 1.5) * 0.035; 
+        let speed = (0.006 + Math.pow(intensity, 1.5) * 0.035) * 0.25; 
         heartFillPercent += speed;
         if (heartFillPercent > 100) heartFillPercent = 100;
         renderHeartUI();
@@ -765,12 +795,15 @@
     const coverBox = document.getElementById("player-cover-box");
     coverBox.classList.add("ahegao-shaking", "pink-orgasm-fx");
 
-    // 3. 顯示去背景及放大 1.5 倍的阿嘿顏圖片
+    // 3. 顯示去背景及放大 15% 的阿嘿顏圖片
     const overlayImg = document.getElementById("ahegao-overlay-img");
     if (ahegaoProcessedCanvas) {
       overlayImg.src = ahegaoProcessedCanvas.toDataURL();
       overlayImg.style.display = "block";
     }
+
+    // 4. 啟動周圍動態 H 漫畫阿嘿顏狀聲詞生成系統
+    startSfxAnimation();
 
     showToast("🥵 阿嘿顏高潮爆發！");
 
@@ -779,10 +812,66 @@
     };
   }
 
+  function startSfxAnimation() {
+    const sfxContainer = document.getElementById("sfx-container");
+    sfxContainer.style.display = "block";
+    sfxContainer.innerHTML = "";
+    activePipSfxItems = [];
+
+    const createSfxItem = () => {
+      if (!isOrgasmTriggered) return;
+      const text = hSfxList[Math.floor(Math.random() * hSfxList.length)];
+      
+      // DOM 介面狀聲詞生成
+      const el = document.createElement("div");
+      el.className = "sfx-item";
+      el.innerText = text;
+      
+      const posX = 5 + Math.random() * 80;
+      const posY = 15 + Math.random() * 65;
+      el.style.left = posX + "%";
+      el.style.top = posY + "%";
+      
+      sfxContainer.appendChild(el);
+      setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, 2200);
+
+      // PiP 畫布專用數據
+      const pipItem = {
+        text: text,
+        x: 80 + Math.random() * 920,
+        y: 120 + Math.random() * 800,
+        progress: 0,
+        life: 1,
+        scale: 0.8 + Math.random() * 0.5,
+        angle: (Math.random() - 0.5) * 0.3
+      };
+      activePipSfxItems.push(pipItem);
+    };
+
+    // 初始生成 5~6 個
+    for (let i = 0; i < 6; i++) {
+      setTimeout(createSfxItem, i * 180);
+    }
+
+    sfxLoopTimer = setInterval(() => {
+      if (isOrgasmTriggered) {
+        createSfxItem();
+      } else {
+        clearInterval(sfxLoopTimer);
+      }
+    }, 380);
+  }
+
   function resetOrgasmState() {
     isOrgasmTriggered = false;
     heartFillPercent = 0;
     renderHeartUI();
+
+    if (sfxLoopTimer) clearInterval(sfxLoopTimer);
+    const sfxContainer = document.getElementById("sfx-container");
+    sfxContainer.style.display = "none";
+    sfxContainer.innerHTML = "";
+    activePipSfxItems = [];
 
     const coverBox = document.getElementById("player-cover-box");
     coverBox.classList.remove("ahegao-shaking", "pink-orgasm-fx");
@@ -939,10 +1028,42 @@
         drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
       }
 
-      // 高潮時繪製中央阿嘿顏圖片 (尺寸加大 1.5 倍：由 500x500 提升至 750x750)
+      // 高潮時繪製中央阿嘿顏圖片 (尺寸提升 15% 至 860x860)
       if (isOrgasmTriggered && ahegaoProcessedCanvas) {
-        let pW = 750, pH = 750;
+        let pW = 860, pH = 860;
         pipCtx.drawImage(ahegaoProcessedCanvas, 540 - pW/2, 540 - pH/2, pW, pH);
+      }
+
+      // 繪製懸浮視窗上的動態粉色狀聲詞
+      if (isOrgasmTriggered && activePipSfxItems.length > 0) {
+        activePipSfxItems.forEach((item, idx) => {
+          item.progress += 0.02;
+          let alpha = 1;
+          if (item.progress < 0.2) alpha = item.progress / 0.2;
+          else if (item.progress > 0.8) alpha = (1 - item.progress) / 0.2;
+
+          if (alpha > 0) {
+            pipCtx.save();
+            pipCtx.translate(item.x, item.y - (item.progress * 40));
+            pipCtx.rotate(item.angle);
+            pipCtx.scale(item.scale, item.scale);
+
+            pipCtx.font = "bold 52px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
+            pipCtx.textAlign = "center";
+            pipCtx.textBaseline = "middle";
+
+            pipCtx.lineWidth = 8;
+            pipCtx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+            pipCtx.strokeText(item.text, 0, 0);
+
+            pipCtx.fillStyle = `rgba(255, 121, 198, ${Math.max(0, alpha)})`;
+            pipCtx.shadowColor = "rgba(255, 121, 198, 0.9)";
+            pipCtx.shadowBlur = 12;
+            pipCtx.fillText(item.text, 0, 0);
+            pipCtx.restore();
+          }
+        });
+        activePipSfxItems = activePipSfxItems.filter(item => item.progress < 1);
       }
 
       // 繪製粉色字幕
@@ -1696,6 +1817,7 @@
         </svg>
       </div>
       <img id="ahegao-overlay-img" class="ahegao-center-img" src="" alt="阿嘿顏高潮">
+      <div id="sfx-container" class="sfx-container"></div>
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
