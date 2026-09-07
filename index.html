@@ -199,12 +199,12 @@
       top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 愛心玩具與高潮特效 */
+    /* 愛心玩具與高潮特效 (已修復顯示BUG) */
     .heart-toy-container {
       position: absolute; top: 12px; right: 12px; z-index: 30; width: 46px; height: 46px;
       pointer-events: auto; cursor: pointer; filter: drop-shadow(0 0 6px rgba(255, 121, 198, 0.8));
       transition: transform 0.15s ease;
-      display: none;
+      display: block;
     }
     .heart-toy-container:hover { transform: scale(1.12); }
     .heart-toy-container:active { transform: scale(0.92); }
@@ -484,7 +484,7 @@
         </svg>
       </div>
 
-      <!-- 阿嘿顏高潮圖片容器 (尺寸放大 20%) -->
+      <!-- 阿嘿顏高潮圖片容器 -->
       <img id="ahegao-overlay-img" class="ahegao-center-img" src="" alt="阿嘿顏高潮">
 
       <!-- 狀聲詞動態層 -->
@@ -582,11 +582,16 @@
   let analyserNode = null;
   let audioSourceNode = null;
 
+  // 擴充更豐富、更多樣化的前置抽插騷話與狀聲詞
   const preClimaxSfxList = [
-    "啪啪！", "啪滋…", "咕啾", "噗滋", "啪！啪！", 
-    "啾滋", "噗哧", "啪…啪…", "滋啾…", "咕啾…咕啾…"
+    "啪啪！", "啪滋…♥", "咕啾", "噗滋", "啪！啪！", 
+    "啾滋", "噗哧", "啪…啪…", "滋啾…", "咕啾…咕啾…",
+    "好深…♥", "頂到了…♥", "嗯啊…♥", "好熱♥", "水好多…♥",
+    "不要停…♥", "吸緊我…♥", "太快了…♥", "好粗…♥", "全部吃進去了…♥",
+    "深處被撞到了…♥", "肉棒好硬…♥", "好棒、好滿…♥", "啊哈…好深♥", "汁水四濺…♥"
   ];
 
+  // 擴充超色氣、豐富的高潮騷話與狀聲詞，並加入防重複防重疊機制
   const climaxSfxList = [
     "啊♥", "嗯啊…♥", "好舒服♥", "要去了♥", "好棒♥", 
     "要高潮了♥", "嗯嗯…♥", "呀啊♥", "救命♥", "要壞掉了♥",
@@ -594,10 +599,11 @@
     "頂到了♥", "快停下♥", "裡面好熱♥", "要融化了♥", "啊呣♥",
     "肚子好脹♥", "肚子裡好滿♥", "肚子熱呼呼的♥", "肚子被撐大了♥", "肚子凸起來了♥",
     "肚子裡面好舒服♥", "肚子好重、快滿出來了♥", "太快了♥", "滿出來了♥", "好厲害♥",
-    "不行、要滿出來了♥", "啊呣…♥", "腦袋融化了♥", "好深、好棒♥", "救命啊♥"
+    "不行、要滿出來了♥", "啊呣…♥", "腦袋融化了♥", "好深、好棒♥", "救命啊♥",
+    "子宮被撞開了♥", "精液全部射進去了♥", "肉棒好燙、要融化了♥", "啊啊啊…要升天了♥", "不要了、太深了♥"
   ];
 
-  let lastSfxIndex = -1;
+  let recentSfxIndices = [];
   let sfxLoopTimer = null;
   let activePipSfxItems = [];
   let usedSfxPositions = [];
@@ -627,11 +633,48 @@
   const miniPlayer = document.getElementById("mini-player");
   const seekSlider = document.getElementById("seek-slider");
   const volumeSlider = document.getElementById("volume-slider");
+  const scrollAreaEl = document.getElementById("player-scroll-area");
 
   let touchStartY = 0;
   let touchCurrentY = 0;
   let isDragging = false;
   const dragHandleArea = document.getElementById("drag-handle-area");
+
+  // 🛠️ 完美修復 iOS 播放面板上下滑動與下拉隱藏 Bug
+  let cardTouchStartY = 0;
+  let cardTouchCurrentY = 0;
+  let isCardDragging = false;
+
+  playerCard.addEventListener("touchstart", (e) => {
+    if (scrollAreaEl.scrollTop <= 0) {
+      cardTouchStartY = e.touches[0].clientY;
+      isCardDragging = true;
+      playerCard.style.transition = 'none';
+    }
+  }, { passive: true });
+
+  playerCard.addEventListener("touchmove", (e) => {
+    if (!isCardDragging) return;
+    cardTouchCurrentY = e.touches[0].clientY;
+    let diff = cardTouchCurrentY - cardTouchStartY;
+    if (diff > 0) {
+      playerCard.style.transform = `translateY(${diff}px)`;
+    }
+  }, { passive: true });
+
+  playerCard.addEventListener("touchend", () => {
+    if (!isCardDragging) return;
+    isCardDragging = false;
+    playerCard.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+    let diff = cardTouchCurrentY - cardTouchStartY;
+    if (diff > 75) {
+      minimizePlayer();
+    } else {
+      playerCard.style.transform = 'translateY(0)';
+    }
+    cardTouchStartY = 0;
+    cardTouchCurrentY = 0;
+  }, { passive: true });
 
   function showToast(msg) {
     const t = document.getElementById("toast");
@@ -816,24 +859,25 @@
     ahegaoAudio.onended = () => resetOrgasmState();
   }
 
+  // 🛠️ 確保狀聲詞不重複、不重疊的精確座標計算
   function getNonOverlappingPosition() {
     let posX, posY, overlapping;
     let attempts = 0;
     do {
       const isLeft = Math.random() < 0.5;
       if (isLeft) {
-        posX = 18 + Math.random() * 26;
+        posX = 15 + Math.random() * 30;
       } else {
-        posX = 56 + Math.random() * 26;
+        posX = 52 + Math.random() * 30;
       }
-      posY = 24 + Math.random() * 48;
+      posY = 20 + Math.random() * 55;
       
-      overlapping = usedSfxPositions.some(p => Math.abs(p.x - posX) < 26 && Math.abs(p.y - posY) < 20);
+      overlapping = usedSfxPositions.some(p => Math.abs(p.x - posX) < 30 && Math.abs(p.y - posY) < 22);
       attempts++;
-    } while (overlapping && attempts < 20);
+    } while (overlapping && attempts < 25);
     
     usedSfxPositions.push({ x: posX, y: posY });
-    if (usedSfxPositions.length > 6) usedSfxPositions.shift();
+    if (usedSfxPositions.length > 8) usedSfxPositions.shift();
     return { x: posX, y: posY };
   }
 
@@ -843,10 +887,16 @@
 
     const list = isClimax ? climaxSfxList : preClimaxSfxList;
     let randIdx;
+    let attempts = 0;
     do {
       randIdx = Math.floor(Math.random() * list.length);
-    } while (randIdx === lastSfxIndex && list.length > 1);
-    lastSfxIndex = randIdx;
+      attempts++;
+    } while (recentSfxIndices.includes(randIdx) && attempts < 15 && list.length > recentSfxIndices.length);
+
+    recentSfxIndices.push(randIdx);
+    if (recentSfxIndices.length > Math.min(10, Math.floor(list.length / 2))) {
+      recentSfxIndices.shift();
+    }
     const text = list[randIdx];
     
     const el = document.createElement("div");
@@ -881,6 +931,7 @@
     activePipSfxItems.push(pipItem);
   }
 
+  // 🛠️ 抽插狀聲詞升級：每次高潮前自動同時出現 3 個不重複狀聲詞
   setInterval(() => {
     if (currentIndex === -1) return;
     const currentTrack = currentTrackList[currentIndex];
@@ -904,6 +955,8 @@
     setTimeout(() => {
       if (!isOrgasmTriggered && !audio.paused) {
         spawnSingleSfx(false);
+        setTimeout(() => spawnSingleSfx(false), 180);
+        setTimeout(() => spawnSingleSfx(false), 360);
       }
     }, 200);
   }, 5500);
@@ -1243,7 +1296,7 @@
     } catch(e) { showToast("請再點擊一次開啟懸浮視窗"); }
   }
 
-  const request = indexedDB.open("ASMR_Categorized_DB_V31", 1);
+  const request = indexedDB.open("ASMR_Categorized_DB_V32", 1);
   request.onupgradeneeded = (e) => {
     db = e.target.result;
     if (!db.objectStoreNames.contains("albums")) db.createObjectStore("albums", { keyPath: "id", autoIncrement: true });
@@ -1515,7 +1568,6 @@
     });
   }
 
-  /* 🛠️ 修正後：完整支援 LRC 與 SRT/VTT 格式且精準對齊時間軸，避免偷跑與不同步 */
   function parseUniversalLyrics(rawText) {
     if (!rawText) return [];
     const lines = rawText.split(/\r?\n/);
@@ -1591,7 +1643,6 @@
     return activeText;
   }
 
-  /* 🛠️ 透過高精度 requestAnimationFrame 迴圈更新字幕，解決影音不同步與延遲 bug */
   function syncSubtitlesLoop() {
     if (!audio.paused) {
       const lrcBox = document.getElementById("lrc-box");
@@ -1989,90 +2040,85 @@
 
   function togglePlaybackSpeed() {
     speedIndex = (speedIndex + 1) % speedOptions.length;
-    let spd = speedOptions[speedIndex];
-    audio.playbackRate = spd;
-    ahegaoAudio.playbackRate = spd;
-    document.getElementById("btn-speed").innerText = `⚡ ${spd}x`;
-    showToast(`播放速度調整為：${spd}x`);
+    let sp = speedOptions[speedIndex];
+    audio.playbackRate = sp;
+    ahegaoAudio.playbackRate = sp;
+    const btn = document.getElementById("btn-speed");
+    btn.innerText = `⚡ ${sp}x`;
+    showToast(`已調整播放速度：${sp}x`);
   }
 
   function toggleSleepTimer() {
-    if (sleepTimerTimeout) {
-      clearTimeout(sleepTimerTimeout);
-      sleepTimerTimeout = null;
-      sleepTimerMinutes = 0;
-      document.getElementById("btn-sleep-timer").innerText = "🌙 關閉定時";
+    const minutesList = [0, 15, 30, 45, 60, 90];
+    let currentIdx = minutesList.indexOf(sleepTimerMinutes);
+    sleepTimerMinutes = minutesList[(currentIdx + 1) % minutesList.length];
+    
+    if (sleepTimerTimeout) clearTimeout(sleepTimerTimeout);
+    const btn = document.getElementById("btn-sleep-timer");
+
+    if (sleepTimerMinutes === 0) {
+      btn.innerText = "🌙 關閉定時";
+      btn.classList.remove("active");
       showToast("已取消睡眠定時");
-      return;
+    } else {
+      btn.innerText = `🌙 ${sleepTimerMinutes}分`;
+      btn.classList.add("active");
+      showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動暫停`);
+      sleepTimerTimeout = setTimeout(() => {
+        audio.pause();
+        if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
+        minimizePlayer();
+        showToast("🌙 睡眠定時已時間到，已自動暫停播放");
+      }, sleepTimerMinutes * 60 * 1000);
     }
-    let mins = prompt("請輸入幾分鐘後自動停止播放 (例如 15, 30, 60)：", "30");
-    if (mins === null) return;
-    sleepTimerMinutes = parseInt(mins, 10);
-    if (isNaN(sleepTimerMinutes) || sleepTimerMinutes <= 0) return alert("請輸入有效的數字！");
-
-    document.getElementById("btn-sleep-timer").innerText = `🌙 ${sleepTimerMinutes}分`;
-    document.getElementById("btn-sleep-timer").classList.add("active");
-    showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動暫停`);
-
-    sleepTimerTimeout = setTimeout(() => {
-      audio.pause();
-      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
-      document.getElementById("btn-play").innerText = "▶";
-      document.getElementById("btn-sleep-timer").innerText = "🌙 關閉定時";
-      document.getElementById("btn-sleep-timer").classList.remove("active");
-      sleepTimerTimeout = null;
-      showToast("💤 時間到，已自動停止播放");
-    }, sleepTimerMinutes * 60 * 1000);
   }
 
-  async function uploadCurrentTrackLrc(e) {
-    if (currentIndex === -1) return alert("目前沒有播放中的篇章！");
+  function uploadCurrentTrackLrc(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const text = await file.text();
-    const track = currentTrackList[currentIndex];
-    track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      showToast("✅ 字幕已成功更新！");
-      if (currentActiveAlbumId) renderDetailView(currentActiveAlbumId);
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      let text = evt.target.result;
+      if (currentIndex !== -1 && currentTrackList[currentIndex]) {
+        let track = currentTrackList[currentIndex];
+        track.lrcText = text;
+        currentLrc = parseUniversalLyrics(text);
+        if (db) {
+          const tx = db.transaction("tracks", "readwrite");
+          tx.objectStore("tracks").put(track);
+        }
+        showToast("✅ 字幕載入並更新成功！");
+      }
     };
+    reader.readAsText(file);
   }
 
   function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("目前沒有播放中的篇章！");
-    let text = prompt("請貼上您的字幕內容 (.lrc / 逐行文本)：");
+    if (currentIndex === -1) return showToast("請先播放篇章！");
+    let text = prompt("請貼上 LRC / SRT / VTT 字幕文字內容：");
     if (text === null) return;
-    const track = currentTrackList[currentIndex];
+    let track = currentTrackList[currentIndex];
     track.lrcText = text;
     currentLrc = parseUniversalLyrics(text);
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      showToast("✅ 字幕已成功更新！");
-      if (currentActiveAlbumId) renderDetailView(currentActiveAlbumId);
-    };
+    if (db) {
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+    }
+    showToast("✅ 貼上字幕成功！");
   }
 
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("目前沒有播放中的篇章！");
-    const track = currentTrackList[currentIndex];
-    let currentText = track.lrcText || "目前尚無字幕內容";
-    let edited = prompt("檢視與修改目前篇章的字幕內容：", currentText);
-    if (edited === null) return;
-    track.lrcText = edited;
-    currentLrc = parseUniversalLyrics(edited);
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => {
-      showToast("✅ 字幕已更新儲存！");
-      if (currentActiveAlbumId) renderDetailView(currentActiveAlbumId);
-    };
+    if (currentIndex === -1) return showToast("請先播放篇章！");
+    let track = currentTrackList[currentIndex];
+    let newText = prompt("檢視/修改目前字幕內容：", track.lrcText || "");
+    if (newText === null) return;
+    track.lrcText = newText;
+    currentLrc = parseUniversalLyrics(newText);
+    if (db) {
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+    }
+    showToast("✅ 字幕修改儲存成功！");
   }
 </script>
 </body>
