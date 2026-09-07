@@ -93,20 +93,12 @@
     }
     .btn-pink:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255, 121, 198, 0.5); }
 
-    .btn-blue {
-      width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: #ffffff; border: none;
-      padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35); transition: all 0.25s ease;
-    }
-    .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(59, 130, 246, 0.5); }
-
     .btn-green {
       width: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none;
       padding: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; margin-top: 6px; font-size: 1rem;
       box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35); transition: all 0.25s ease;
     }
     .btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5); }
-    .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .page-view { display: none; width: 100%; animation: fadeIn 0.25s ease; }
     .page-view.active { display: block; }
@@ -206,12 +198,16 @@
       top: 0; left: 0; border-radius: 12px;
     }
 
-    /* 愛心玩具與高潮特效 */
+    /* 愛心玩具與高潮特效 - 支援可點擊一鍵高潮 */
     .heart-toy-container {
-      position: absolute; top: 12px; right: 12px; z-index: 25; width: 42px; height: 42px;
-      pointer-events: none; filter: drop-shadow(0 0 6px rgba(255, 121, 198, 0.8));
+      position: absolute; top: 12px; right: 12px; z-index: 30; width: 46px; height: 46px;
+      pointer-events: auto; cursor: pointer; filter: drop-shadow(0 0 6px rgba(255, 121, 198, 0.8));
+      transition: transform 0.15s ease;
+      display: none; /* 預設隱藏，影片區才會啟用 */
     }
-    .heart-svg { width: 100%; height: 100%; }
+    .heart-toy-container:hover { transform: scale(1.12); }
+    .heart-toy-container:active { transform: scale(0.92); }
+    .heart-svg { width: 100%; height: 100%; pointer-events: none; }
 
     .ahegao-center-img {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.85);
@@ -340,9 +336,9 @@
 
   <div id="admin-drawer" class="admin-drawer">
     <div class="glass-card" style="border: 1px solid rgba(255, 121, 198, 0.5); background: rgba(28, 16, 28, 0.9);">
-      <div class="card-title" style="color: var(--primary-pink);">🥵 阿嘿顏高潮專區 (玩具感應與高潮設置)</div>
+      <div class="card-title" style="color: var(--primary-pink);">🥵 阿嘿顏高潮專區 (影片專屬高潮設置)</div>
       <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        當影片右上角的愛心隨聲音緩慢升滿後，將觸發阿嘿顏高潮：畫面晃動、粉色特效、暫停影片聲音並切換播放「高潮聲音檔」，且在畫面中央顯示阿嘿顏圖片。
+        【影片區域專屬】當影片右上角的愛心隨聲音升滿（或直接點擊愛心一鍵高潮）後，將觸發阿嘿顏高潮：畫面晃動、粉光特效、暫停影片聲音並切換播放「高潮聲音檔」，且顯示阿嘿顏圖片。
       </div>
       <div class="form-group">
         <label>🖼️ 高潮阿嘿顏圖片 (自動去背景/ PNG 透明)</label>
@@ -355,19 +351,6 @@
       <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="ahegao-remove-bg-check" style="width: auto;" onchange="toggleAutoRemoveBg(event)" checked>
         <label for="ahegao-remove-bg-check" style="margin: 0; cursor: pointer; color: #fff;">開啟阿嘿顏圖片自動白/淺色底去背景處理</label>
-      </div>
-      <button class="btn-pink" onclick="resetHeartToyProgress()">🔄 手動重置愛心填滿進度</button>
-    </div>
-
-    <div class="glass-card" style="border: 1px solid rgba(59, 130, 246, 0.4); background: rgba(16, 24, 39, 0.85);">
-      <div class="card-title" style="color: #60a5fa;">🔄 跨裝置資料無損互通 (電腦 ⇄ 手機同步)</div>
-      <div style="font-size:0.85rem; color:var(--text-sub); margin-bottom:12px; line-height:1.4;">
-        點擊「匯出備份檔案」會將所有作品、音效 Blob 與字幕轉為 json 備份檔。在另一台裝置點擊「匯入備份檔案」即可完整還原！
-      </div>
-      <button class="btn-blue" id="btn-export-backup" onclick="exportDataBackup()">📤 1. 匯出完整無損備份檔案 (電腦/手機)</button>
-      <div class="form-group" style="margin-top: 12px;">
-        <label>📥 2. 匯入備份檔案 (接收端裝置)</label>
-        <input type="file" id="import-backup-input" accept=".json,application/json" onchange="importDataBackup(event)">
       </div>
     </div>
 
@@ -393,7 +376,7 @@
       </div>
 
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#ff79c6; margin-bottom:8px; font-size:0.95rem;">🎥 專屬影片區域 (上傳影片檔 + 音訊檔 + 字幕)</div>
+        <div style="font-weight:700; color:#ff79c6; margin-bottom:8px; font-size:0.95rem;">🎥 專屬影片區域 (上傳影片檔 + 音訊檔 + 字幕，附愛心高潮功能)</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="video-track-title" placeholder="例如：影片專屬第一章"></div>
         <div class="form-group"><label>影片檔案 (靜音循環播放，時長跟隨音檔)</label><input type="file" id="video-file-input" accept="video/*,.mp4,.webm"></div>
         <div class="form-group"><label>聲音檔 (代替影片音源)</label><input type="file" id="video-audio-input" accept="audio/*,.mp3,.wav,.m4a"></div>
@@ -402,7 +385,7 @@
       </div>
       
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (MP3/音訊區)</div>
+        <div style="font-weight:700; color:#10b981; margin-bottom:8px; font-size:0.95rem;">🚀 1-Click 批量自動匹配上傳 (純 MP3/音訊區，無愛心功能)</div>
         <div class="form-group">
           <label>複選所有音訊檔 (可一次選多個 .mp3/.wav/.m4a)</label>
           <input type="file" id="batch-audios" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac" multiple>
@@ -415,7 +398,7 @@
       </div>
 
       <div style="border-top:1px dashed var(--border-glass); margin:12px 0; padding-top:12px;">
-        <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增 (MP3音訊檔)</div>
+        <div style="font-weight:700; color:var(--text-sub); margin-bottom:8px; font-size:0.88rem;">單一篇章手動新增 (純 MP3音訊檔)</div>
         <div class="form-group"><label>篇章名稱</label><input type="text" id="track-title-input" placeholder="例如：01_開場 (留空則用檔名)"></div>
         <div class="form-group"><label>音訊檔案</label><input type="file" id="track-audio" accept="audio/*,.mp3,.wav,.m4a,.flac,.aac"></div>
         <div class="form-group"><label>字幕/文檔 (全格式支援)</label><input type="file" id="track-lrc" accept=".lrc,.vtt,.srt,.txt"></div>
@@ -460,8 +443,8 @@
 
   <div class="player-scroll-area" id="player-scroll-area">
     <div class="cover-box" id="player-cover-box">
-      <!-- 愛心玩具 -->
-      <div class="heart-toy-container" id="heart-toy-box">
+      <!-- 愛心玩具 (點擊即可一鍵高潮) -->
+      <div class="heart-toy-container" id="heart-toy-box" onclick="oneClickOrgasm(event)" title="點擊一鍵高潮！">
         <svg class="heart-svg" viewBox="0 0 32 32">
           <defs>
             <linearGradient id="heartFillGrad" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -691,7 +674,7 @@
     updateCoverDisplay();
   }
 
-  // --- Web Audio 頻率監測與愛心緩慢填滿系統 ---
+  // --- Web Audio 頻率監測與愛心感應速度提升系統 ---
   function initAudioAnalyzer() {
     if (audioCtx) return;
     try {
@@ -705,23 +688,31 @@
   }
 
   function updateHeartProgress() {
+    if (currentIndex === -1) return;
+    const currentTrack = currentTrackList[currentIndex];
+    
+    // MP3 區與影片區分開：若非影片區篇章，不執行愛心填滿邏輯
+    if (!currentTrack || !currentTrack.videoBlob) return;
+
     if (!audio.paused && analyserNode && !isOrgasmTriggered) {
       const bufferLength = analyserNode.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
       analyserNode.getByteFrequencyData(dataArray);
 
-      // 擷取女性呻吟高頻段 (約 400Hz ~ 2500Hz)
+      // 擷取女性聲音/喘息頻段
       let sum = 0;
       let count = 0;
-      for (let i = 10; i < 60 && i < bufferLength; i++) {
+      for (let i = 8; i < 70 && i < bufferLength; i++) {
         sum += dataArray[i];
         count++;
       }
       let avg = count > 0 ? sum / count : 0;
 
-      // 提升速度非常非常慢 (極微量累加)
-      if (avg > 25) {
-        heartFillPercent += (avg - 25) * 0.00012;
+      // 顯著大幅提升填滿速度，聲音越激烈舒服越快
+      if (avg > 12) {
+        let intensity = (avg - 12) / 30;
+        let speed = 0.08 + Math.pow(intensity, 1.8) * 0.45; // 大幅提升基礎與高頻速度
+        heartFillPercent += speed;
         if (heartFillPercent > 100) heartFillPercent = 100;
         renderHeartUI();
         if (heartFillPercent >= 100) {
@@ -739,6 +730,19 @@
       stop1.setAttribute("offset", pctStr);
       stop2.setAttribute("offset", pctStr);
     }
+  }
+
+  // 一鍵高潮點擊功能
+  function oneClickOrgasm(e) {
+    if (e) e.stopPropagation();
+    if (currentIndex === -1) return showToast("請先選擇影片篇章播放！");
+    const currentTrack = currentTrackList[currentIndex];
+    if (!currentTrack || !currentTrack.videoBlob) {
+      return showToast("⚠️ 愛心高潮功能為【影片專區】專屬！");
+    }
+    heartFillPercent = 100;
+    renderHeartUI();
+    triggerAhegaoOrgasm();
   }
 
   function triggerAhegaoOrgasm() {
@@ -767,7 +771,7 @@
       overlayImg.style.display = "block";
     }
 
-    showToast("🥵 阿嘿顏高潮爆發！愛心已填滿！");
+    showToast("🥵 阿嘿顏高潮爆發！");
 
     // 高潮聲音結束後恢復
     ahegaoAudio.onended = () => {
@@ -792,13 +796,6 @@
     }
   }
 
-  function resetHeartToyProgress() {
-    heartFillPercent = 0;
-    renderHeartUI();
-    resetOrgasmState();
-    showToast("愛心填滿進度已重置");
-  }
-
   // 自動白底去背景演算法
   function processAutoRemoveBg(imgEl) {
     const canvas = document.createElement("canvas");
@@ -814,7 +811,6 @@
       const data = imgData.data;
       for (let i = 0; i < data.length; i += 4) {
         let r = data[i], g = data[i+1], b = data[i+2];
-        // 去除近白色底與灰白底
         if (r > 220 && g > 220 && b > 220) {
           data[i+3] = 0;
         }
@@ -824,27 +820,36 @@
     return canvas;
   }
 
+  // 修正阿嘿顏圖片與音訊上傳備份 BUG (改用 DataURL/FileReader 穩定持久化儲存)
   function saveAhegaoImage(e) {
     const file = e.target.files[0];
     if (!file) return;
-    const img = new Image();
-    img.onload = () => {
-      ahegaoImageElement = img;
-      ahegaoProcessedCanvas = processAutoRemoveBg(img);
-      const tx = db.transaction("settings", "readwrite");
-      tx.objectStore("settings").put({ key: "ahegaoImgBlob", blob: file });
-      showToast("✅ 阿嘿顏高潮圖片已儲存！");
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const img = new Image();
+      img.onload = () => {
+        ahegaoImageElement = img;
+        ahegaoProcessedCanvas = processAutoRemoveBg(img);
+        if (db) {
+          const tx = db.transaction("settings", "readwrite");
+          tx.objectStore("settings").put({ key: "ahegaoImgBlob", blob: file });
+        }
+        showToast("✅ 阿嘿顏高潮圖片已成功儲存！");
+      };
+      img.src = evt.target.result;
     };
-    img.src = createTrackedObjectURL(file);
+    reader.readAsDataURL(file);
   }
 
   function saveAhegaoAudio(e) {
     const file = e.target.files[0];
     if (!file) return;
     ahegaoAudioBlob = file;
-    const tx = db.transaction("settings", "readwrite");
-    tx.objectStore("settings").put({ key: "ahegaoAudioBlob", blob: file });
-    showToast("✅ 高潮聲音檔已儲存！");
+    if (db) {
+      const tx = db.transaction("settings", "readwrite");
+      tx.objectStore("settings").put({ key: "ahegaoAudioBlob", blob: file });
+    }
+    showToast("✅ 高潮聲音檔已成功儲存！");
   }
 
   function toggleAutoRemoveBg(e) {
@@ -902,6 +907,8 @@
     pipCtx.save();
     pipCtx.translate(shakeX, shakeY);
 
+    const isVideoTrackPlaying = (currentIndex !== -1 && currentTrackList[currentIndex] && !!currentTrackList[currentIndex].videoBlob);
+
     if (currentPipMode === 'dynamic') {
       pipCtx.fillStyle = "#07070a";
       pipCtx.fillRect(-20, -20, 1120, 1120);
@@ -927,8 +934,10 @@
         pipCtx.fillRect(0, 0, 1080, 1080);
       }
 
-      // 在 PiP 懸浮畫面繪製右上角小愛心玩具
-      drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
+      // 僅在影片區域繪製懸浮小愛心
+      if (isVideoTrackPlaying) {
+        drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
+      }
 
       // 高潮時繪製中央阿嘿顏圖片
       if (isOrgasmTriggered && ahegaoProcessedCanvas) {
@@ -966,7 +975,9 @@
       pipCtx.lineTo(1100, 310);
       pipCtx.stroke();
 
-      drawHeartToCanvas(pipCtx, 1100, 50, 45, heartFillPercent);
+      if (isVideoTrackPlaying) {
+        drawHeartToCanvas(pipCtx, 1100, 50, 45, heartFillPercent);
+      }
 
       pipCtx.fillStyle = "#ff79c6";
       pipCtx.font = "bold 72px -apple-system, BlinkMacSystemFont, 'PingFang TC', sans-serif";
@@ -1146,12 +1157,16 @@
     };
     tx.objectStore("settings").get("ahegaoImgBlob").onsuccess = (e) => {
       if (e.target.result && e.target.result.blob) {
-        const img = new Image();
-        img.onload = () => {
-          ahegaoImageElement = img;
-          ahegaoProcessedCanvas = processAutoRemoveBg(img);
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const img = new Image();
+          img.onload = () => {
+            ahegaoImageElement = img;
+            ahegaoProcessedCanvas = processAutoRemoveBg(img);
+          };
+          img.src = evt.target.result;
         };
-        img.src = createTrackedObjectURL(e.target.result.blob);
+        reader.readAsDataURL(e.target.result.blob);
       }
     };
     tx.objectStore("settings").get("ahegaoAudioBlob").onsuccess = (e) => {
@@ -1379,7 +1394,7 @@
         <div class="chapter-info-left" onclick="playTrackFromAlbum(${albumId}, ${idx})">
           <div class="play-icon-circle">${isPlayingThis ? '❚❚' : (isVideoTrack ? '🎬' : '▶')}</div>
           <div class="chapter-meta-text">
-            <div class="chapter-name">${escapeHTML(track.title)} ${isVideoTrack ? '<span style="color:#ff79c6;font-size:0.75rem;">[影片]</span>' : ''}</div>
+            <div class="chapter-name">${escapeHTML(track.title)} ${isVideoTrack ? '<span style="color:#ff79c6;font-size:0.75rem;">[影片/愛心專區]</span>' : '<span style="color:#10b981;font-size:0.75rem;">[MP3]</span>'}</div>
             <div class="chapter-duration-sub">${track.lrcText ? '🎵 已載入字幕' : '⚪ 無字幕'}</div>
           </div>
         </div>
@@ -1497,7 +1512,7 @@
       audioInput.value = "";
       lrcInput.value = "";
       loadData();
-      showToast("🎬 影片篇章新增成功！");
+      showToast("🎬 影片專屬篇章新增成功！");
     };
   }
 
@@ -1531,7 +1546,7 @@
       audioInput.value = "";
       lrcInput.value = "";
       loadData();
-      showToast("✅ 單一篇章新增成功！");
+      showToast("✅ 單一 MP3 篇章新增成功！");
     };
   }
 
@@ -1596,7 +1611,7 @@
         btn.disabled = false;
         btn.innerText = "⚡ 一鍵配對並自動匯入篇章";
         loadData();
-        showToast(`✅ 成功批量匯入 ${audios.length} 個篇章並自動配對！`);
+        showToast(`✅ 成功批量匯入 ${audios.length} 個 MP3 篇章並自動配對！`);
       };
 
       tx.onerror = (err) => {
@@ -1660,13 +1675,13 @@
       activeAlbumCoverBlobs = (album && album.covers && album.covers.length > 0) ? album.covers : [];
     }
     activeCoverIndex = 0;
-    buildCoverElements();
+    buildCoverElements(track);
   }
 
-  function buildCoverElements() {
+  function buildCoverElements(track) {
     const box = document.getElementById("player-cover-box");
     box.innerHTML = `
-      <div class="heart-toy-container" id="heart-toy-box">
+      <div class="heart-toy-container" id="heart-toy-box" onclick="oneClickOrgasm(event)" title="點擊一鍵高潮！">
         <svg class="heart-svg" viewBox="0 0 32 32">
           <defs>
             <linearGradient id="heartFillGrad" x1="0%" y1="100%" x2="0%" y2="0%">
@@ -1685,6 +1700,17 @@
       <button class="btn-cover-nav cover-next" onclick="nextCover()">❯</button>
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     `;
+
+    // 判斷是否為影片篇章：只有影片專區才顯示愛心圖示
+    const heartBox = document.getElementById("heart-toy-box");
+    if (track && track.videoBlob) {
+      heartBox.style.display = "flex";
+    } else {
+      heartBox.style.display = "none";
+      heartFillPercent = 0;
+      renderHeartUI();
+    }
+
     coverElements = [];
     cachedCoverElement = null;
 
@@ -1797,6 +1823,15 @@
         album: "ASMR 私人隨身庫",
         artwork: (album && album.covers && album.covers.length > 0) ? [{ src: createTrackedObjectURL(album.covers[0]) }] : []
       });
+    }
+  }
+
+  function initMediaSession() {
+    if ("mediaSession" in navigator) {
+      navigator.mediaSession.setActionHandler("play", () => togglePlay());
+      navigator.mediaSession.setActionHandler("pause", () => togglePlay());
+      navigator.mediaSession.setActionHandler("previoustrack", () => prevTrack());
+      navigator.mediaSession.setActionHandler("nexttrack", () => nextTrack());
     }
   }
 
@@ -1981,6 +2016,13 @@
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
+  function escapeHTML(str) {
+    if (!str) return "";
+    return str.replace(/[&<>'"]/g, 
+      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
+  }
+
   async function uploadCurrentTrackLrc(event) {
     if (currentIndex === -1) return;
     const file = event.target.files[0];
@@ -2019,146 +2061,6 @@
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
     tx.oncomplete = () => { showToast("✅ 字幕已修改儲存！"); };
-  }
-
-  function blobToBase64(blob) {
-    return new Promise((resolve) => {
-      if (!blob) resolve(null);
-      const reader = new FileReader();
-      reader.onloadend = () => resolve({ data: reader.result, type: blob.type });
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  function base64ToBlob(base64Obj) {
-    if (!base64Obj || !base64Obj.data) return null;
-    let arr = base64Obj.data.split(',');
-    let mime = base64Obj.type || arr[0].match(/:(.*?);/)[1];
-    let bstr = atob(arr[1]);
-    let n = bstr.length;
-    let u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], { type: mime });
-  }
-
-  async function exportDataBackup() {
-    const btn = document.getElementById("btn-export-backup");
-    btn.disabled = true;
-    btn.innerText = "⏳ 正在打包完整備份與媒體中...";
-
-    try {
-      const tx = db.transaction(["albums", "tracks", "settings"], "readonly");
-      let rawAlbums = [], rawTracks = [], rawSettings = [];
-
-      await new Promise(res => {
-        tx.objectStore("albums").getAll().onsuccess = (e) => { rawAlbums = e.target.result; res(); };
-      });
-      await new Promise(res => {
-        tx.objectStore("tracks").getAll().onsuccess = (e) => { rawTracks = e.target.result; res(); };
-      });
-      await new Promise(res => {
-        tx.objectStore("settings").getAll().onsuccess = (e) => { rawSettings = e.target.result; res(); };
-      });
-
-      let processedAlbums = [];
-      for (let alb of rawAlbums) {
-        let coversB64 = [];
-        if (alb.covers) {
-          for (let c of alb.covers) coversB64.push(await blobToBase64(c));
-        }
-        let bgsB64 = [];
-        if (alb.backgrounds) {
-          for (let b of alb.backgrounds) bgsB64.push(await blobToBase64(b));
-        }
-        processedAlbums.push({ ...alb, covers: coversB64, backgrounds: bgsB64 });
-      }
-
-      let processedTracks = [];
-      for (let trk of rawTracks) {
-        let audioB64 = await blobToBase64(trk.audioBlob);
-        let videoB64 = trk.videoBlob ? await blobToBase64(trk.videoBlob) : null;
-        processedTracks.push({ ...trk, audioBlob: audioB64, videoBlob: videoB64 });
-      }
-
-      let backupObj = { albums: processedAlbums, tracks: processedTracks, settings: rawSettings, version: "v4" };
-
-      const blob = new Blob([JSON.stringify(backupObj)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ASMR_Backup_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-      showToast("✅ 備份檔案已成功下載！");
-    } catch(err) {
-      console.error(err);
-      alert("❌ 備份匯出失敗，請確認設備記憶體是否足夠。");
-    } finally {
-      btn.disabled = false;
-      btn.innerText = "📤 1. 匯出完整無損備份檔案 (電腦/手機)";
-    }
-  }
-
-  async function importDataBackup(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (!confirm("匯入備份將會覆寫現有數據庫，是否繼續？")) return;
-
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        const tx = db.transaction(["albums", "tracks", "settings"], "readwrite");
-        
-        if (data.albums) {
-          let store = tx.objectStore("albums");
-          for (let alb of data.albums) {
-            let restoredCovers = (alb.covers) ? alb.covers.map(c => base64ToBlob(c)).filter(Boolean) : [];
-            let restoredBgs = (alb.backgrounds) ? alb.backgrounds.map(b => base64ToBlob(b)).filter(Boolean) : [];
-            store.put({ ...alb, covers: restoredCovers, backgrounds: restoredBgs });
-          }
-        }
-        if (data.tracks) {
-          let store = tx.objectStore("tracks");
-          for (let trk of data.tracks) {
-            let restoredAudio = base64ToBlob(trk.audioBlob);
-            let restoredVideo = trk.videoBlob ? base64ToBlob(trk.videoBlob) : null;
-            store.put({ ...trk, audioBlob: restoredAudio, videoBlob: restoredVideo });
-          }
-        }
-        if (data.settings) {
-          let store = tx.objectStore("settings");
-          data.settings.forEach(item => store.put(item));
-        }
-
-        tx.oncomplete = () => {
-          loadData();
-          showToast("✅ 跨裝置備份還原成功！");
-        };
-      } catch (err) {
-        console.error(err);
-        alert("❌ 備份檔案解析失敗，請確認檔案正確性。");
-      }
-    };
-    reader.readAsText(file);
-  }
-
-  function initMediaSession() {
-    if ("mediaSession" in navigator) {
-      navigator.mediaSession.setActionHandler('play', () => { togglePlay(); });
-      navigator.mediaSession.setActionHandler('pause', () => { togglePlay(); });
-      navigator.mediaSession.setActionHandler('previoustrack', () => { prevTrack(); });
-      navigator.mediaSession.setActionHandler('nexttrack', () => { nextTrack(); });
-    }
-  }
-
-  function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, 
-      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-    );
   }
 </script>
 </body>
