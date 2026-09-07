@@ -585,7 +585,7 @@
   const preClimaxSfxList = [
     "啪啪！", "啪滋…♥", "咕啾", "噗滋", "啪！啪！", 
     "啾滋", "噗哧", "啪…啪…", "滋啾…", "咕啾…咕啾…",
-    "好深…♥", "頂到了…♥", "嗯啊…♥", "不行了♥", "死變態…♥",
+    "好深…♥", "頂到了…♥", "繼續撞嗯啊…♥", "不行了♥", "死變態…♥",
     "不要停…♥", "內射我…♥", "太快要去了…♥", "好粗…♥", "全部射進去了…♥",
     "深處被撞壞了…♥", "肉棒好硬…♥", "好棒、好滿…♥", "啊哈…好深♥", "淫水噴出來了…♥"
   ];
@@ -593,7 +593,7 @@
   const climaxSfxList = [
     "啊♥", "嗯啊♥", "好舒服♥", "要去了♥", "死變態♥", 
     "要高潮了♥", "嗯嗯…♥", "呀啊♥", "救命♥", "要壞掉了♥",
-    "哈啊…♥", "好深♥", "腦袋空白了♥", "不行了♥", "被幹死了♥",
+    "哈啊…♥", "好深繼續撞♥", "被幹道腦袋空白了♥", "快不行了要被幹壞掉了♥", "被幹死了♥",
     "頂到了♥", "快停下♥", "裡面好熱♥", "要融化了♥", "被變態內射了♥",
     "肚子好脹♥", "肚子裡裝好滿♥", "肚子都是肉棒的形狀♥", "肚子被肉棒撐好大♥", "肚子被幹到凸起來了♥",
     "肚子裡面好舒服♥", "肚子好重繼續內射、精液滿出來了♥", "太快了♥", "要被幹懷孕了♥", "肉棒好厲害♥",
@@ -908,7 +908,8 @@
       el.style.textShadow = "0 0 8px rgba(255, 184, 224, 0.9), 1px 1px 4px rgba(0,0,0,0.8)";
     }
     
-    const animDuration = isClimax ? 2.3 : 2.1;
+    // 高潮前的狀聲詞晚1秒結束（將原本的 2.1 改為 3.1 秒）
+    const animDuration = isClimax ? 2.3 : 3.1;
     el.style.animation = `floatSfxSmoothSafe ${animDuration}s cubic-bezier(0.2, 0.8, 0.2, 1) forwards`;
     
     sfxContainer.appendChild(el);
@@ -963,7 +964,8 @@
     activePipSfxItems = [];
     usedSfxPositions = [];
 
-    for (let i = 0; i < 6; i++) {
+    // 高潮後的狀聲詞每次數量少1個讓畫面更整齊點（將原本的 6 改為 5）
+    for (let i = 0; i < 5; i++) {
       setTimeout(() => spawnSingleSfx(true), i * 250);
     }
 
@@ -2028,110 +2030,49 @@
   }
 
   function toggleSleepTimer() {
-    if (sleepTimerTimeout) {
-      clearTimeout(sleepTimerTimeout);
-      sleepTimerTimeout = null;
-      sleepTimerMinutes = 0;
-      document.getElementById("btn-sleep-timer").innerText = "🌙 關閉定時";
-      document.getElementById("btn-sleep-timer").classList.remove("active");
-      showToast("已取消睡眠定時");
-      return;
+    const times = [0, 15, 30, 45, 60, 90];
+    let idx = times.indexOf(sleepTimerMinutes);
+    idx = (idx + 1) % times.length;
+    sleepTimerMinutes = times[idx];
+
+    if (sleepTimerTimeout) clearTimeout(sleepTimerTimeout);
+
+    const btn = document.getElementById("btn-sleep-timer");
+    if (sleepTimerMinutes === 0) {
+      btn.innerText = "🌙 關閉定時";
+      btn.classList.remove("active");
+      showToast("已關閉睡眠定時");
+    } else {
+      btn.innerText = `🌙 ${sleepTimerMinutes}分`;
+      btn.classList.add("active");
+      showToast(`已設定 ${sleepTimerMinutes} 分鐘後停止播放`);
+      sleepTimerTimeout = setTimeout(() => {
+        audio.pause();
+        if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
+        document.getElementById("btn-play").innerText = "▶";
+        document.getElementById("mini-btn-play").innerText = "▶";
+        sleepTimerMinutes = 0;
+        btn.innerText = "🌙 關閉定時";
+        btn.classList.remove("active");
+        showToast("時間到，已自動停止播放");
+      }, sleepTimerMinutes * 60 * 1000);
     }
-    
-    let mins = prompt("請輸入幾分鐘後自動停止播放 (例如 15, 30, 60)：", "30");
-    if (!mins || isNaN(mins)) return;
-    sleepTimerMinutes = parseInt(mins, 10);
-    document.getElementById("btn-sleep-timer").innerText = `🌙 ${sleepTimerMinutes}分`;
-    document.getElementById("btn-sleep-timer").classList.add("active");
-    showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動停止播放`);
-
-    sleepTimerTimeout = setTimeout(() => {
-      audio.pause();
-      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
-      document.getElementById("btn-play").innerText = "▶";
-      document.getElementById("mini-btn-play").innerText = "▶";
-      toggleSleepTimer();
-      showToast("🌙 定時時間到，已自動暫停播放");
-    }, sleepTimerMinutes * 60 * 1000);
   }
 
-  function uploadCurrentTrackLrc(e) {
-    const file = e.target.files[0];
-    if (!file || currentIndex === -1) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      let text = evt.target.result;
-      const track = currentTrackList[currentIndex];
-      track.lrcText = text;
-      currentLrc = parseUniversalLyrics(text);
-      const tx = db.transaction("tracks", "readwrite");
-      tx.objectStore("tracks").put(track);
-      tx.oncomplete = () => showToast("✅ 字幕更新成功！");
-    };
-    reader.readAsText(file);
-  }
-
-  function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先播放篇章！");
-    let text = prompt("請貼上您的字幕內容 (支援 LRC / SRT / VTT / 純文字)：");
-    if (text === null) return;
-    const track = currentTrackList[currentIndex];
-    track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕貼上並更新成功！");
-  }
-
-  function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先播放篇章！");
-    const track = currentTrackList[currentIndex];
-    let currentText = track.lrcText || "目前無字幕";
-    let newText = prompt("檢視與修改目前字幕內容：", currentText);
-    if (newText === null) return;
-    track.lrcText = newText;
-    currentLrc = parseUniversalLyrics(newText);
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕修改儲存成功！");
-  }
-
-  function formatTime(secs) {
-    if (isNaN(secs)) return "00:00";
-    let m = Math.floor(secs / 60);
-    let s = Math.floor(secs % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  function formatTime(seconds) {
+    if (isNaN(seconds)) return "00:00";
+    let m = Math.floor(seconds / 60);
+    let s = Math.floor(seconds % 60);
+    return `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
   }
 
   function expandPlayer() {
     playerCard.classList.remove("minimized");
-    miniPlayer.classList.add("hidden");
   }
 
   function minimizePlayer() {
     playerCard.classList.add("minimized");
-    if (currentIndex !== -1) {
-      miniPlayer.classList.remove("hidden");
-    }
   }
-
-  window.onload = () => {
-    let savedBg = localStorage.getItem("asmr_quick_global_bg");
-    if (savedBg) {
-      try {
-        let data = JSON.parse(savedBg);
-        if (data.type.startsWith("video")) {
-          bgVideo.style.display = "block";
-          bgVideo.src = data.url;
-          bgVideo.muted = true;
-          bgVideo.play().catch(()=>{});
-        } else {
-          bgImg.style.display = "block";
-          bgImg.src = data.url;
-        }
-      } catch(e) {}
-    }
-  };
 </script>
 </body>
 </html>
