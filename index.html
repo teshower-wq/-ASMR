@@ -209,18 +209,21 @@
     .heart-toy-container:active { transform: scale(0.92); }
     .heart-svg { width: 100%; height: 100%; pointer-events: none; }
 
+    /* 阿嘿顏圖片放大 1.5 倍 (從 scale(0.85) / max 65% 調整為 scale(1.28) / max 95%) */
     .ahegao-center-img {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.85);
-      max-width: 65%; max-height: 65%; z-index: 20; pointer-events: none; display: none;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.28);
+      max-width: 95%; max-height: 95%; z-index: 20; pointer-events: none; display: none;
       filter: drop-shadow(0 0 15px rgba(255, 121, 198, 0.9));
+      object-fit: contain;
     }
 
+    /* 晃動調整為中小型晃動 */
     @keyframes ahegaoShakeAnim {
       0% { transform: translate(0, 0) rotate(0deg); }
-      20% { transform: translate(-6px, 5px) rotate(-3deg); }
-      40% { transform: translate(6px, -5px) rotate(3deg); }
-      60% { transform: translate(-5px, -4px) rotate(-2deg); }
-      80% { transform: translate(5px, 4px) rotate(2deg); }
+      20% { transform: translate(-2.5px, 2px) rotate(-1deg); }
+      40% { transform: translate(2.5px, -2px) rotate(1deg); }
+      60% { transform: translate(-2px, -1.5px) rotate(-0.8deg); }
+      80% { transform: translate(2px, 1.5px) rotate(0.8deg); }
       100% { transform: translate(0, 0) rotate(0deg); }
     }
     .ahegao-shaking {
@@ -341,7 +344,7 @@
         【影片區域專屬】當影片右上角的愛心隨聲音升滿（或直接點擊愛心一鍵高潮）後，將觸發阿嘿顏高潮：畫面晃動、粉光特效、暫停影片聲音並切換播放「高潮聲音檔」，且顯示阿嘿顏圖片。
       </div>
       <div class="form-group">
-        <label>🖼️ 高潮阿嘿顏圖片 (自動去背景/ PNG 透明)</label>
+        <label>🖼️ 高潮阿嘿顏圖片 (支援上傳去背/ PNG 透明圖，保持原圖品質)</label>
         <input type="file" id="ahegao-img-input" accept="image/*" onchange="saveAhegaoImage(event)">
       </div>
       <div class="form-group">
@@ -349,8 +352,8 @@
         <input type="file" id="ahegao-audio-input" accept="audio/*" onchange="saveAhegaoAudio(event)">
       </div>
       <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="ahegao-remove-bg-check" style="width: auto;" onchange="toggleAutoRemoveBg(event)" checked>
-        <label for="ahegao-remove-bg-check" style="margin: 0; cursor: pointer; color: #fff;">開啟阿嘿顏圖片自動白/淺色底去背景處理</label>
+        <input type="checkbox" id="ahegao-remove-bg-check" style="width: auto;" onchange="toggleAutoRemoveBg(event)">
+        <label for="ahegao-remove-bg-check" style="margin: 0; cursor: pointer; color: #fff;">開啟阿嘿顏圖片自動白/淺色底去背景處理 (若已去背請保持關閉)</label>
       </div>
     </div>
 
@@ -459,7 +462,7 @@
         </svg>
       </div>
 
-      <!-- 阿嘿顏高潮圖片容器 -->
+      <!-- 阿嘿顏高潮圖片容器 (放大 1.5 倍) -->
       <img id="ahegao-overlay-img" class="ahegao-center-img" src="" alt="阿嘿顏高潮">
 
       <button class="btn-cover-nav cover-prev" onclick="prevCover()">❮</button>
@@ -542,7 +545,7 @@
   let ahegaoImageElement = null;
   let ahegaoProcessedCanvas = null;
   let ahegaoAudioBlob = null;
-  let autoRemoveBg = true;
+  let autoRemoveBg = false; // 預設關閉自動破壞性去背，完美保留用戶上傳的透明 PNG 檔
   let audioCtx = null;
   let analyserNode = null;
   let audioSourceNode = null;
@@ -674,7 +677,7 @@
     updateCoverDisplay();
   }
 
-  // --- Web Audio 頻率監測與愛心感應速度提升系統 ---
+  // --- Web Audio 頻率監測與愛心速度調整系統 ---
   function initAudioAnalyzer() {
     if (audioCtx) return;
     try {
@@ -691,7 +694,6 @@
     if (currentIndex === -1) return;
     const currentTrack = currentTrackList[currentIndex];
     
-    // MP3 區與影片區分開：若非影片區篇章，不執行愛心填滿邏輯
     if (!currentTrack || !currentTrack.videoBlob) return;
 
     if (!audio.paused && analyserNode && !isOrgasmTriggered) {
@@ -699,7 +701,6 @@
       const dataArray = new Uint8Array(bufferLength);
       analyserNode.getByteFrequencyData(dataArray);
 
-      // 擷取女性聲音/喘息頻段
       let sum = 0;
       let count = 0;
       for (let i = 8; i < 70 && i < bufferLength; i++) {
@@ -708,10 +709,10 @@
       }
       let avg = count > 0 ? sum / count : 0;
 
-      // 顯著大幅提升填滿速度，聲音越激烈舒服越快
+      // 愛心填滿速度：大幅調慢，穩定適中 (不至於太快也不會太慢)
       if (avg > 12) {
         let intensity = (avg - 12) / 30;
-        let speed = 0.08 + Math.pow(intensity, 1.8) * 0.45; // 大幅提升基礎與高頻速度
+        let speed = 0.006 + Math.pow(intensity, 1.5) * 0.035; 
         heartFillPercent += speed;
         if (heartFillPercent > 100) heartFillPercent = 100;
         renderHeartUI();
@@ -760,11 +761,11 @@
       ahegaoAudio.play().catch(()=>{});
     }
 
-    // 2. 觸發阿嘿顏晃動與高潮粉色特效
+    // 2. 觸發中小型晃動與粉色光芒特效
     const coverBox = document.getElementById("player-cover-box");
     coverBox.classList.add("ahegao-shaking", "pink-orgasm-fx");
 
-    // 3. 顯示去背景適當縮放的阿嘿顏圖片
+    // 3. 顯示去背景及放大 1.5 倍的阿嘿顏圖片
     const overlayImg = document.getElementById("ahegao-overlay-img");
     if (ahegaoProcessedCanvas) {
       overlayImg.src = ahegaoProcessedCanvas.toDataURL();
@@ -773,7 +774,6 @@
 
     showToast("🥵 阿嘿顏高潮爆發！");
 
-    // 高潮聲音結束後恢復
     ahegaoAudio.onended = () => {
       resetOrgasmState();
     };
@@ -796,7 +796,7 @@
     }
   }
 
-  // 自動白底去背景演算法
+  // 自動白底去背景演算法 (僅在勾選時運作，預設直接保留原圖透明度)
   function processAutoRemoveBg(imgEl) {
     const canvas = document.createElement("canvas");
     const w = imgEl.naturalWidth || imgEl.width || 300;
@@ -820,7 +820,6 @@
     return canvas;
   }
 
-  // 修正阿嘿顏圖片與音訊上傳備份 BUG (改用 DataURL/FileReader 穩定持久化儲存)
   function saveAhegaoImage(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -857,7 +856,7 @@
     if (ahegaoImageElement) {
       ahegaoProcessedCanvas = processAutoRemoveBg(ahegaoImageElement);
     }
-    showToast(autoRemoveBg ? "已開啟自動去背景" : "已關閉自動去背景");
+    showToast(autoRemoveBg ? "已開啟白底自動去背景" : "已切換為原圖/已去背 PNG 模式");
   }
 
   // --- 懸浮視窗 (PiP) 初始化與幀繪製 ---
@@ -898,10 +897,11 @@
     const currentTime = audio.currentTime;
     let currentText = getActiveSubtitleText(currentTime);
 
+    // 中小型懸浮視窗晃動
     let shakeX = 0, shakeY = 0;
     if (isOrgasmTriggered) {
-      shakeX = (Math.random() - 0.5) * 20;
-      shakeY = (Math.random() - 0.5) * 20;
+      shakeX = (Math.random() - 0.5) * 7;
+      shakeY = (Math.random() - 0.5) * 7;
     }
 
     pipCtx.save();
@@ -928,20 +928,20 @@
         pipCtx.fillText("ASMR 隨身庫", 540, 540);
       }
 
-      // 高潮粉色光芒光暈特效
+      // 高潮粉色光芒特效
       if (isOrgasmTriggered) {
         pipCtx.fillStyle = "rgba(255, 121, 198, 0.25)";
         pipCtx.fillRect(0, 0, 1080, 1080);
       }
 
-      // 僅在影片區域繪製懸浮小愛心
+      // 影片專屬懸浮小愛心
       if (isVideoTrackPlaying) {
         drawHeartToCanvas(pipCtx, 960, 60, 60, heartFillPercent);
       }
 
-      // 高潮時繪製中央阿嘿顏圖片
+      // 高潮時繪製中央阿嘿顏圖片 (尺寸加大 1.5 倍：由 500x500 提升至 750x750)
       if (isOrgasmTriggered && ahegaoProcessedCanvas) {
-        let pW = 500, pH = 500;
+        let pW = 750, pH = 750;
         pipCtx.drawImage(ahegaoProcessedCanvas, 540 - pW/2, 540 - pH/2, pW, pH);
       }
 
@@ -1701,7 +1701,7 @@
       <div class="cover-indicator" id="cover-indicator">1 / 1</div>
     `;
 
-    // 判斷是否為影片篇章：只有影片專區才顯示愛心圖示
+    // 只有影片專區才顯示愛心圖示
     const heartBox = document.getElementById("heart-toy-box");
     if (track && track.videoBlob) {
       heartBox.style.display = "flex";
