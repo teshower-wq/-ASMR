@@ -226,7 +226,7 @@
     }
     .ahegao-switch-anim { animation: ahegaoSwitchAnim 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 
-    /* 狀聲詞動態漂浮容器與精緻視覺升級 (更流暢、美觀、好看) */
+    /* 狀聲詞動態漂浮容器與精緻視覺升級 (完美分散、更流暢、美觀、間隔久、消失快) */
     .sfx-container {
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       pointer-events: none; z-index: 35; overflow: hidden; display: none;
@@ -241,11 +241,11 @@
         2px 2px 5px rgba(0, 0, 0, 0.95);
       white-space: nowrap; user-select: none;
     }
-    @keyframes floatSfxSlower {
-      0% { opacity: 0; transform: translateY(40px) scale(0.55) rotate(-10deg); filter: blur(3px); }
-      15% { opacity: 1; transform: translateY(0px) scale(1.25) rotate(3deg); filter: blur(0px); }
-      70% { opacity: 0.96; transform: translateY(-75px) scale(1.12) rotate(-3deg); filter: blur(0px); }
-      100% { opacity: 0; transform: translateY(-145px) scale(0.88) rotate(9deg); filter: blur(3px); }
+    @keyframes floatSfxSmoothFast {
+      0% { opacity: 0; transform: translateY(20px) scale(0.6) rotate(-8deg); filter: blur(2px); }
+      20% { opacity: 1; transform: translateY(-10px) scale(1.15) rotate(2deg); filter: blur(0px); }
+      75% { opacity: 0.95; transform: translateY(-50px) scale(1.05) rotate(-2deg); filter: blur(0px); }
+      100% { opacity: 0; transform: translateY(-90px) scale(0.85) rotate(6deg); filter: blur(2px); }
     }
 
     @keyframes ahegaoShakeAnim {
@@ -571,7 +571,6 @@
   let isPowerSavingCover = false;
   let currentCoverHeightPx = 280;
 
-  // 阿嘿顏與愛心玩具變數 (支援多圖循序播放與動畫)
   let heartFillPercent = 0;
   let isOrgasmTriggered = false;
   let ahegaoProcessedCanvases = [];
@@ -583,13 +582,11 @@
   let analyserNode = null;
   let audioSourceNode = null;
 
-  // 高潮前專屬抽插狀聲詞
   const preClimaxSfxList = [
     "啪啪！", "啪滋…", "咕啾", "噗滋", "啪！啪！", 
     "啾滋", "噗哧", "啪…啪…", "滋啾…", "咕啾…咕啾…"
   ];
 
-  // 高潮後更色氣且包含肚子部位描寫的狀聲詞清單 (優化流暢與美觀)
   const climaxSfxList = [
     "啊♥", "嗯啊…♥", "好舒服♥", "要去了♥", "好棒♥", 
     "要高潮了♥", "嗯嗯…♥", "呀啊♥", "救命♥", "要壞掉了♥",
@@ -802,7 +799,6 @@
       void overlayImg.offsetWidth;
       overlayImg.classList.add("ahegao-switch-anim");
 
-      // 高潮後每5秒照順序換圖片的同時帶有動畫感
       if (ahegaoSlideTimer) clearInterval(ahegaoSlideTimer);
       ahegaoSlideTimer = setInterval(() => {
         if (!isOrgasmTriggered) return;
@@ -824,14 +820,14 @@
     let posX, posY, overlapping;
     let attempts = 0;
     do {
-      posX = 8 + Math.random() * 76;
-      posY = 20 + Math.random() * 60;
-      overlapping = usedSfxPositions.some(p => Math.abs(p.x - posX) < 22 && Math.abs(p.y - posY) < 15);
+      posX = 12 + Math.random() * 73;
+      posY = 18 + Math.random() * 58;
+      overlapping = usedSfxPositions.some(p => Math.abs(p.x - posX) < 32 && Math.abs(p.y - posY) < 22);
       attempts++;
-    } while (overlapping && attempts < 12);
+    } while (overlapping && attempts < 15);
     
     usedSfxPositions.push({ x: posX, y: posY });
-    if (usedSfxPositions.length > 8) usedSfxPositions.shift();
+    if (usedSfxPositions.length > 6) usedSfxPositions.shift();
     return { x: posX, y: posY };
   }
 
@@ -860,15 +856,16 @@
       el.style.textShadow = "0 0 8px rgba(255, 184, 224, 0.9), 1px 1px 4px rgba(0,0,0,0.8)";
     }
     
-    el.style.animation = `floatSfxSlower ${isClimax ? '14s' : '10s'} cubic-bezier(0.2, 0.8, 0.2, 1) forwards`;
+    // 間隔久一點、消失速度快一點 (動畫時間設為 4.2s 讓其快速且流暢消失)
+    el.style.animation = `floatSfxSmoothFast ${isClimax ? '4.2s' : '3.8s'} cubic-bezier(0.2, 0.8, 0.2, 1) forwards`;
     
     sfxContainer.appendChild(el);
-    setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, isClimax ? 14000 : 10000);
+    setTimeout(() => { if (el && el.parentNode) el.parentNode.removeChild(el); }, isClimax ? 4200 : 3800);
 
     const pipItem = {
       text: text,
-      x: 90 + Math.random() * 900,
-      y: 150 + Math.random() * 780,
+      x: 120 + Math.random() * 840,
+      y: 180 + Math.random() * 720,
       progress: 0,
       life: 1,
       scale: (isClimax ? 0.85 : 0.6) + Math.random() * 0.4,
@@ -878,7 +875,7 @@
     activePipSfxItems.push(pipItem);
   }
 
-  // 隨機產生抽插狀聲詞
+  // 狀聲詞間隔拉長 (從原本 6 秒改為 11 秒出現一次，更為清爽分散)
   setInterval(() => {
     if (currentIndex === -1) return;
     const currentTrack = currentTrackList[currentIndex];
@@ -903,8 +900,8 @@
       if (!isOrgasmTriggered && !audio.paused) {
         spawnSingleSfx(false);
       }
-    }, 200);
-  }, 6000);
+    }, 300);
+  }, 11000);
 
   function startSfxAnimation() {
     const sfxContainer = document.getElementById("sfx-container");
@@ -913,8 +910,8 @@
     activePipSfxItems = [];
     usedSfxPositions = [];
 
-    for (let i = 0; i < 6; i++) {
-      setTimeout(() => spawnSingleSfx(true), i * 350);
+    for (let i = 0; i < 4; i++) {
+      setTimeout(() => spawnSingleSfx(true), i * 700);
     }
 
     sfxLoopTimer = setInterval(() => {
@@ -923,7 +920,7 @@
       } else {
         clearInterval(sfxLoopTimer);
       }
-    }, 800); 
+    }, 1500); 
   }
 
   function resetOrgasmState() {
@@ -1083,14 +1080,14 @@
 
       if (activePipSfxItems.length > 0) {
         activePipSfxItems.forEach((item) => {
-          item.progress += 0.003; 
+          item.progress += 0.008; // 配合較快的消失速度
           let alpha = 1;
           if (item.progress < 0.15) alpha = item.progress / 0.15;
-          else if (item.progress > 0.75) alpha = (1 - item.progress) / 0.25;
+          else if (item.progress > 0.7) alpha = (1 - item.progress) / 0.3;
 
           if (alpha > 0) {
             pipCtx.save();
-            pipCtx.translate(item.x, item.y - (item.progress * 60));
+            pipCtx.translate(item.x, item.y - (item.progress * 40));
             pipCtx.rotate(item.angle);
             pipCtx.scale(item.scale, item.scale);
 
@@ -1559,6 +1556,19 @@
     return parsedLines;
   }
 
+  function getActiveSubtitleText(currentTime) {
+    if (!currentLrc || !currentLrc.length) return "";
+    let activeText = "";
+    for (let i = 0; i < currentLrc.length; i++) {
+      if (currentTime >= currentLrc[i].time) {
+        activeText = currentLrc[i].text;
+      } else {
+        break;
+      }
+    }
+    return activeText;
+  }
+
   function escapeHTML(str) {
     return str.replace(/[&<>'"]/g, 
       tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
@@ -1713,6 +1723,25 @@
     expandPlayer();
   }
 
+  function loadAndPlayCurrentTrack(track, album) {
+    audio.src = createTrackedObjectURL(track.audioBlob);
+    audio.load();
+    audio.play().catch(()=>{});
+    initAudioAnalyzer();
+
+    currentLrc = parseUniversalLyrics(track.lrcText);
+
+    document.getElementById("mini-title").innerText = track.title;
+    document.getElementById("mini-thumb").src = (album && album.covers && album.covers.length > 0) ? createTrackedObjectURL(album.covers[0]) : "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100%' height='100%' fill='%23121218'/></svg>";
+    document.getElementById("album-tag").innerText = album ? `📁 ${album.title} - ${track.title}` : track.title;
+
+    document.getElementById("btn-play").innerText = "❚❚";
+    document.getElementById("mini-btn-play").innerText = "❚❚";
+    document.getElementById("mini-player").classList.remove("hidden");
+
+    resetOrgasmState();
+  }
+
   function setupActiveAlbumCovers(album, track) {
     if (track && track.videoBlob) activeAlbumCoverBlobs = [track.videoBlob];
     else activeAlbumCoverBlobs = (album && album.covers && album.covers.length > 0) ? album.covers : [];
@@ -1808,89 +1837,60 @@
     document.getElementById("cover-indicator").innerText = `${activeCoverIndex + 1} / ${coverElements.length}`;
   }
 
-  function nextCover() { if (!coverElements.length) return; activeCoverIndex = (activeCoverIndex + 1) % coverElements.length; updateCoverDisplay(); }
-  function prevCover() { if (!coverElements.length) return; activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length; updateCoverDisplay(); }
-
-  function loadAndPlayCurrentTrack(track, album) {
-    const audioUrl = createTrackedObjectURL(track.audioBlob);
-    audio.src = audioUrl;
-    audio.playbackRate = speedOptions[speedIndex];
-    
-    initAudioAnalyzer();
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
-    audio.play().then(() => {
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
-    }).catch(e => console.log(e));
-
-    currentLrc = parseUniversalLyrics(track.lrcText);
-    document.getElementById("album-tag").innerText = album ? `📁 ${album.title}` : "📁 ASMR 隨身庫";
-    document.getElementById("mini-title").innerText = track.title;
-    document.getElementById("mini-player").classList.remove("hidden");
+  function nextCover() {
+    if (!coverElements.length) return;
+    activeCoverIndex = (activeCoverIndex + 1) % coverElements.length;
+    updateCoverDisplay();
   }
 
-  function getActiveSubtitleText(currentTime) {
-    if (isOrgasmTriggered) return "";
-    if (!currentLrc || currentLrc.length === 0) return "♪ 享受純淨 ASMR 時光 ♪";
-    let activeText = "";
-    for (let i = 0; i < currentLrc.length; i++) {
-      if (currentTime >= currentLrc[i].time) activeText = currentLrc[i].text;
-      else break;
-    }
-    return activeText || "♪...";
+  function prevCover() {
+    if (!coverElements.length) return;
+    activeCoverIndex = (activeCoverIndex - 1 + coverElements.length) % coverElements.length;
+    updateCoverDisplay();
   }
 
-  audio.addEventListener("timeupdate", () => {
-    if (!isNaN(audio.duration) && audio.duration > 0) {
-      let progress = (audio.currentTime / audio.duration) * 100;
-      seekSlider.value = progress;
+  audio.ontimeupdate = () => {
+    if (audio.duration) {
+      let pct = (audio.currentTime / audio.duration) * 100;
+      seekSlider.value = pct;
       document.getElementById("time-current").innerText = formatTime(audio.currentTime);
       document.getElementById("time-duration").innerText = formatTime(audio.duration);
     }
-  });
 
-  seekSlider.addEventListener("input", () => {
-    if (!isNaN(audio.duration) && audio.duration > 0) {
-      audio.currentTime = (seekSlider.value / 100) * audio.duration;
-    }
-  });
+    let activeText = getActiveSubtitleText(audio.currentTime);
+    const lrcBox = document.getElementById("lrc-box");
+    if (lrcBox) lrcBox.innerText = activeText ? activeText : "♪ 享受沉浸式 ASMR 氛圍 ♪";
+    const miniLrc = document.getElementById("mini-lrc");
+    if (miniLrc) miniLrc.innerText = activeText ? `♪ ${activeText}` : "♪ 點擊展開播放面板";
 
-  volumeSlider.addEventListener("input", () => {
-    audio.volume = volumeSlider.value;
-    lastVolume = audio.volume;
-    document.getElementById("btn-mute").innerText = audio.volume === 0 ? "🔇" : "🔈";
-  });
+    updateHeartProgress();
+  };
 
-  function toggleMute() {
-    if (audio.volume > 0) {
-      lastVolume = audio.volume;
-      audio.volume = 0;
-      volumeSlider.value = 0;
-      document.getElementById("btn-mute").innerText = "🔇";
-    } else {
-      audio.volume = lastVolume || 1;
-      volumeSlider.value = audio.volume;
-      document.getElementById("btn-mute").innerText = "🔈";
-    }
+  function formatTime(seconds) {
+    let m = Math.floor(seconds / 60);
+    let s = Math.floor(seconds % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
   function togglePlay() {
     if (currentIndex === -1) {
-      if (albums.length > 0 && tracks.length > 0) playTrackFromAlbum(albums[0].id, 0);
-      else return showToast("目前沒有可播放的篇章！");
+      if (albums.length > 0 && tracks.length > 0) {
+        playTrackFromAlbum(albums[0].id, 0);
+      } else {
+        showToast("請先建立分區並新增篇章！");
+      }
       return;
     }
     if (audio.paused) {
       audio.play().catch(()=>{});
-      document.getElementById("btn-play").innerText = "⏸";
-      document.getElementById("mini-btn-play").innerText = "⏸";
       if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO' && !isPowerSavingCover) cachedCoverElement.play().catch(()=>{});
+      document.getElementById("btn-play").innerText = "❚❚";
+      document.getElementById("mini-btn-play").innerText = "❚❚";
     } else {
       audio.pause();
+      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
-      if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
     }
   }
 
@@ -1919,8 +1919,37 @@
     }
   };
 
+  seekSlider.oninput = (e) => {
+    if (audio.duration) {
+      audio.currentTime = (e.target.value / 100) * audio.duration;
+    }
+  };
+
+  volumeSlider.oninput = (e) => {
+    audio.volume = e.target.value;
+    ahegaoAudio.volume = e.target.value;
+    lastVolume = audio.volume;
+    const btnMute = document.getElementById("btn-mute");
+    btnMute.innerText = audio.volume === 0 ? "🔇" : "🔈";
+  };
+
+  function toggleMute() {
+    if (audio.volume > 0) {
+      lastVolume = audio.volume;
+      audio.volume = 0;
+      ahegaoAudio.volume = 0;
+      volumeSlider.value = 0;
+      document.getElementById("btn-mute").innerText = "🔇";
+    } else {
+      audio.volume = lastVolume || 1;
+      ahegaoAudio.volume = lastVolume || 1;
+      volumeSlider.value = audio.volume;
+      document.getElementById("btn-mute").innerText = "🔈";
+    }
+  }
+
   function seekRelative(sec) {
-    if (isNaN(audio.duration)) return;
+    if (!audio.duration) return;
     audio.currentTime = Math.min(Math.max(audio.currentTime + sec, 0), audio.duration);
   }
 
@@ -1933,91 +1962,95 @@
 
   function togglePlaybackSpeed() {
     speedIndex = (speedIndex + 1) % speedOptions.length;
-    let rate = speedOptions[speedIndex];
-    audio.playbackRate = rate;
-    const btn = document.getElementById("btn-speed");
-    btn.innerText = `⚡ ${rate}x`;
-    showToast(`播放速度：${rate}x`);
+    let speed = speedOptions[speedIndex];
+    audio.playbackRate = speed;
+    ahegaoAudio.playbackRate = speed;
+    document.getElementById("btn-speed").innerText = `⚡ ${speed}x`;
+    showToast(`播放速度：${speed}x`);
   }
 
   function toggleSleepTimer() {
     if (sleepTimerTimeout) {
       clearTimeout(sleepTimerTimeout);
       sleepTimerTimeout = null;
-      sleepTimerMinutes = 0;
       document.getElementById("btn-sleep-timer").innerText = "🌙 關閉定時";
-      document.getElementById("btn-sleep-timer").classList.remove("active");
       showToast("已取消睡眠定時");
       return;
     }
-    let mins = prompt("請輸入幾分鐘後自動停止播放 (例如 30)：", "30");
-    if (mins === null) return;
-    sleepTimerMinutes = parseInt(mins, 10);
-    if (isNaN(sleepTimerMinutes) || sleepTimerMinutes <= 0) return;
-
-    document.getElementById("btn-sleep-timer").innerText = `🌙 ${sleepTimerMinutes}分`;
-    document.getElementById("btn-sleep-timer").classList.add("active");
-    showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動停止播放`);
-
+    let mins = prompt("請輸入幾分鐘後自動停止播放 (例如 15, 30, 60)：", "30");
+    if (!mins || isNaN(mins)) return;
+    let m = parseInt(mins, 10);
+    sleepTimerMinutes = m;
+    document.getElementById("btn-sleep-timer").innerText = `🌙 ${m}分定時`;
+    showToast(`已設定 ${m} 分鐘後自動停止播放`);
     sleepTimerTimeout = setTimeout(() => {
       audio.pause();
       if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
       document.getElementById("btn-sleep-timer").innerText = "🌙 關閉定時";
-      document.getElementById("btn-sleep-timer").classList.remove("active");
       sleepTimerTimeout = null;
-      showToast("時間到，已自動暫停播放");
-    }, sleepTimerMinutes * 60 * 1000);
+      showToast("時間到，已自動停止播放");
+    }, m * 60 * 1000);
   }
 
-  function formatTime(sec) {
-    let m = Math.floor(sec / 60);
-    let s = Math.floor(sec % 60);
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  function expandPlayer() {
+    playerCard.classList.remove("minimized");
+    miniPlayer.classList.add("hidden");
   }
 
-  function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
-  function minimizePlayer() { playerCard.classList.add("minimized"); if(currentIndex !== -1) miniPlayer.classList.remove("hidden"); }
+  function minimizePlayer() {
+    playerCard.classList.add("minimized");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
+  }
 
-  async function uploadCurrentTrackLrc(e) {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
+  function uploadCurrentTrackLrc(e) {
     const file = e.target.files[0];
-    if (!file) return;
-    let text = await file.text();
-    let track = currentTrackList[currentIndex];
-    track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-    
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕載入成功！");
+    if (!file || currentIndex === -1) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      let lrcText = evt.target.result;
+      let track = currentTrackList[currentIndex];
+      track.lrcText = lrcText;
+      currentLrc = parseUniversalLyrics(lrcText);
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => {
+        loadData();
+        showToast("✅ 當前篇章字幕更新成功！");
+      };
+    };
+    reader.readAsText(file);
   }
 
   function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
-    let text = prompt("請貼上 LRC / SRT / 純文本字幕內容：");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
+    let text = prompt("請貼上字幕/LRC內容：");
     if (text === null) return;
     let track = currentTrackList[currentIndex];
     track.lrcText = text;
     currentLrc = parseUniversalLyrics(text);
-
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕更新成功！");
+    tx.oncomplete = () => {
+      loadData();
+      showToast("✅ 當前篇章字幕貼上並更新成功！");
+    };
   }
 
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return alert("請先播放一個篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     let track = currentTrackList[currentIndex];
-    let newText = prompt("目前篇章的字幕原文：", track.lrcText || "");
+    let newText = prompt("檢視/修改當前字幕：", track.lrcText || "");
     if (newText === null) return;
     track.lrcText = newText;
     currentLrc = parseUniversalLyrics(newText);
-
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕檢視與修改成功！");
+    tx.oncomplete = () => {
+      loadData();
+      showToast("✅ 字幕修改成功！");
+    };
   }
 </script>
 </body>
