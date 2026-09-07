@@ -1561,13 +1561,14 @@
     return parsedLines;
   }
 
-  /* 修正字幕同步與高潮時隱藏字幕需求 */
+  /* 修正字幕偷跑與音檔不同步 Bug：加入時間補償偏移量 (延後 0.35 秒顯示，確保音檔與字幕完美同步) */
+  const SUBTITLE_SYNC_OFFSET = 0.35; 
   function getActiveSubtitleText(currentTime) {
     if (isOrgasmTriggered) return ""; // 高潮時不顯示字幕暫停隱藏
     if (!currentLrc || !currentLrc.length) return "";
     let activeText = "";
     for (let i = 0; i < currentLrc.length; i++) {
-      if (currentTime >= currentLrc[i].time) {
+      if (currentTime >= (currentLrc[i].time + SUBTITLE_SYNC_OFFSET)) {
         activeText = currentLrc[i].text;
       } else {
         break;
@@ -1989,88 +1990,93 @@
       showToast("已取消睡眠定時");
       return;
     }
-    let mins = prompt("請輸入幾分鐘後自動停止播放：", "30");
-    if (!mins) return;
+    let mins = prompt("請輸入幾分鐘後關閉音樂：", "30");
+    if (mins === null) return;
     sleepTimerMinutes = parseInt(mins, 10);
     if (isNaN(sleepTimerMinutes) || sleepTimerMinutes <= 0) return;
-    
-    document.getElementById("btn-sleep-timer").innerText = `🌙 ${sleepTimerMinutes}分`;
-    document.getElementById("btn-sleep-timer").classList.add("active");
-    showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動停止`);
-
     sleepTimerTimeout = setTimeout(() => {
       audio.pause();
       if (cachedCoverElement && cachedCoverElement.tagName === 'VIDEO') cachedCoverElement.pause();
       document.getElementById("btn-play").innerText = "▶";
       document.getElementById("mini-btn-play").innerText = "▶";
-      document.getElementById("btn-sleep-timer").innerText = "🌙 關閉定時";
-      document.getElementById("btn-sleep-timer").classList.remove("active");
-      sleepTimerTimeout = null;
-      showToast("時間到，已自動停止播放");
+      showToast("🌙 睡眠定時時間到，已自動關閉播放");
+      toggleSleepTimer();
     }, sleepTimerMinutes * 60 * 1000);
+    document.getElementById("btn-sleep-timer").innerText = `🌙 ${sleepTimerMinutes}分定時`;
+    showToast(`已設定 ${sleepTimerMinutes} 分鐘後自動關閉`);
   }
 
-  function toggleMute() {
-    if (audio.muted) {
-      audio.muted = false;
-      document.getElementById("btn-mute").innerText = "🔈";
-      volumeSlider.value = lastVolume;
-      audio.volume = lastVolume;
-    } else {
-      lastVolume = audio.volume;
-      audio.muted = true;
-      document.getElementById("btn-mute").innerText = "🔇";
-      volumeSlider.value = 0;
-    }
+  function expandPlayer() {
+    playerCard.classList.remove("minimized");
+    miniPlayer.classList.add("hidden");
+  }
+
+  function minimizePlayer() {
+    playerCard.classList.add("minimized");
+    if (currentIndex !== -1) miniPlayer.classList.remove("hidden");
   }
 
   volumeSlider.addEventListener('input', () => {
     audio.volume = volumeSlider.value;
-    audio.muted = (audio.volume == 0);
-    document.getElementById("btn-mute").innerText = (audio.volume == 0) ? "🔇" : "🔈";
+    lastVolume = audio.volume;
+    updateMuteButtonUI();
   });
 
-  function expandPlayer() { playerCard.classList.remove("minimized"); miniPlayer.classList.add("hidden"); }
-  function minimizePlayer() { playerCard.classList.add("minimized"); miniPlayer.classList.remove("hidden"); }
+  function toggleMute() {
+    if (audio.volume > 0) {
+      lastVolume = audio.volume;
+      audio.volume = 0;
+      volumeSlider.value = 0;
+    } else {
+      audio.volume = lastVolume || 1;
+      volumeSlider.value = audio.volume;
+    }
+    updateMuteButtonUI();
+  }
 
-  async function uploadCurrentTrackLrc(e) {
-    if (currentIndex === -1) return showToast("請先選擇篇章！");
+  function updateMuteButtonUI() {
+    const btn = document.getElementById("btn-mute");
+    btn.innerText = (audio.volume === 0) ? "🔇" : "🔈";
+  }
+
+  function uploadCurrentTrackLrc(e) {
     const file = e.target.files[0];
-    if (!file) return;
-    let text = await file.text();
-    let track = currentTrackList[currentIndex];
-    track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-
-    const tx = db.transaction("tracks", "readwrite");
-    tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => showToast("✅ 字幕匯入成功並已更新！");
+    if (!file || currentIndex === -1) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      let lrcText = evt.target.result;
+      currentLrc = parseUniversalLyrics(lrcText);
+      let track = currentTrackList[currentIndex];
+      track.lrcText = lrcText;
+      const tx = db.transaction("tracks", "readwrite");
+      tx.objectStore("tracks").put(track);
+      tx.oncomplete = () => showToast("✅ 字幕更新成功！");
+    };
+    reader.readAsText(file);
   }
 
   function pasteCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先選擇篇章！");
-    let text = prompt("請貼上 LRC / SRT / 逐字稿內容：");
-    if (text === null) return;
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
+    let lrcText = prompt("請貼上 LRC / 文本字幕內容：");
+    if (lrcText === null) return;
+    currentLrc = parseUniversalLyrics(lrcText);
     let track = currentTrackList[currentIndex];
-    track.lrcText = text;
-    currentLrc = parseUniversalLyrics(text);
-
+    track.lrcText = lrcText;
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { showToast("✅ 字幕貼上成功並已更新！"); };
+    tx.oncomplete = () => showToast("✅ 貼上字幕成功！");
   }
 
   function inspectCurrentTrackLrc() {
-    if (currentIndex === -1) return showToast("請先選擇篇章！");
+    if (currentIndex === -1) return showToast("請先播放一個篇章！");
     let track = currentTrackList[currentIndex];
-    let newText = prompt("目前篇章的字幕原始碼：", track.lrcText || "");
-    if (newText === null) return;
-    track.lrcText = newText;
-    currentLrc = parseUniversalLyrics(newText);
-
+    let newLrc = prompt("檢視/修改目前字幕文本：", track.lrcText || "");
+    if (newLrc === null) return;
+    currentLrc = parseUniversalLyrics(newLrc);
+    track.lrcText = newLrc;
     const tx = db.transaction("tracks", "readwrite");
     tx.objectStore("tracks").put(track);
-    tx.oncomplete = () => { showToast("✅ 字幕修改成功！"); };
+    tx.oncomplete = () => showToast("✅ 字幕修改成功！");
   }
 </script>
 </body>
